@@ -8,21 +8,21 @@ Hack, slash, and blast your enemies into pixels in Foxglove, a fast paced and st
 
 - The primary way to fight enemies
 - Good timing will deflect incoming projectiles
-- Unlock alternate melee weapons by completing challenges (stretch goal)
+- [Stretch Goal] Unlock alternate melee weapons by completing challenges
 
-### Magic
+### Magic [Stretch Goal]
 
 - Spells cost Mana, which regenerates when you hit/kill enemies or deflect projectiles
 - Start each run with one spell, but up to three spells can be equipped
 - Randomly selected spells are placed in each level
 - Mana can also be spent on an always available healing spell
 
-### Items (potential stretch goal)
+### Items [Stretch Goal]
 
 - Items provide passive effects that can drastically impact your playstyle (e.g. enemies explode on death, chance strike an enemy with lightning)
 - Items are sometimes dropped by enemies, and can also be found in treasure chests
 
-### Shops
+### Shops [Stretch Goal]
 
 - Each level has a shop which buys and sells items and spells.
 - Shops are protected by mercantile magic, and act as safe zones for the player.
@@ -31,7 +31,7 @@ Hack, slash, and blast your enemies into pixels in Foxglove, a fast paced and st
 
 - Spawn at randomised intervals until the level's boss is defeated
 - Can use either melee or magic
-- Some enemies will spawn carrying an item that grants them additional effects, making them more dangerous but also more valuable
+- [Stretch Goal] Some enemies will spawn carrying an item that grants them additional effects, making them more dangerous but also more valuable
 
 ### Player Actions
 
