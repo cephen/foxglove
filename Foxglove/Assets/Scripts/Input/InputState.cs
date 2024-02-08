@@ -8,16 +8,12 @@ namespace Foxglove.Input {
         /// </summary>
         public float2 Move;
 
-        /// <summary>
-        /// Tuple representation of aim direction and input device type.
-        /// when the bool is true, the float2 represents the mouse position in screen space
-        /// when false, the float2 represents the normalised joystick tilt direction
-        /// </summary>
-        public (float2, bool) Aim;
-
-        /// <summary>
-        /// Whether the attack button is pressed
-        /// </summary>
+        public AimState Aim;
         public bool Attack;
+    }
+
+    public struct AimState {
+        public float2 Target;
+        public bool IsMouseAim;
     }
 }

@@ -35,7 +35,7 @@ namespace Foxglove.Input {
 
             SystemAPI.SetSingleton(new InputState {
                 Move = move,
-                Aim = (aim, isMouseAim),
+                Aim = new AimState { Target = aim, IsMouseAim = isMouseAim },
                 Attack = attack,
             });
         }
