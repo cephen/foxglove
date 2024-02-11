@@ -9,11 +9,19 @@ namespace Foxglove.Input {
         public float2 Move;
 
         public AimState Aim;
-        public bool Attack;
+        public bool Interact;
+        public bool Roll;
+        public bool Flask;
+        public bool Sword;
+        public bool Spell1;
+        public bool Spell2;
+        public bool Spell3;
+        public bool Spell4;
+        public bool Pause;
     }
 
     public struct AimState {
-        public float2 Target;
+        public float2 Value;
         public bool IsMouseAim;
     }
 }

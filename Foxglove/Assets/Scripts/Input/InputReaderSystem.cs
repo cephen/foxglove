@@ -27,16 +27,26 @@ namespace Foxglove.Input {
 
         protected override void OnUpdate() {
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
+            // Normalize input values with a length greater than 1
+            // This preserves partial joystick inputs
+            if (math.lengthsq(move) > 1f) move = math.normalize(move);
 
-            float2 aim = _actions.Gameplay.Aim.ReadValue<Vector2>();
-            bool isMouseAim = _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device);
-
-            bool attack = _actions.Gameplay.Sword.IsPressed();
 
             SystemAPI.SetSingleton(new InputState {
                 Move = move,
-                Aim = new AimState { Target = aim, IsMouseAim = isMouseAim },
-                Attack = attack,
+                Aim = new AimState {
+                    Value = _actions.Gameplay.Aim.ReadValue<Vector2>(),
+                    IsMouseAim = _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
+                },
+                Interact = _actions.Gameplay.Interact.IsPressed(),
+                Sword = _actions.Gameplay.Sword.IsPressed(),
+                Roll = _actions.Gameplay.Roll.IsPressed(),
+                Flask = _actions.Gameplay.Flask.IsPressed(),
+                Spell1 = _actions.Gameplay.Spell1.IsPressed(),
+                Spell2 = _actions.Gameplay.Spell2.IsPressed(),
+                Spell3 = _actions.Gameplay.Spell3.IsPressed(),
+                Spell4 = _actions.Gameplay.Spell4.IsPressed(),
+                Pause = _actions.Gameplay.Pause.IsPressed(),
             });
         }
 
