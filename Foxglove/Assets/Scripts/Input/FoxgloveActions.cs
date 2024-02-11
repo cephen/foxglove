@@ -91,6 +91,42 @@ namespace Foxglove.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Spell1"",
+                    ""type"": ""Button"",
+                    ""id"": ""85dffbbc-4c73-4a9b-aa35-9b5b5419068e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Spell2"",
+                    ""type"": ""Button"",
+                    ""id"": ""c13c52e6-418f-4116-bb06-c2ee2e816156"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Spell3"",
+                    ""type"": ""Button"",
+                    ""id"": ""b5d6e1e3-82ff-46a8-aa09-447d75fa75a4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Spell4"",
+                    ""type"": ""Button"",
+                    ""id"": ""9030ed37-f866-467f-931d-bcc1d9bf5860"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -291,6 +327,94 @@ namespace Foxglove.Input
                     ""action"": ""Pause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6f89e63a-b744-4429-b0b5-578a212ec74c"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Spell1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""efd5b99e-5a9d-4117-ad09-d905ec57299e"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KBM"",
+                    ""action"": ""Spell1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b938a5ef-e30c-480d-89db-e54dd7eae281"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Spell2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b90c0f2e-4b0a-4b2c-ae26-9aa40b85884a"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KBM"",
+                    ""action"": ""Spell2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3a211b96-5f8b-4f53-874d-ca18614c8fe3"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Spell3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c4676c23-e9a8-4cdd-9625-ad288b289210"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KBM"",
+                    ""action"": ""Spell3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""59547f37-078a-41dd-bc56-8530f8ec423d"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Spell4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e1b26dbe-a3b5-499f-a802-b3ce284904f5"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KBM"",
+                    ""action"": ""Spell4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -334,6 +458,10 @@ namespace Foxglove.Input
             m_Gameplay_Roll = m_Gameplay.FindAction("Roll", throwIfNotFound: true);
             m_Gameplay_Flask = m_Gameplay.FindAction("Flask", throwIfNotFound: true);
             m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
+            m_Gameplay_Spell1 = m_Gameplay.FindAction("Spell1", throwIfNotFound: true);
+            m_Gameplay_Spell2 = m_Gameplay.FindAction("Spell2", throwIfNotFound: true);
+            m_Gameplay_Spell3 = m_Gameplay.FindAction("Spell3", throwIfNotFound: true);
+            m_Gameplay_Spell4 = m_Gameplay.FindAction("Spell4", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -402,6 +530,10 @@ namespace Foxglove.Input
         private readonly InputAction m_Gameplay_Roll;
         private readonly InputAction m_Gameplay_Flask;
         private readonly InputAction m_Gameplay_Pause;
+        private readonly InputAction m_Gameplay_Spell1;
+        private readonly InputAction m_Gameplay_Spell2;
+        private readonly InputAction m_Gameplay_Spell3;
+        private readonly InputAction m_Gameplay_Spell4;
         public struct GameplayActions
         {
             private @FoxgloveActions m_Wrapper;
@@ -413,6 +545,10 @@ namespace Foxglove.Input
             public InputAction @Roll => m_Wrapper.m_Gameplay_Roll;
             public InputAction @Flask => m_Wrapper.m_Gameplay_Flask;
             public InputAction @Pause => m_Wrapper.m_Gameplay_Pause;
+            public InputAction @Spell1 => m_Wrapper.m_Gameplay_Spell1;
+            public InputAction @Spell2 => m_Wrapper.m_Gameplay_Spell2;
+            public InputAction @Spell3 => m_Wrapper.m_Gameplay_Spell3;
+            public InputAction @Spell4 => m_Wrapper.m_Gameplay_Spell4;
             public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -443,6 +579,18 @@ namespace Foxglove.Input
                 @Pause.started += instance.OnPause;
                 @Pause.performed += instance.OnPause;
                 @Pause.canceled += instance.OnPause;
+                @Spell1.started += instance.OnSpell1;
+                @Spell1.performed += instance.OnSpell1;
+                @Spell1.canceled += instance.OnSpell1;
+                @Spell2.started += instance.OnSpell2;
+                @Spell2.performed += instance.OnSpell2;
+                @Spell2.canceled += instance.OnSpell2;
+                @Spell3.started += instance.OnSpell3;
+                @Spell3.performed += instance.OnSpell3;
+                @Spell3.canceled += instance.OnSpell3;
+                @Spell4.started += instance.OnSpell4;
+                @Spell4.performed += instance.OnSpell4;
+                @Spell4.canceled += instance.OnSpell4;
             }
 
             private void UnregisterCallbacks(IGameplayActions instance)
@@ -468,6 +616,18 @@ namespace Foxglove.Input
                 @Pause.started -= instance.OnPause;
                 @Pause.performed -= instance.OnPause;
                 @Pause.canceled -= instance.OnPause;
+                @Spell1.started -= instance.OnSpell1;
+                @Spell1.performed -= instance.OnSpell1;
+                @Spell1.canceled -= instance.OnSpell1;
+                @Spell2.started -= instance.OnSpell2;
+                @Spell2.performed -= instance.OnSpell2;
+                @Spell2.canceled -= instance.OnSpell2;
+                @Spell3.started -= instance.OnSpell3;
+                @Spell3.performed -= instance.OnSpell3;
+                @Spell3.canceled -= instance.OnSpell3;
+                @Spell4.started -= instance.OnSpell4;
+                @Spell4.performed -= instance.OnSpell4;
+                @Spell4.canceled -= instance.OnSpell4;
             }
 
             public void RemoveCallbacks(IGameplayActions instance)
@@ -512,6 +672,10 @@ namespace Foxglove.Input
             void OnRoll(InputAction.CallbackContext context);
             void OnFlask(InputAction.CallbackContext context);
             void OnPause(InputAction.CallbackContext context);
+            void OnSpell1(InputAction.CallbackContext context);
+            void OnSpell2(InputAction.CallbackContext context);
+            void OnSpell3(InputAction.CallbackContext context);
+            void OnSpell4(InputAction.CallbackContext context);
         }
     }
 }
