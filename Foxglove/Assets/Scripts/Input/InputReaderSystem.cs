@@ -1,3 +1,4 @@
+﻿using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -8,6 +9,7 @@ namespace Foxglove.Input {
     /// It runs before any gameplay simulation code
     /// </summary>
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderLast = true)]
+    [BurstCompile]
     internal partial class InputReaderSystem : SystemBase {
         private FoxgloveActions _actions;
         private Entity _inputReaderEntity;
@@ -27,6 +29,7 @@ namespace Foxglove.Input {
             _actions.Enable();
         }
 
+        [BurstCompile]
         protected override void OnUpdate() {
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
             // Normalize input values with a length greater than 1
