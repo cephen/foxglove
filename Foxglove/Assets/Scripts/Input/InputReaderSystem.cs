@@ -33,23 +33,22 @@ namespace Foxglove.Input {
             // This preserves partial joystick inputs
             if (math.lengthsq(move) > 1f) move = math.normalize(move);
 
+            ref InputState state = ref SystemAPI.GetSingletonRW<InputState>().ValueRW;
 
-            SystemAPI.SetSingleton(new InputState {
-                Move = move,
-                Aim = new AimState {
-                    Value = _actions.Gameplay.Aim.ReadValue<Vector2>(),
-                    IsMouseAim = _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
-                },
-                Interact = _actions.Gameplay.Interact.IsPressed(),
-                Sword = _actions.Gameplay.Sword.IsPressed(),
-                Roll = _actions.Gameplay.Roll.IsPressed(),
-                Flask = _actions.Gameplay.Flask.IsPressed(),
-                Spell1 = _actions.Gameplay.Spell1.IsPressed(),
-                Spell2 = _actions.Gameplay.Spell2.IsPressed(),
-                Spell3 = _actions.Gameplay.Spell3.IsPressed(),
-                Spell4 = _actions.Gameplay.Spell4.IsPressed(),
-                Pause = _actions.Gameplay.Pause.IsPressed(),
-            });
+            state.Move = move;
+            state.Aim = new AimState {
+                Value = _actions.Gameplay.Aim.ReadValue<Vector2>(),
+                IsMouseAim = _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
+            };
+            state.Interact = _actions.Gameplay.Interact.IsPressed();
+            state.Sword = _actions.Gameplay.Sword.IsPressed();
+            state.Roll = _actions.Gameplay.Roll.IsPressed();
+            state.Flask = _actions.Gameplay.Flask.IsPressed();
+            state.Spell1 = _actions.Gameplay.Spell1.IsPressed();
+            state.Spell2 = _actions.Gameplay.Spell2.IsPressed();
+            state.Spell3 = _actions.Gameplay.Spell3.IsPressed();
+            state.Spell4 = _actions.Gameplay.Spell4.IsPressed();
+            state.Pause = _actions.Gameplay.Pause.IsPressed();
         }
 
         protected override void OnStopRunning() {
