@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -15,6 +15,8 @@ namespace Foxglove.Input {
         protected override void OnCreate() {
             _actions = new FoxgloveActions();
             RequireForUpdate<InputState>();
+
+            if (SystemAPI.HasSingleton<InputState>()) return;
 
             _inputReaderEntity = EntityManager.CreateEntity();
             EntityManager.SetName(_inputReaderEntity, "Input State");
