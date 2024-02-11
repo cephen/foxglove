@@ -64,7 +64,7 @@
 *.tif                binary diff=lfs merge=lfs
 *.tiff               binary diff=lfs merge=lfs
 *.webp               binary diff=lfs merge=lfs
-*.aseprite			 binary diff=lfs merge=lfs
+*.aseprite           binary diff=lfs merge=lfs
 
 # Compressed Archive
 *.7z                binary diff=lfs merge=lfs
