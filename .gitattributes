@@ -27,6 +27,9 @@
 *.cubemap            binary diff=lfs merge=lfs filter=lfs
 *.unitypackage       binary diff=lfs merge=lfs filter=lfs
 
+# 3D
+*.fbx                binary diff=lfs merge=lfs filter=lfs
+
 # Audio
 *.aif                binary diff=lfs merge=lfs filter=lfs
 *.aiff               binary diff=lfs merge=lfs filter=lfs
