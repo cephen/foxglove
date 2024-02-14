@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unity.addressables": "1.21.19",
+    "com.unity.addressables": "1.21.20",
     "com.unity.charactercontroller": "1.1.0-exp.10",
     "com.unity.cinemachine": "2.9.7",
     "com.unity.ide.rider": "3.0.27",
