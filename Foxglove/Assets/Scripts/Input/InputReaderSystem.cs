@@ -1,4 +1,4 @@
-﻿using Unity.Burst;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -12,21 +12,26 @@ namespace Foxglove.Input {
     [BurstCompile]
     internal partial class InputReaderSystem : SystemBase {
         private FoxgloveActions _actions;
-        private Entity _inputReaderEntity;
+        private Entity _inputStateEntity;
 
         protected override void OnCreate() {
             _actions = new FoxgloveActions();
             RequireForUpdate<InputState>();
 
+            // Only one instance of InputState should exist
             if (SystemAPI.HasSingleton<InputState>()) return;
 
-            _inputReaderEntity = EntityManager.CreateEntity();
-            EntityManager.SetName(_inputReaderEntity, "Input State");
-            EntityManager.AddComponent<InputState>(_inputReaderEntity);
+            _inputStateEntity = EntityManager.CreateEntity();
+            EntityManager.SetName(_inputStateEntity, "Input State");
+            EntityManager.AddComponent<InputState>(_inputStateEntity);
         }
 
         protected override void OnStartRunning() {
             _actions.Enable();
+        }
+
+        protected override void OnStopRunning() {
+            _actions.Disable();
         }
 
         [BurstCompile]
@@ -52,10 +57,6 @@ namespace Foxglove.Input {
             state.Spell3 = _actions.Gameplay.Spell3.IsPressed();
             state.Spell4 = _actions.Gameplay.Spell4.IsPressed();
             state.Pause = _actions.Gameplay.Pause.IsPressed();
-        }
-
-        protected override void OnStopRunning() {
-            _actions.Disable();
         }
     }
 }
