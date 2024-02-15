@@ -41,12 +41,16 @@ namespace Foxglove.Input {
             // This preserves partial joystick inputs
             if (math.lengthsq(move) > 1f) move = math.normalize(move);
 
+            // When game isn't focused, this is null and causes exceptions when constructing AimState
+            bool aimDeviceExists = _actions.Gameplay.Aim.activeControl is not null;
+
             ref InputState state = ref SystemAPI.GetSingletonRW<InputState>().ValueRW;
 
             state.Move = move;
             state.Aim = new AimState {
                 Value = _actions.Gameplay.Aim.ReadValue<Vector2>(),
-                IsMouseAim = _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
+                IsMouseAim = aimDeviceExists
+                             && _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
             };
             state.Interact = _actions.Gameplay.Interact.IsPressed();
             state.Sword = _actions.Gameplay.Sword.IsPressed();
