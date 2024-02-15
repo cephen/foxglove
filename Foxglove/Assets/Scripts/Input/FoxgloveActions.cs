@@ -221,7 +221,7 @@ namespace Foxglove.Input
                 {
                     ""name"": """",
                     ""id"": ""58ff6184-159c-435a-9787-47c335733d57"",
-                    ""path"": ""<Mouse>/position"",
+                    ""path"": ""<Mouse>/delta"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KBM"",
