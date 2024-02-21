@@ -8,6 +8,8 @@ using UnityEngine;
 
 namespace Foxglove.Characters {
     [BurstCompile]
+    [UpdateAfter(typeof(InputReaderSystem))]
+    [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct PlayerCameraController : ISystem {
         private float3 _accumulatedLook;
 

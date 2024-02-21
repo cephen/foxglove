@@ -8,8 +8,8 @@ namespace Foxglove.Input {
     /// This system is responsible for parsing and storing input state.
     /// It runs before any gameplay simulation code
     /// </summary>
-    [UpdateInGroup(typeof(InitializationSystemGroup), OrderLast = true)]
     [BurstCompile]
+    [UpdateInGroup(typeof(InitializationSystemGroup))]
     internal partial class InputReaderSystem : SystemBase {
         private FoxgloveActions _actions;
         private Entity _inputStateEntity;
