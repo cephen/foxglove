@@ -1,4 +1,4 @@
-using Foxglove.Characters;
+﻿using Foxglove.Characters;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,6 +14,7 @@ namespace Foxglove.Camera {
         protected override void OnCreate() {
             RequireForUpdate<PlayerTag>();
             RequireForUpdate<CameraPosition>();
+            RequireForUpdate<CameraTarget>();
         }
 
         [BurstCompile]
