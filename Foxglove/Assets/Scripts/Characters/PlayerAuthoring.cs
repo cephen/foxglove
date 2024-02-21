@@ -20,8 +20,10 @@ namespace Foxglove.Characters {
                     TransformUsageFlags.Dynamic | TransformUsageFlags.WorldSpace);
 
                 AddComponent<PlayerTag>(player);
-                // AddComponent<TargetVelocity>(player);
-                // AddComponent(player, authoring.MotionSettings);
+                AddComponent<CharacterTag>(player);
+                AddComponent<Heading>(player);
+                AddComponent<TargetVelocity>(player);
+                AddComponent(player, authoring.MotionSettings);
                 AddComponent(player, new CameraPosition());
                 AddComponent(player, new CameraTarget());
                 AddComponent(player, new CameraOffset { Value = authoring.CameraOffset });
@@ -29,6 +31,4 @@ namespace Foxglove.Characters {
             }
         }
     }
-
-    public struct PlayerTag : IComponentData { }
 }
