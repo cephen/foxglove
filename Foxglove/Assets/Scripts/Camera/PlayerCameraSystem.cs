@@ -1,10 +1,15 @@
-﻿using Foxglove.Characters;
+using Foxglove.Characters;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Foxglove.Camera {
+    /// <summary>
+    /// Syncs ECS camera position & orientation to main camera.
+    /// Runs in the ECS equivalent of MonoBehaviour.LateUpdate.
+    /// </summary>
     [BurstCompile]
+    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     public partial class PlayerCameraSystem : SystemBase {
         protected override void OnCreate() {
             RequireForUpdate<PlayerTag>();
