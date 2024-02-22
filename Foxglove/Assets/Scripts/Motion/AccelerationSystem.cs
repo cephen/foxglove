@@ -6,7 +6,6 @@ using Unity.Physics.Systems;
 
 namespace Foxglove.Motion {
     [BurstCompile]
-    [UpdateAfter(typeof(PlayerOrientationSystem))]
     [UpdateInGroup(typeof(PhysicsInitializeGroup))]
     public partial class AccelerationSystem : SystemBase {
         protected override void OnCreate() {

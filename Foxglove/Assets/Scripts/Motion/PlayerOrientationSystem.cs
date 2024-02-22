@@ -4,12 +4,10 @@ using Foxglove.Input;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 
 namespace Foxglove.Motion {
     [BurstCompile]
-    [UpdateInGroup(typeof(PhysicsInitializeGroup))]
-    [UpdateBefore(typeof(AccelerationSystem))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class PlayerOrientationSystem : SystemBase {
         protected override void OnCreate() {
             RequireForUpdate<PlayerTag>();
@@ -32,19 +30,6 @@ namespace Foxglove.Motion {
                     heading.Radians = math.acos(multiplied);
                     // Log.Info("Look Direction: {Direction}, Dot Forward {DotF}, Player Heading: {HeadingDegrees}",
                     //     lookDirection, forwardDotLook, heading.Degrees);
-                })
-                .Run();
-
-
-            Entities
-                .WithAll<PlayerTag>()
-                .ForEach((ref TargetVelocity targetVelocity, in Heading heading, in MotionSettings settings) => {
-                    float3 forward = math.forward() * input.Move.y;
-                    float3 right = math.right() * input.Move.x;
-                    float3 totalMove = (forward + right) * settings.MaxHorizontalSpeed;
-
-                    quaternion rotation = quaternion.RotateY(heading.Radians);
-                    targetVelocity.Value = math.rotate(rotation, totalMove);
                 })
                 .Run();
         }
