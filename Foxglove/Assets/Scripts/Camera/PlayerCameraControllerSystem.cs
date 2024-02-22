@@ -1,4 +1,4 @@
-﻿using Foxglove.Camera;
+﻿using Foxglove.Characters;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.Entities;
@@ -6,11 +6,11 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Foxglove.Characters {
+namespace Foxglove.Camera {
     [BurstCompile]
     [UpdateAfter(typeof(InputReaderSystem))]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial struct PlayerCameraController : ISystem {
+    public partial struct PlayerCameraControllerSystem : ISystem {
         private float3 _accumulatedLook;
 
         public void OnCreate(ref SystemState state) {
