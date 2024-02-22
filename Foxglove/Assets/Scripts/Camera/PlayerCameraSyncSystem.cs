@@ -10,7 +10,7 @@ namespace Foxglove.Camera {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
-    public partial class PlayerCameraSystem : SystemBase {
+    public partial class PlayerCameraSyncSystem : SystemBase {
         protected override void OnCreate() {
             RequireForUpdate<PlayerTag>();
             RequireForUpdate<CameraPosition>();
