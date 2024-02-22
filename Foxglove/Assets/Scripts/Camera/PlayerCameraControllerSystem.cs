@@ -10,23 +10,21 @@ namespace Foxglove.Camera {
     [BurstCompile]
     [UpdateAfter(typeof(InputReaderSystem))]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial struct PlayerCameraControllerSystem : ISystem {
+    public partial class PlayerCameraControllerSystem : SystemBase {
         private float3 _accumulatedLook;
 
-        public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<PlayerTag>();
-            state.RequireForUpdate<CameraPosition>();
-            state.RequireForUpdate<CameraTarget>();
-            state.RequireForUpdate<CameraOffset>();
-            state.RequireForUpdate<CameraDistance>();
-            state.RequireForUpdate<InputState>();
+        protected override void OnCreate() {
+            RequireForUpdate<PlayerTag>();
+            RequireForUpdate<CameraPosition>();
+            RequireForUpdate<CameraTarget>();
+            RequireForUpdate<CameraOffset>();
+            RequireForUpdate<CameraDistance>();
+            RequireForUpdate<InputState>();
             _accumulatedLook = float3.zero;
         }
 
-        public void OnDestroy(ref SystemState state) { }
-
         [BurstCompile]
-        public void OnUpdate(ref SystemState state) {
+        protected override void OnUpdate() {
             var input = SystemAPI.GetSingleton<InputState>();
             Entity player = SystemAPI.GetSingletonEntity<PlayerTag>();
             var playerTransform = SystemAPI.GetComponent<LocalTransform>(player);
