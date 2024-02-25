@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 
 namespace Foxglove.Input {
-    public struct InputState : IComponentData {
+    public struct FoxgloveGameplayInput : IComponentData {
         /// <summary>
         /// Input move vector with a max length of 1
         /// </summary>
@@ -28,5 +28,10 @@ namespace Foxglove.Input {
         public float2 Value;
 
         public bool IsMouseAim;
+    }
+
+    public struct LookSensitivity : IComponentData {
+        public float MouseSensitivity;
+        public float GamepadSensitivity;
     }
 }

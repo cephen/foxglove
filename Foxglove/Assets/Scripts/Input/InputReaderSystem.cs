@@ -10,20 +10,20 @@ namespace Foxglove.Input {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    internal partial class InputReaderSystem : SystemBase {
+    internal sealed partial class InputReaderSystem : SystemBase {
         private FoxgloveActions _actions;
         private Entity _inputStateEntity;
 
         protected override void OnCreate() {
             _actions = new FoxgloveActions();
-            RequireForUpdate<InputState>();
+            RequireForUpdate<FoxgloveGameplayInput>();
 
             // Only one instance of InputState should exist
-            if (SystemAPI.HasSingleton<InputState>()) return;
+            if (SystemAPI.HasSingleton<FoxgloveGameplayInput>()) return;
 
             _inputStateEntity = EntityManager.CreateEntity();
             EntityManager.SetName(_inputStateEntity, "Input State");
-            EntityManager.AddComponent<InputState>(_inputStateEntity);
+            EntityManager.AddComponent<FoxgloveGameplayInput>(_inputStateEntity);
         }
 
         protected override void OnStartRunning() {
@@ -44,7 +44,7 @@ namespace Foxglove.Input {
             // When game isn't focused, this is null and causes exceptions when constructing AimState
             bool aimDeviceExists = _actions.Gameplay.Aim.activeControl is not null;
 
-            ref InputState state = ref SystemAPI.GetSingletonRW<InputState>().ValueRW;
+            ref FoxgloveGameplayInput state = ref SystemAPI.GetSingletonRW<FoxgloveGameplayInput>().ValueRW;
 
             state.Move = move;
             state.Aim = new AimState {
