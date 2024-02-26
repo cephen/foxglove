@@ -100,11 +100,11 @@ MonoBehaviour:
     Mass: 1
   RotationSharpness: 35
   GroundMaxSpeed: 12
-  GroundedMovementSharpness: 20
+  GroundedMovementSharpness: 30
   AirAcceleration: 100
   AirMaxSpeed: 15
-  AirDrag: 0
-  JumpSpeed: 5
+  AirDrag: 0.1
+  JumpSpeed: 12
   Gravity:
     x: -0
     y: -30
