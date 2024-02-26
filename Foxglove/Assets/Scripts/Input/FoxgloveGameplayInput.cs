@@ -29,9 +29,4 @@ namespace Foxglove.Input {
 
         public bool IsMouseAim;
     }
-
-    public struct LookSensitivity : IComponentData {
-        public float MouseSensitivity;
-        public float GamepadSensitivity;
-    }
 }
