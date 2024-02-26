@@ -9,8 +9,41 @@ namespace Foxglove.Player {
     // implementing IKinematicCharacterProcessor on this aspect allows centralised physics integration of any character
     public readonly partial struct FoxgloveCharacterAspect : IAspect,
         IKinematicCharacterProcessor<FoxgloveCharacterUpdateContext> {
+        // having another aspect as a field means components from that aspect are required to satisfy this aspect.
         public readonly KinematicCharacterAspect KinematicCharacter;
+
+        // These additional component types are needed to simulate character motion
         public readonly RefRW<FoxgloveCharacterSettings> CharacterSettings;
+        public readonly RefRW<FoxgloveCharacterControl> CharacterControl;
+
+        /// <summary>
+        /// Called every frame for each character.
+        /// </summary>
+        public void FrameUpdate(
+            ref FoxgloveCharacterUpdateContext foxgloveContext,
+            ref KinematicCharacterUpdateContext kinematicContext
+        ) {
+            FoxgloveCharacterControl characterControl = CharacterControl.ValueRO;
+            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
+            ref quaternion characterRotation = ref KinematicCharacter.LocalTransform.ValueRW.Rotation;
+
+            // Add rotation from parent body to the character rotation
+            // (this allows a rotating moving platform to rotate riding characters as well, and handle interpolation properly)
+            // Thanks, Unity
+            KinematicCharacterUtilities.AddVariableRateRotationFromFixedRateRotation(
+                ref characterRotation, // Rotation to modify
+                characterBody.RotationFromParent, // Modification amount
+                kinematicContext.Time.DeltaTime,
+                characterBody.LastPhysicsUpdateDeltaTime // time since last physics update
+            );
+
+            // Rotate towards move direction
+            if (math.lengthsq(characterControl.MoveVector) > 0f)
+                CharacterControlUtilities.SlerpRotationTowardsDirectionAroundUp(ref characterRotation,
+                    kinematicContext.Time.DeltaTime, math.normalizesafe(characterControl.MoveVector),
+                    MathUtilities.GetUpFromRotation(characterRotation), characterSettings.RotationSharpness);
+        }
 
 #region Character Processor Callbacks
 
