@@ -66,7 +66,7 @@ namespace Foxglove.Input
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Roll"",
+                    ""name"": ""Jump"",
                     ""type"": ""Button"",
                     ""id"": ""db756982-ca3b-4aba-b435-1d6c7f1f979d"",
                     ""expectedControlType"": ""Button"",
@@ -258,7 +258,7 @@ namespace Foxglove.Input
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
-                    ""action"": ""Roll"",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -269,7 +269,7 @@ namespace Foxglove.Input
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KBM"",
-                    ""action"": ""Roll"",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -455,7 +455,7 @@ namespace Foxglove.Input
             m_Gameplay_Aim = m_Gameplay.FindAction("Aim", throwIfNotFound: true);
             m_Gameplay_Interact = m_Gameplay.FindAction("Interact", throwIfNotFound: true);
             m_Gameplay_Sword = m_Gameplay.FindAction("Sword", throwIfNotFound: true);
-            m_Gameplay_Roll = m_Gameplay.FindAction("Roll", throwIfNotFound: true);
+            m_Gameplay_Jump = m_Gameplay.FindAction("Jump", throwIfNotFound: true);
             m_Gameplay_Flask = m_Gameplay.FindAction("Flask", throwIfNotFound: true);
             m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
             m_Gameplay_Spell1 = m_Gameplay.FindAction("Spell1", throwIfNotFound: true);
@@ -527,7 +527,7 @@ namespace Foxglove.Input
         private readonly InputAction m_Gameplay_Aim;
         private readonly InputAction m_Gameplay_Interact;
         private readonly InputAction m_Gameplay_Sword;
-        private readonly InputAction m_Gameplay_Roll;
+        private readonly InputAction m_Gameplay_Jump;
         private readonly InputAction m_Gameplay_Flask;
         private readonly InputAction m_Gameplay_Pause;
         private readonly InputAction m_Gameplay_Spell1;
@@ -542,7 +542,7 @@ namespace Foxglove.Input
             public InputAction @Aim => m_Wrapper.m_Gameplay_Aim;
             public InputAction @Interact => m_Wrapper.m_Gameplay_Interact;
             public InputAction @Sword => m_Wrapper.m_Gameplay_Sword;
-            public InputAction @Roll => m_Wrapper.m_Gameplay_Roll;
+            public InputAction @Jump => m_Wrapper.m_Gameplay_Jump;
             public InputAction @Flask => m_Wrapper.m_Gameplay_Flask;
             public InputAction @Pause => m_Wrapper.m_Gameplay_Pause;
             public InputAction @Spell1 => m_Wrapper.m_Gameplay_Spell1;
@@ -570,9 +570,9 @@ namespace Foxglove.Input
                 @Sword.started += instance.OnSword;
                 @Sword.performed += instance.OnSword;
                 @Sword.canceled += instance.OnSword;
-                @Roll.started += instance.OnRoll;
-                @Roll.performed += instance.OnRoll;
-                @Roll.canceled += instance.OnRoll;
+                @Jump.started += instance.OnJump;
+                @Jump.performed += instance.OnJump;
+                @Jump.canceled += instance.OnJump;
                 @Flask.started += instance.OnFlask;
                 @Flask.performed += instance.OnFlask;
                 @Flask.canceled += instance.OnFlask;
@@ -607,9 +607,9 @@ namespace Foxglove.Input
                 @Sword.started -= instance.OnSword;
                 @Sword.performed -= instance.OnSword;
                 @Sword.canceled -= instance.OnSword;
-                @Roll.started -= instance.OnRoll;
-                @Roll.performed -= instance.OnRoll;
-                @Roll.canceled -= instance.OnRoll;
+                @Jump.started -= instance.OnJump;
+                @Jump.performed -= instance.OnJump;
+                @Jump.canceled -= instance.OnJump;
                 @Flask.started -= instance.OnFlask;
                 @Flask.performed -= instance.OnFlask;
                 @Flask.canceled -= instance.OnFlask;
@@ -669,7 +669,7 @@ namespace Foxglove.Input
             void OnAim(InputAction.CallbackContext context);
             void OnInteract(InputAction.CallbackContext context);
             void OnSword(InputAction.CallbackContext context);
-            void OnRoll(InputAction.CallbackContext context);
+            void OnJump(InputAction.CallbackContext context);
             void OnFlask(InputAction.CallbackContext context);
             void OnPause(InputAction.CallbackContext context);
             void OnSpell1(InputAction.CallbackContext context);

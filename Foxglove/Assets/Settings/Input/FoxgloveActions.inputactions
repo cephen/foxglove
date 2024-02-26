@@ -42,7 +42,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Roll",
+                    "name": "Jump",
                     "type": "Button",
                     "id": "db756982-ca3b-4aba-b435-1d6c7f1f979d",
                     "expectedControlType": "Button",
@@ -234,7 +234,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
-                    "action": "Roll",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -245,7 +245,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KBM",
-                    "action": "Roll",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
