@@ -17,6 +17,7 @@ namespace Foxglove.Input {
         protected override void OnCreate() {
             _actions = new FoxgloveActions();
             RequireForUpdate<FoxgloveGameplayInput>();
+            RequireForUpdate<FixedTickSystem.Singleton>();
 
             // Only one instance of InputState should exist
             if (SystemAPI.HasSingleton<FoxgloveGameplayInput>()) return;
@@ -36,6 +37,7 @@ namespace Foxglove.Input {
 
         [BurstCompile]
         protected override void OnUpdate() {
+            uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
             // Normalize input values with a length greater than 1
             // This preserves partial joystick inputs
@@ -52,15 +54,15 @@ namespace Foxglove.Input {
                 IsMouseAim = aimDeviceExists
                              && _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
             };
-            state.Interact = _actions.Gameplay.Interact.IsPressed();
-            state.Sword = _actions.Gameplay.Sword.IsPressed();
-            state.Roll = _actions.Gameplay.Roll.IsPressed();
-            state.Flask = _actions.Gameplay.Flask.IsPressed();
-            state.Spell1 = _actions.Gameplay.Spell1.IsPressed();
-            state.Spell2 = _actions.Gameplay.Spell2.IsPressed();
-            state.Spell3 = _actions.Gameplay.Spell3.IsPressed();
-            state.Spell4 = _actions.Gameplay.Spell4.IsPressed();
-            state.Pause = _actions.Gameplay.Pause.IsPressed();
+            if (_actions.Gameplay.Interact.IsPressed()) state.Interact.Set(tick);
+            if (_actions.Gameplay.Sword.IsPressed()) state.Sword.Set(tick);
+            if (_actions.Gameplay.Jump.IsPressed()) state.Jump.Set(tick);
+            if (_actions.Gameplay.Flask.IsPressed()) state.Flask.Set(tick);
+            if (_actions.Gameplay.Spell1.IsPressed()) state.Spell1.Set(tick);
+            if (_actions.Gameplay.Spell2.IsPressed()) state.Spell2.Set(tick);
+            if (_actions.Gameplay.Spell3.IsPressed()) state.Spell3.Set(tick);
+            if (_actions.Gameplay.Spell4.IsPressed()) state.Spell4.Set(tick);
+            if (_actions.Gameplay.Pause.IsPressed()) state.Pause.Set(tick);
         }
     }
 }

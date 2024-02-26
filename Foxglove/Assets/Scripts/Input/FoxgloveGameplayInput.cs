@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Foxglove.Input {
@@ -9,15 +9,15 @@ namespace Foxglove.Input {
         public float2 Move;
 
         public AimState Aim;
-        public bool Interact;
-        public bool Roll;
-        public bool Flask;
-        public bool Sword;
-        public bool Spell1;
-        public bool Spell2;
-        public bool Spell3;
-        public bool Spell4;
-        public bool Pause;
+        public FixedInputEvent Interact;
+        public FixedInputEvent Jump;
+        public FixedInputEvent Flask;
+        public FixedInputEvent Sword;
+        public FixedInputEvent Spell1;
+        public FixedInputEvent Spell2;
+        public FixedInputEvent Spell3;
+        public FixedInputEvent Spell4;
+        public FixedInputEvent Pause;
     }
 
     public struct AimState {
