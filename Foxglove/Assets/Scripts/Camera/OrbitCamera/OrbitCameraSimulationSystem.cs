@@ -10,8 +10,8 @@ namespace Foxglove.Camera.OrbitCamera {
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(ThirdPersonPlayerVariableStepControlSystem))]
-    [UpdateAfter(typeof(ThirdPersonCharacterVariableUpdateSystem))]
+    [UpdateAfter(typeof(PlayerVariableStepControlSystem))]
+    [UpdateAfter(typeof(CharacterVariableUpdateSystem))]
     [UpdateBefore(typeof(TransformSystemGroup))]
     public partial struct OrbitCameraSimulationSystem : ISystem {
         [BurstCompile]
