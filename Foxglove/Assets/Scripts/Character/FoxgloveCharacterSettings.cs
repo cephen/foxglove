@@ -3,7 +3,7 @@ using Unity.CharacterController;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Foxglove.Player {
+namespace Foxglove.Character {
     [Serializable]
     public struct FoxgloveCharacterSettings : IComponentData {
         public float RotationSharpness;

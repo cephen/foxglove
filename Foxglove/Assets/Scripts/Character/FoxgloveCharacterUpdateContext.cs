@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace Foxglove.Player.Systems {
+namespace Foxglove.Character {
     /// <summary>
     /// This class manages global state for character updates.
     /// </summary>

@@ -1,23 +1,30 @@
-﻿using Unity.Burst;
+using Foxglove.Player;
+using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.CharacterController;
 using Unity.Entities;
 using Unity.Physics;
+using Unity.Transforms;
 
-namespace Foxglove.Player.Systems {
+namespace Foxglove.Character {
     [BurstCompile]
-    [UpdateInGroup(typeof(KinematicCharacterPhysicsUpdateGroup))]
-    public partial struct CharacterPhysicsUpdateSystem : ISystem {
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(PlayerVariableStepControlSystem))]
+    [UpdateBefore(typeof(TransformSystemGroup))]
+    public partial struct CharacterVariableUpdateSystem : ISystem {
         private EntityQuery _characterQuery;
         private FoxgloveCharacterUpdateContext _foxgloveContext;
         private KinematicCharacterUpdateContext _physicsContext;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            _characterQuery = KinematicCharacterUtilities
-                .GetBaseCharacterQueryBuilder()
-                .WithAll<FoxgloveCharacterSettings, FoxgloveCharacterControl>()
-                .Build(ref state);
+            state.RequireForUpdate<PhysicsWorldSingleton>();
+            _characterQuery =
+                KinematicCharacterUtilities
+                    .GetBaseCharacterQueryBuilder()
+                    .WithAll<FoxgloveCharacterSettings, FoxgloveCharacterControl>()
+                    .Build(ref state);
 
             _foxgloveContext = new FoxgloveCharacterUpdateContext();
             _foxgloveContext.OnSystemCreate(ref state);
@@ -25,7 +32,6 @@ namespace Foxglove.Player.Systems {
             _physicsContext.OnSystemCreate(ref state);
 
             state.RequireForUpdate(_characterQuery);
-            state.RequireForUpdate<PhysicsWorldSingleton>();
         }
 
         [BurstCompile]
@@ -33,23 +39,22 @@ namespace Foxglove.Player.Systems {
             _foxgloveContext.OnSystemUpdate(ref state);
             _physicsContext.OnSystemUpdate(ref state, SystemAPI.Time, SystemAPI.GetSingleton<PhysicsWorldSingleton>());
 
-            var job = new CharacterPhysicsUpdateJob {
+            var job = new ThirdPersonCharacterVariableUpdateJob {
                 FoxgloveContext = _foxgloveContext,
                 PhysicsContext = _physicsContext,
             };
             job.ScheduleParallel();
         }
 
-        public void OnDestroy(ref SystemState state) { }
-
         [BurstCompile]
-        [WithAll(typeof(Simulate))]
-        public partial struct CharacterPhysicsUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
+        [WithAll(typeof(Simulate))] // Only run for entities with Simulate Enabled
+        public partial struct ThirdPersonCharacterVariableUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
             public FoxgloveCharacterUpdateContext FoxgloveContext;
             public KinematicCharacterUpdateContext PhysicsContext;
 
+            // This method is called once per frame for every entity with the required components
             private void Execute(FoxgloveCharacterAspect characterAspect) {
-                characterAspect.PhysicsUpdate(ref FoxgloveContext, ref PhysicsContext);
+                characterAspect.FrameUpdate(ref FoxgloveContext, ref PhysicsContext);
             }
 
             public bool OnChunkBegin(
@@ -62,6 +67,7 @@ namespace Foxglove.Player.Systems {
                 return true;
             }
 
+            // implementation required by IJobEntityChunkBeginEnd, empty because unneeded
             public void OnChunkEnd(
                 in ArchetypeChunk chunk,
                 int unfilteredChunkIndex,

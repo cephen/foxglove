@@ -4,7 +4,7 @@ using Foxglove.Settings;
 using Unity.Burst;
 using Unity.Entities;
 
-namespace Foxglove.Player.Systems {
+namespace Foxglove.Player {
     /// <summary>
     /// Apply inputs that need to be read at a variable rate
     /// </summary>

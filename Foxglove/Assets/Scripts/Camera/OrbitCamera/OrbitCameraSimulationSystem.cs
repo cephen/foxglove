@@ -1,10 +1,11 @@
-﻿using Foxglove.Player.Systems;
+﻿using Foxglove.Character;
 using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using PlayerVariableStepControlSystem = Foxglove.Player.PlayerVariableStepControlSystem;
 
 namespace Foxglove.Camera.OrbitCamera {
     [BurstCompile]

@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Player {
+namespace Foxglove.Character {
     [DisallowMultipleComponent]
     public sealed class CharacterAuthoring : MonoBehaviour {
         public AuthoringKinematicCharacterProperties CharacterProperties =

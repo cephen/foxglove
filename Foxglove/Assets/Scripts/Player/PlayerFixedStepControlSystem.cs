@@ -1,4 +1,5 @@
 using Foxglove.Camera.OrbitCamera;
+using Foxglove.Character;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.CharacterController;
@@ -6,7 +7,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Foxglove.Player.Systems {
+namespace Foxglove.Player {
     /// <summary>
     /// Apply inputs that need to be read at a fixed rate (specifically, movement related inputs)
     /// </summary>

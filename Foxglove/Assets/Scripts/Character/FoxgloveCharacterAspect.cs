@@ -1,10 +1,9 @@
-using Foxglove.Player.Systems;
 using Unity.CharacterController;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 
-namespace Foxglove.Player {
+namespace Foxglove.Character {
     // Aspects are used to query the ECS world for entities with a given set of components.
     // implementing IKinematicCharacterProcessor on this aspect allows centralised physics integration of any character
     public readonly partial struct FoxgloveCharacterAspect : IAspect,
