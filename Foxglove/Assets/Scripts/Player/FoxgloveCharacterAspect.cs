@@ -17,7 +17,142 @@ namespace Foxglove.Player {
         public readonly RefRW<FoxgloveCharacterControl> CharacterControl;
 
         /// <summary>
-        /// Called every frame for each character.
+        /// This method is like GameObject.FixedUpdate, and will process every entity that has the required components.
+        /// Called by <see cref="CharacterPhysicsUpdateSystem.CharacterPhysicsUpdateJob" />
+        /// </summary>
+        /// <param name="foxgloveContext">Contains global game state</param>
+        /// <param name="kinematicContext">Contains global physics state</param>
+        public void PhysicsUpdate(
+            ref FoxgloveCharacterUpdateContext foxgloveContext,
+            ref KinematicCharacterUpdateContext kinematicContext
+        ) {
+            ref FoxgloveCharacterSettings characterSettings = ref CharacterSettings.ValueRW;
+            ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
+            ref float3 characterPosition = ref KinematicCharacter.LocalTransform.ValueRW.Position;
+
+#region First phase of default character update
+
+            KinematicCharacter.Update_Initialize(
+                in this,
+                ref foxgloveContext,
+                ref kinematicContext,
+                ref characterBody,
+                kinematicContext.Time.DeltaTime);
+            KinematicCharacter.Update_ParentMovement(
+                in this,
+                ref foxgloveContext,
+                ref kinematicContext,
+                ref characterBody,
+                ref characterPosition,
+                characterBody.WasGroundedBeforeCharacterUpdate);
+            KinematicCharacter.Update_Grounding(
+                in this,
+                ref foxgloveContext,
+                ref kinematicContext,
+                ref characterBody,
+                ref characterPosition);
+
+#endregion
+
+            // Update desired character velocity after grounding was detected, but before doing additional processing that depends on velocity
+            HandleVelocityControl(ref foxgloveContext, ref kinematicContext);
+
+#region Second phase of default character update
+
+            KinematicCharacter.Update_PreventGroundingFromFutureSlopeChange(in this, ref foxgloveContext,
+                ref kinematicContext,
+                ref characterBody, in characterSettings.StepAndSlopeHandling);
+            KinematicCharacter.Update_GroundPushing(in this, ref foxgloveContext, ref kinematicContext,
+                characterSettings.Gravity);
+            KinematicCharacter.Update_MovementAndDecollisions(in this, ref foxgloveContext, ref kinematicContext,
+                ref characterBody,
+                ref characterPosition);
+            KinematicCharacter.Update_MovingPlatformDetection(ref kinematicContext, ref characterBody);
+            KinematicCharacter.Update_ParentMomentum(ref kinematicContext, ref characterBody);
+            KinematicCharacter.Update_ProcessStatefulCharacterHits();
+
+#endregion
+        }
+
+        /// <summary>
+        /// Transforms a character's control input into a target velocity.
+        /// Called between the first and second phases of the default character update in <see cref="PhysicsUpdate" />
+        /// </summary>
+        private void HandleVelocityControl(
+            ref FoxgloveCharacterUpdateContext foxgloveContext,
+            ref KinematicCharacterUpdateContext kinematicContext
+        ) {
+            float deltaTime = kinematicContext.Time.DeltaTime;
+            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
+            ref FoxgloveCharacterControl characterControl = ref CharacterControl.ValueRW;
+
+            // Rotate move input and velocity to take into account parent rotation
+            if (characterBody.ParentEntity != Entity.Null) {
+                characterControl.MoveVector =
+                    math.rotate(characterBody.RotationFromParent, characterControl.MoveVector);
+                characterBody.RelativeVelocity =
+                    math.rotate(characterBody.RotationFromParent, characterBody.RelativeVelocity);
+            }
+
+            if (characterBody.IsGrounded) {
+                // Move on ground
+                float3 targetVelocity = characterControl.MoveVector * characterSettings.GroundMaxSpeed;
+                // CharacterControlUtilities comes from Unity.CharacterController,
+                // and implements a bunch of functionality I was trying to do manually ;-;
+                CharacterControlUtilities.StandardGroundMove_Interpolated(ref characterBody.RelativeVelocity,
+                    targetVelocity, characterSettings.GroundedMovementSharpness, deltaTime, characterBody.GroundingUp,
+                    characterBody.GroundHit.Normal);
+
+                // Jump
+                // The player doesn't have a jump button but this is here on the off chance I add NPCs that can
+                if (characterControl.Jump)
+                    CharacterControlUtilities.StandardJump(
+                        ref characterBody,
+                        characterBody.GroundingUp * characterSettings.JumpSpeed, // jump velocity
+                        true, // reset velocity before jump
+                        characterBody.GroundingUp // if resetting velocity,  provide up direction
+                    );
+            }
+            else {
+                // Move in air
+                float3 airAcceleration = characterControl.MoveVector * characterSettings.AirAcceleration;
+                if (math.lengthsq(airAcceleration) > math.EPSILON) {
+                    float3 tmpVelocity = characterBody.RelativeVelocity;
+                    CharacterControlUtilities.StandardAirMove(
+                        ref characterBody.RelativeVelocity,
+                        airAcceleration,
+                        characterSettings.AirMaxSpeed,
+                        characterBody.GroundingUp,
+                        deltaTime,
+                        false);
+
+                    // Cancel air acceleration from input if we would hit a non-grounded surface
+                    // (prevents air-climbing slopes at high air accelerations)
+                    if (
+                        characterSettings.PreventAirAccelerationAgainstUngroundedHits
+                        && KinematicCharacter.MovementWouldHitNonGroundedObstruction(
+                            in this,
+                            ref foxgloveContext,
+                            ref kinematicContext,
+                            characterBody.RelativeVelocity * deltaTime,
+                            out ColliderCastHit hit)
+                    )
+                        characterBody.RelativeVelocity = tmpVelocity;
+                }
+
+                // Gravity
+                CharacterControlUtilities.AccelerateVelocity(ref characterBody.RelativeVelocity,
+                    characterSettings.Gravity, deltaTime);
+
+                // Drag
+                CharacterControlUtilities.ApplyDragToVelocity(ref characterBody.RelativeVelocity, deltaTime,
+                    characterSettings.AirDrag);
+            }
+        }
+
+        /// <summary>
+        /// Counterpart to <see cref="PhysicsUpdate" />, called every frame for each character.
         /// </summary>
         public void FrameUpdate(
             ref FoxgloveCharacterUpdateContext foxgloveContext,
