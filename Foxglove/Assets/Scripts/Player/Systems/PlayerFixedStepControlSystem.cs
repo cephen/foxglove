@@ -1,4 +1,4 @@
-﻿using Foxglove.Camera.OrbitCamera;
+using Foxglove.Camera.OrbitCamera;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.CharacterController;
@@ -16,11 +16,13 @@ namespace Foxglove.Player.Systems {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<FoxgloveGameplayInput>();
+            state.RequireForUpdate<FixedTickSystem.Singleton>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ThirdPersonPlayer, Simulate>().Build());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
 
             foreach (ThirdPersonPlayer player in SystemAPI.Query<ThirdPersonPlayer>().WithAll<Simulate>()) {
@@ -54,6 +56,9 @@ namespace Foxglove.Player.Systems {
                 control.MoveVector = input.Move.y * cameraForwardOnUpPlane
                                      + input.Move.x * cameraRight;
                 control.MoveVector = MathUtilities.ClampToMaxLength(control.MoveVector, 1f);
+
+                // Jump
+                control.Jump = input.Jump.IsSet(tick);
 
                 SystemAPI.SetComponent(player.ControlledCharacter, control);
             }
