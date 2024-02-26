@@ -43,22 +43,29 @@ namespace Foxglove.Camera.OrbitCamera {
                 Entity entity,
                 ref OrbitCamera orbitCamera,
                 in OrbitCameraControl cameraControl,
-                in DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer) {
+                in DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer
+            ) {
                 if (OrbitCameraUtilities.TryGetCameraTargetInterpolatedWorldTransform(
                         cameraControl.FollowedCharacterEntity,
                         ref LocalToWorldLookup,
                         ref CameraTargetLookup,
-                        out LocalToWorld targetWorldTransform)) {
-                    quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(targetWorldTransform.Up,
-                        orbitCamera.PlanarForward, orbitCamera.PitchAngle);
+                        out LocalToWorld targetWorldTransform
+                    )) {
+                    quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
+                        targetWorldTransform.Up,
+                        orbitCamera.PlanarForward,
+                        orbitCamera.PitchAngle
+                    );
 
                     float3 cameraForward = math.mul(cameraRotation, math.forward());
                     float3 targetPosition = targetWorldTransform.Position;
 
                     // Distance smoothing
-                    orbitCamera.SmoothedTargetDistance = math.lerp(orbitCamera.SmoothedTargetDistance,
+                    orbitCamera.SmoothedTargetDistance = math.lerp(
+                        orbitCamera.SmoothedTargetDistance,
                         orbitCamera.TargetDistance,
-                        MathUtilities.GetSharpnessInterpolant(orbitCamera.DistanceMovementSharpness, DeltaTime));
+                        MathUtilities.GetSharpnessInterpolant(orbitCamera.DistanceMovementSharpness, DeltaTime)
+                    );
 
                     // Obstruction handling
                     // Obstruction detection is handled here, because we have to adjust the obstruction distance
@@ -67,8 +74,11 @@ namespace Foxglove.Camera.OrbitCamera {
                     if (orbitCamera.ObstructionRadius > 0f) {
                         float obstructionCheckDistance = orbitCamera.SmoothedTargetDistance;
 
-                        var collector = new CameraObstructionHitsCollector(cameraControl.FollowedCharacterEntity,
-                            ignoredEntitiesBuffer, cameraForward);
+                        var collector = new CameraObstructionHitsCollector(
+                            cameraControl.FollowedCharacterEntity,
+                            ignoredEntitiesBuffer,
+                            cameraForward
+                        );
                         PhysicsWorld.SphereCastCustom(
                             targetPosition,
                             orbitCamera.ObstructionRadius,
@@ -76,7 +86,8 @@ namespace Foxglove.Camera.OrbitCamera {
                             obstructionCheckDistance,
                             ref collector,
                             CollisionFilter.Default,
-                            QueryInteraction.IgnoreTriggers);
+                            QueryInteraction.IgnoreTriggers
+                        );
 
                         float newObstructedDistance = obstructionCheckDistance;
                         if (collector.NumHits > 0) {
@@ -85,15 +96,24 @@ namespace Foxglove.Camera.OrbitCamera {
                             // Redo cast with the interpolated body transform to prevent FixedUpdate jitter in obstruction detection
                             if (orbitCamera.PreventFixedUpdateJitter) {
                                 RigidBody hitBody = PhysicsWorld.Bodies[collector.ClosestHit.RigidBodyIndex];
-                                if (LocalToWorldLookup.TryGetComponent(hitBody.Entity,
-                                        out LocalToWorld hitBodyLocalToWorld)) {
+                                if (LocalToWorldLookup.TryGetComponent(
+                                        hitBody.Entity,
+                                        out LocalToWorld hitBodyLocalToWorld
+                                    )) {
                                     // Adjust the rigidbody transform for interpolation, so we can raycast it in that state
                                     hitBody.WorldFromBody = new RigidTransform(
-                                        quaternion.LookRotationSafe(hitBodyLocalToWorld.Forward,
-                                            hitBodyLocalToWorld.Up), hitBodyLocalToWorld.Position);
+                                        quaternion.LookRotationSafe(
+                                            hitBodyLocalToWorld.Forward,
+                                            hitBodyLocalToWorld.Up
+                                        ),
+                                        hitBodyLocalToWorld.Position
+                                    );
 
                                     collector = new CameraObstructionHitsCollector(
-                                        cameraControl.FollowedCharacterEntity, ignoredEntitiesBuffer, cameraForward);
+                                        cameraControl.FollowedCharacterEntity,
+                                        ignoredEntitiesBuffer,
+                                        cameraForward
+                                    );
                                     hitBody.SphereCastCustom(
                                         targetPosition,
                                         orbitCamera.ObstructionRadius,
@@ -101,7 +121,8 @@ namespace Foxglove.Camera.OrbitCamera {
                                         obstructionCheckDistance,
                                         ref collector,
                                         CollisionFilter.Default,
-                                        QueryInteraction.IgnoreTriggers);
+                                        QueryInteraction.IgnoreTriggers
+                                    );
 
                                     if (collector.NumHits > 0)
                                         newObstructedDistance =
@@ -113,24 +134,35 @@ namespace Foxglove.Camera.OrbitCamera {
                         // Update current distance based on obstructed distance
                         if (orbitCamera.ObstructedDistance < newObstructedDistance)
                             // Move outer
-                            orbitCamera.ObstructedDistance = math.lerp(orbitCamera.ObstructedDistance,
+                            orbitCamera.ObstructedDistance = math.lerp(
+                                orbitCamera.ObstructedDistance,
                                 newObstructedDistance,
-                                MathUtilities.GetSharpnessInterpolant(orbitCamera.ObstructionOuterSmoothingSharpness,
-                                    DeltaTime));
+                                MathUtilities.GetSharpnessInterpolant(
+                                    orbitCamera.ObstructionOuterSmoothingSharpness,
+                                    DeltaTime
+                                )
+                            );
                         else if (orbitCamera.ObstructedDistance > newObstructedDistance)
                             // Move inner
-                            orbitCamera.ObstructedDistance = math.lerp(orbitCamera.ObstructedDistance,
+                            orbitCamera.ObstructedDistance = math.lerp(
+                                orbitCamera.ObstructedDistance,
                                 newObstructedDistance,
-                                MathUtilities.GetSharpnessInterpolant(orbitCamera.ObstructionInnerSmoothingSharpness,
-                                    DeltaTime));
+                                MathUtilities.GetSharpnessInterpolant(
+                                    orbitCamera.ObstructionInnerSmoothingSharpness,
+                                    DeltaTime
+                                )
+                            );
                     }
                     else {
                         orbitCamera.ObstructedDistance = orbitCamera.SmoothedTargetDistance;
                     }
 
                     // Place camera at the final distance (includes smoothing and obstructions)
-                    float3 cameraPosition = OrbitCameraUtilities.CalculateCameraPosition(targetPosition, cameraRotation,
-                        orbitCamera.ObstructedDistance);
+                    float3 cameraPosition = OrbitCameraUtilities.CalculateCameraPosition(
+                        targetPosition,
+                        cameraRotation,
+                        orbitCamera.ObstructedDistance
+                    );
 
                     // Write to LtW
                     LocalToWorldLookup[entity] = new LocalToWorld

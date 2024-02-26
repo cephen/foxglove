@@ -15,9 +15,12 @@ namespace Foxglove.Camera.OrbitCamera {
         public sealed class Baker : Baker<CameraTargetAuthoring> {
             public override void Bake(CameraTargetAuthoring authoring) {
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-                AddComponent(entity, new CameraTarget {
-                    TargetEntity = GetEntity(authoring.Target, TransformUsageFlags.Dynamic),
-                });
+                AddComponent(
+                    entity,
+                    new CameraTarget {
+                        TargetEntity = GetEntity(authoring.Target, TransformUsageFlags.Dynamic),
+                    }
+                );
             }
         }
     }

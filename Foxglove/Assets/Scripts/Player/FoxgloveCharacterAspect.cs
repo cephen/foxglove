@@ -37,20 +37,23 @@ namespace Foxglove.Player {
                 ref foxgloveContext,
                 ref kinematicContext,
                 ref characterBody,
-                kinematicContext.Time.DeltaTime);
+                kinematicContext.Time.DeltaTime
+            );
             KinematicCharacter.Update_ParentMovement(
                 in this,
                 ref foxgloveContext,
                 ref kinematicContext,
                 ref characterBody,
                 ref characterPosition,
-                characterBody.WasGroundedBeforeCharacterUpdate);
+                characterBody.WasGroundedBeforeCharacterUpdate
+            );
             KinematicCharacter.Update_Grounding(
                 in this,
                 ref foxgloveContext,
                 ref kinematicContext,
                 ref characterBody,
-                ref characterPosition);
+                ref characterPosition
+            );
 
 #endregion
 
@@ -59,14 +62,26 @@ namespace Foxglove.Player {
 
 #region Second phase of default character update
 
-            KinematicCharacter.Update_PreventGroundingFromFutureSlopeChange(in this, ref foxgloveContext,
+            KinematicCharacter.Update_PreventGroundingFromFutureSlopeChange(
+                in this,
+                ref foxgloveContext,
                 ref kinematicContext,
-                ref characterBody, in characterSettings.StepAndSlopeHandling);
-            KinematicCharacter.Update_GroundPushing(in this, ref foxgloveContext, ref kinematicContext,
-                characterSettings.Gravity);
-            KinematicCharacter.Update_MovementAndDecollisions(in this, ref foxgloveContext, ref kinematicContext,
                 ref characterBody,
-                ref characterPosition);
+                in characterSettings.StepAndSlopeHandling
+            );
+            KinematicCharacter.Update_GroundPushing(
+                in this,
+                ref foxgloveContext,
+                ref kinematicContext,
+                characterSettings.Gravity
+            );
+            KinematicCharacter.Update_MovementAndDecollisions(
+                in this,
+                ref foxgloveContext,
+                ref kinematicContext,
+                ref characterBody,
+                ref characterPosition
+            );
             KinematicCharacter.Update_MovingPlatformDetection(ref kinematicContext, ref characterBody);
             KinematicCharacter.Update_ParentMomentum(ref kinematicContext, ref characterBody);
             KinematicCharacter.Update_ProcessStatefulCharacterHits();
@@ -100,9 +115,14 @@ namespace Foxglove.Player {
                 float3 targetVelocity = characterControl.MoveVector * characterSettings.GroundMaxSpeed;
                 // CharacterControlUtilities comes from Unity.CharacterController,
                 // and implements a bunch of functionality I was trying to do manually ;-;
-                CharacterControlUtilities.StandardGroundMove_Interpolated(ref characterBody.RelativeVelocity,
-                    targetVelocity, characterSettings.GroundedMovementSharpness, deltaTime, characterBody.GroundingUp,
-                    characterBody.GroundHit.Normal);
+                CharacterControlUtilities.StandardGroundMove_Interpolated(
+                    ref characterBody.RelativeVelocity,
+                    targetVelocity,
+                    characterSettings.GroundedMovementSharpness,
+                    deltaTime,
+                    characterBody.GroundingUp,
+                    characterBody.GroundHit.Normal
+                );
 
                 // Jump
                 // The player doesn't have a jump button but this is here on the off chance I add NPCs that can
@@ -125,7 +145,8 @@ namespace Foxglove.Player {
                         characterSettings.AirMaxSpeed,
                         characterBody.GroundingUp,
                         deltaTime,
-                        false);
+                        false
+                    );
 
                     // Cancel air acceleration from input if we would hit a non-grounded surface
                     // (prevents air-climbing slopes at high air accelerations)
@@ -136,18 +157,25 @@ namespace Foxglove.Player {
                             ref foxgloveContext,
                             ref kinematicContext,
                             characterBody.RelativeVelocity * deltaTime,
-                            out ColliderCastHit hit)
+                            out ColliderCastHit hit
+                        )
                     )
                         characterBody.RelativeVelocity = tmpVelocity;
                 }
 
                 // Gravity
-                CharacterControlUtilities.AccelerateVelocity(ref characterBody.RelativeVelocity,
-                    characterSettings.Gravity, deltaTime);
+                CharacterControlUtilities.AccelerateVelocity(
+                    ref characterBody.RelativeVelocity,
+                    characterSettings.Gravity,
+                    deltaTime
+                );
 
                 // Drag
-                CharacterControlUtilities.ApplyDragToVelocity(ref characterBody.RelativeVelocity, deltaTime,
-                    characterSettings.AirDrag);
+                CharacterControlUtilities.ApplyDragToVelocity(
+                    ref characterBody.RelativeVelocity,
+                    deltaTime,
+                    characterSettings.AirDrag
+                );
             }
         }
 
@@ -175,9 +203,13 @@ namespace Foxglove.Player {
 
             // Rotate towards move direction
             if (math.lengthsq(characterControl.MoveVector) > 0f)
-                CharacterControlUtilities.SlerpRotationTowardsDirectionAroundUp(ref characterRotation,
-                    kinematicContext.Time.DeltaTime, math.normalizesafe(characterControl.MoveVector),
-                    MathUtilities.GetUpFromRotation(characterRotation), characterSettings.RotationSharpness);
+                CharacterControlUtilities.SlerpRotationTowardsDirectionAroundUp(
+                    ref characterRotation,
+                    kinematicContext.Time.DeltaTime,
+                    math.normalizesafe(characterControl.MoveVector),
+                    MathUtilities.GetUpFromRotation(characterRotation),
+                    characterSettings.RotationSharpness
+                );
         }
 
 #region Character Processor Callbacks
@@ -213,7 +245,8 @@ namespace Foxglove.Player {
                 ref baseContext,
                 in hit,
                 in characterSettings.StepAndSlopeHandling,
-                groundingEvaluationType);
+                groundingEvaluationType
+            );
         }
 
         public void OnMovementHit(
@@ -242,7 +275,8 @@ namespace Foxglove.Player {
                 hitDistance,
                 characterSettings.StepAndSlopeHandling.StepHandling,
                 characterSettings.StepAndSlopeHandling.MaxStepHeight,
-                characterSettings.StepAndSlopeHandling.CharacterWidthForStepGroundingCheck);
+                characterSettings.StepAndSlopeHandling.CharacterWidthForStepGroundingCheck
+            );
         }
 
         public void OverrideDynamicHitMasses(
@@ -272,7 +306,8 @@ namespace Foxglove.Player {
                 ref characterGroundHit,
                 in velocityProjectionHits,
                 originalVelocityDirection,
-                characterSettings.StepAndSlopeHandling.ConstrainVelocityToGroundPlane);
+                characterSettings.StepAndSlopeHandling.ConstrainVelocityToGroundPlane
+            );
         }
 
 #endregion

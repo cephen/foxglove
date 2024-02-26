@@ -11,23 +11,27 @@ namespace Foxglove.Camera.OrbitCamera {
             ref ComponentLookup<Parent> parentLookup,
             ref ComponentLookup<PostTransformMatrix> postTransformMatrixLookup,
             ref ComponentLookup<CameraTarget> cameraTargetLookup,
-            out float4x4 worldTransform) {
+            out float4x4 worldTransform
+        ) {
             var foundValidCameraTarget = false;
             worldTransform = float4x4.identity;
 
             // Camera target is either defined by the CameraTarget component, or if not, the transform of the followed character
-            if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget) &&
-                localTransformLookup.HasComponent(cameraTarget.TargetEntity)) {
+            if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
+                && localTransformLookup.HasComponent(cameraTarget.TargetEntity)) {
                 TransformHelpers.ComputeWorldTransformMatrix(
                     cameraTarget.TargetEntity,
                     out worldTransform,
                     ref localTransformLookup,
                     ref parentLookup,
-                    ref postTransformMatrixLookup);
+                    ref postTransformMatrixLookup
+                );
                 foundValidCameraTarget = true;
             }
-            else if (localTransformLookup.TryGetComponent(targetCharacterEntity,
-                         out LocalTransform characterLocalTransform)) {
+            else if (localTransformLookup.TryGetComponent(
+                         targetCharacterEntity,
+                         out LocalTransform characterLocalTransform
+                     )) {
                 worldTransform = float4x4.TRS(characterLocalTransform.Position, characterLocalTransform.Rotation, 1f);
                 foundValidCameraTarget = true;
             }
@@ -39,13 +43,14 @@ namespace Foxglove.Camera.OrbitCamera {
             Entity targetCharacterEntity,
             ref ComponentLookup<LocalToWorld> localToWorldLookup,
             ref ComponentLookup<CameraTarget> cameraTargetLookup,
-            out LocalToWorld worldTransform) {
+            out LocalToWorld worldTransform
+        ) {
             var foundValidCameraTarget = false;
             worldTransform = default;
 
             // Get the interpolated transform of the target
-            if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget) &&
-                localToWorldLookup.TryGetComponent(cameraTarget.TargetEntity, out worldTransform))
+            if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
+                && localToWorldLookup.TryGetComponent(cameraTarget.TargetEntity, out worldTransform))
                 foundValidCameraTarget = true;
             else if (localToWorldLookup.TryGetComponent(targetCharacterEntity, out worldTransform))
                 foundValidCameraTarget = true;

@@ -51,7 +51,8 @@ namespace Foxglove.Camera.OrbitCamera {
                         ref ParentLookup,
                         ref PostTransformMatrixLookup,
                         ref CameraTargetLookup,
-                        out float4x4 targetWorldTransform)) return;
+                        out float4x4 targetWorldTransform
+                    )) return;
 
                 float3 targetUp = targetWorldTransform.Up();
                 float3 targetPosition = targetWorldTransform.Translation();
@@ -62,14 +63,19 @@ namespace Foxglove.Camera.OrbitCamera {
                         MathUtilities.CreateRotationWithUpPriority(targetUp, orbitCamera.PlanarForward);
 
                     // Rotation from character parent
-                    if (orbitCamera.RotateWithCharacterParent &&
-                        KinematicCharacterBodyLookup.TryGetComponent(cameraControl.FollowedCharacterEntity,
-                            out KinematicCharacterBody characterBody)) {
+                    if (orbitCamera.RotateWithCharacterParent
+                        && KinematicCharacterBodyLookup.TryGetComponent(
+                            cameraControl.FollowedCharacterEntity,
+                            out KinematicCharacterBody characterBody
+                        )) {
                         // Only consider rotation around the character up, since the camera is already adjusting itself to character up
                         quaternion planarRotationFromParent = characterBody.RotationFromParent;
                         KinematicCharacterUtilities.AddVariableRateRotationFromFixedRateRotation(
-                            ref tmpPlanarRotation, planarRotationFromParent, DeltaTime,
-                            characterBody.LastPhysicsUpdateDeltaTime);
+                            ref tmpPlanarRotation,
+                            planarRotationFromParent,
+                            DeltaTime,
+                            characterBody.LastPhysicsUpdateDeltaTime
+                        );
                     }
 
                     orbitCamera.PlanarForward = MathUtilities.GetForwardFromRotation(tmpPlanarRotation);
@@ -86,8 +92,11 @@ namespace Foxglove.Camera.OrbitCamera {
                     math.clamp(orbitCamera.PitchAngle, orbitCamera.MinPitchAngle, orbitCamera.MaxPitchAngle);
 
                 // Calculate final rotation
-                quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(targetUp,
-                    orbitCamera.PlanarForward, orbitCamera.PitchAngle);
+                quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
+                    targetUp,
+                    orbitCamera.PlanarForward,
+                    orbitCamera.PitchAngle
+                );
 
                 // Distance input
                 // float desiredDistanceMovementFromInput =
@@ -99,8 +108,11 @@ namespace Foxglove.Camera.OrbitCamera {
                 );
 
                 // Calculate camera position (no smoothing or obstructions yet; these are done in the camera late update)
-                float3 cameraPosition = OrbitCameraUtilities.CalculateCameraPosition(targetPosition, cameraRotation,
-                    orbitCamera.TargetDistance);
+                float3 cameraPosition = OrbitCameraUtilities.CalculateCameraPosition(
+                    targetPosition,
+                    cameraRotation,
+                    orbitCamera.TargetDistance
+                );
 
                 // Write back to component
                 LocalTransformLookup[entity] = LocalTransform.FromPositionRotation(cameraPosition, cameraRotation);

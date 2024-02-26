@@ -39,7 +39,9 @@ namespace Foxglove.Player.Systems {
                 if (SystemAPI.HasComponent<OrbitCamera>(player.ControlledCamera)) {
                     var camera = SystemAPI.GetComponent<OrbitCamera>(player.ControlledCamera);
                     cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
-                        characterUp, camera.PlanarForward, camera.PitchAngle
+                        characterUp,
+                        camera.PlanarForward,
+                        camera.PitchAngle
                     );
                 }
 

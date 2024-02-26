@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -36,37 +36,42 @@ namespace Foxglove.Camera.OrbitCamera {
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic | TransformUsageFlags.WorldSpace);
 
                 AddComponent<OrbitCameraControl>(entity);
-                AddComponent(entity, new OrbitCamera {
-                    RotationSpeed = authoring.RotationSpeed,
-                    MaxPitchAngle = authoring.MaxPitchAngle,
-                    MinPitchAngle = authoring.MinPitchAngle,
-                    RotateWithCharacterParent = authoring.RotateWithCharacterParent,
+                AddComponent(
+                    entity,
+                    new OrbitCamera {
+                        RotationSpeed = authoring.RotationSpeed,
+                        MaxPitchAngle = authoring.MaxPitchAngle,
+                        MinPitchAngle = authoring.MinPitchAngle,
+                        RotateWithCharacterParent = authoring.RotateWithCharacterParent,
 
-                    MinDistance = authoring.MinDistance,
-                    MaxDistance = authoring.MaxDistance,
-                    DistanceMovementSpeed = authoring.DistanceMovementSpeed,
-                    DistanceMovementSharpness = authoring.DistanceMovementSharpness,
+                        MinDistance = authoring.MinDistance,
+                        MaxDistance = authoring.MaxDistance,
+                        DistanceMovementSpeed = authoring.DistanceMovementSpeed,
+                        DistanceMovementSharpness = authoring.DistanceMovementSharpness,
 
-                    ObstructionRadius = authoring.ObstructionRadius,
-                    ObstructionInnerSmoothingSharpness = authoring.ObstructionInnerSmoothingSharpness,
-                    ObstructionOuterSmoothingSharpness = authoring.ObstructionOuterSmoothingSharpness,
-                    PreventFixedUpdateJitter = authoring.PreventFixedUpdateJitter,
+                        ObstructionRadius = authoring.ObstructionRadius,
+                        ObstructionInnerSmoothingSharpness = authoring.ObstructionInnerSmoothingSharpness,
+                        ObstructionOuterSmoothingSharpness = authoring.ObstructionOuterSmoothingSharpness,
+                        PreventFixedUpdateJitter = authoring.PreventFixedUpdateJitter,
 
-                    TargetDistance = authoring.StartDistance,
-                    SmoothedTargetDistance = authoring.StartDistance,
-                    ObstructedDistance = authoring.StartDistance,
+                        TargetDistance = authoring.StartDistance,
+                        SmoothedTargetDistance = authoring.StartDistance,
+                        ObstructedDistance = authoring.StartDistance,
 
-                    PitchAngle = 0f,
-                    PlanarForward = -math.forward(),
-                });
+                        PitchAngle = 0f,
+                        PlanarForward = -math.forward(),
+                    }
+                );
 
                 DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer =
                     AddBuffer<OrbitCameraIgnoredEntityBufferElement>(entity);
 
                 for (var i = 0; i < authoring.IgnoredEntities.Count; i++) {
-                    ignoredEntitiesBuffer.Add(new OrbitCameraIgnoredEntityBufferElement {
-                        Entity = GetEntity(authoring.IgnoredEntities[i], TransformUsageFlags.None),
-                    });
+                    ignoredEntitiesBuffer.Add(
+                        new OrbitCameraIgnoredEntityBufferElement {
+                            Entity = GetEntity(authoring.IgnoredEntities[i], TransformUsageFlags.None),
+                        }
+                    );
                 }
             }
         }
