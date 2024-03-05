@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using PlayerVariableStepControlSystem = Foxglove.Player.PlayerVariableStepControlSystem;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
@@ -17,7 +17,9 @@ namespace Foxglove.Camera.OrbitCamera {
     public partial struct OrbitCameraSimulationSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build());
+            state.RequireForUpdate(
+                SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build()
+            );
         }
 
         [BurstCompile]
@@ -44,7 +46,11 @@ namespace Foxglove.Camera.OrbitCamera {
             [ReadOnly] public ComponentLookup<CameraTarget> CameraTargetLookup;
             [ReadOnly] public ComponentLookup<KinematicCharacterBody> KinematicCharacterBodyLookup;
 
-            private void Execute(Entity entity, ref OrbitCamera orbitCamera, in OrbitCameraControl cameraControl) {
+            private void Execute(
+                Entity entity,
+                ref OrbitCamera orbitCamera,
+                in OrbitCameraControl cameraControl
+            ) {
                 // Early exit if required components can't be found
                 if (!OrbitCameraUtilities.TryGetCameraTargetSimulationWorldTransform(
                         cameraControl.FollowedCharacterEntity,

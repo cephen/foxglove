@@ -1,4 +1,4 @@
-using Foxglove.Camera.OrbitCamera;
+using Foxglove.Camera;
 using Foxglove.Character;
 using Foxglove.Input;
 using Unity.Burst;
@@ -67,6 +67,6 @@ namespace Foxglove.Player {
             }
         }
 
-        void ISystem.OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
     }
 }

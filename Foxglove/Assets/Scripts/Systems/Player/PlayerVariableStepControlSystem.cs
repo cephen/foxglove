@@ -1,4 +1,4 @@
-using Foxglove.Camera.OrbitCamera;
+using Foxglove.Camera;
 using Foxglove.Input;
 using Foxglove.Settings;
 using Unity.Burst;
@@ -38,5 +38,7 @@ namespace Foxglove.Player {
                 SystemAPI.SetComponent(player.ControlledCamera, cameraControl);
             }
         }
+
+        public void OnDestroy(ref SystemState state) { }
     }
 }

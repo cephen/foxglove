@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
     /// <summary>
     /// This struct accumulates physics collisions during the camera update loop.
     /// The collisions are used to prevent clipping through static geometry

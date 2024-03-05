@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
     [DisallowMultipleComponent]
     public sealed class OrbitCameraAuthoring : MonoBehaviour {
         [Header("Rotation")]

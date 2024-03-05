@@ -6,15 +6,20 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
+    /// <summary>
+    /// This system is responsible for moving and orienting the camera after the main gameplay logic
+    /// </summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(TransformSystemGroup))]
-    [BurstCompile]
     public partial struct OrbitCameraLateUpdateSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<PhysicsWorldSingleton>();
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build());
+            state.RequireForUpdate(
+                SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build()
+            );
         }
 
         [BurstCompile]
@@ -30,9 +35,9 @@ namespace Foxglove.Camera.OrbitCamera {
         }
 
         [BurstCompile]
-        [WithAll(typeof(Simulate))]
+        [WithAll(typeof(Simulate))] // Only run for enabled entities
         public partial struct OrbitCameraLateUpdateJob : IJobEntity {
-            public float DeltaTime;
+            public float DeltaTime; // Unity Time APIs aren't accessible on worked threads
             [ReadOnly] public PhysicsWorld PhysicsWorld;
 
             public ComponentLookup<LocalToWorld> LocalToWorldLookup;

@@ -3,8 +3,14 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
     public static class OrbitCameraUtilities {
+        /// <summary>
+        /// A function to try to get the world transform of a camera target in the simulation,
+        /// based on the target character entity and various component lookups.
+        /// Returns a boolean indicating whether a valid camera target was found,
+        /// and outputs the world transform if found.
+        /// </summary>
         public static bool TryGetCameraTargetSimulationWorldTransform(
             Entity targetCharacterEntity,
             ref ComponentLookup<LocalTransform> localTransformLookup,
@@ -17,8 +23,11 @@ namespace Foxglove.Camera.OrbitCamera {
             worldTransform = float4x4.identity;
 
             // Camera target is either defined by the CameraTarget component, or if not, the transform of the followed character
-            if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
-                && localTransformLookup.HasComponent(cameraTarget.TargetEntity)) {
+            if (
+                cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
+                && localTransformLookup.HasComponent(cameraTarget.TargetEntity)
+            ) {
+                // thank fuck this is free
                 TransformHelpers.ComputeWorldTransformMatrix(
                     cameraTarget.TargetEntity,
                     out worldTransform,
@@ -28,10 +37,7 @@ namespace Foxglove.Camera.OrbitCamera {
                 );
                 foundValidCameraTarget = true;
             }
-            else if (localTransformLookup.TryGetComponent(
-                         targetCharacterEntity,
-                         out LocalTransform characterLocalTransform
-                     )) {
+            else if (localTransformLookup.TryGetComponent(targetCharacterEntity, out LocalTransform characterLocalTransform)) {
                 worldTransform = float4x4.TRS(characterLocalTransform.Position, characterLocalTransform.Rotation, 1f);
                 foundValidCameraTarget = true;
             }

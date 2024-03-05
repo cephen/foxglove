@@ -2,7 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
     [Serializable]
     public struct OrbitCamera : IComponentData {
         public float RotationSpeed;

@@ -2,7 +2,7 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Foxglove.Camera.OrbitCamera {
+namespace Foxglove.Camera {
     [Serializable]
     public struct CameraTarget : IComponentData {
         public Entity TargetEntity;
