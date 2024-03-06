@@ -1,11 +1,11 @@
 ﻿using Foxglove.Character;
+using Foxglove.Player;
 using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using PlayerVariableStepControlSystem = Foxglove.Player.PlayerVariableStepControlSystem;
 
 namespace Foxglove.Camera {
     [BurstCompile]
@@ -17,23 +17,22 @@ namespace Foxglove.Camera {
     public partial struct OrbitCameraSimulationSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate(
-                SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build()
-            );
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            var job = new OrbitCameraSimulationJob {
+            new OrbitCameraSimulationJob {
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
                 ParentLookup = SystemAPI.GetComponentLookup<Parent>(true),
                 PostTransformMatrixLookup = SystemAPI.GetComponentLookup<PostTransformMatrix>(true),
                 CameraTargetLookup = SystemAPI.GetComponentLookup<CameraTarget>(true),
                 KinematicCharacterBodyLookup = SystemAPI.GetComponentLookup<KinematicCharacterBody>(true),
-            };
-            job.Schedule();
+            }.Schedule();
         }
+
+        public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         [WithAll(typeof(Simulate))]
@@ -59,18 +58,21 @@ namespace Foxglove.Camera {
                         ref PostTransformMatrixLookup,
                         ref CameraTargetLookup,
                         out float4x4 targetWorldTransform
-                    )) return;
+                    ))
+                    return;
 
                 float3 targetUp = targetWorldTransform.Up();
                 float3 targetPosition = targetWorldTransform.Translation();
 
                 // Update planar forward based on target up direction and rotation from parent
+                // use a temporary scope to keep intellisense clear :D
                 {
                     quaternion tmpPlanarRotation =
                         MathUtilities.CreateRotationWithUpPriority(targetUp, orbitCamera.PlanarForward);
 
-                    // Rotation from character parent
+                    // If this camera should rotate with the character it's following
                     if (orbitCamera.RotateWithCharacterParent
+                        // and the followed character has a KinematicCharacterBody
                         && KinematicCharacterBodyLookup.TryGetComponent(
                             cameraControl.FollowedCharacterEntity,
                             out KinematicCharacterBody characterBody
@@ -95,8 +97,11 @@ namespace Foxglove.Camera {
 
                 // Pitch
                 orbitCamera.PitchAngle += -cameraControl.LookDegreesDelta.y * orbitCamera.RotationSpeed;
-                orbitCamera.PitchAngle =
-                    math.clamp(orbitCamera.PitchAngle, orbitCamera.MinPitchAngle, orbitCamera.MaxPitchAngle);
+                orbitCamera.PitchAngle = math.clamp(
+                    orbitCamera.PitchAngle,
+                    orbitCamera.MinPitchAngle,
+                    orbitCamera.MaxPitchAngle
+                );
 
                 // Calculate final rotation
                 quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(

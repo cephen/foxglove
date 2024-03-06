@@ -33,11 +33,10 @@ namespace Foxglove.Character {
             _foxgloveContext.OnSystemUpdate(ref state);
             _physicsContext.OnSystemUpdate(ref state, SystemAPI.Time, SystemAPI.GetSingleton<PhysicsWorldSingleton>());
 
-            var job = new CharacterPhysicsUpdateJob {
+            new CharacterPhysicsUpdateJob {
                 FoxgloveContext = _foxgloveContext,
                 PhysicsContext = _physicsContext,
-            };
-            job.ScheduleParallel();
+            }.ScheduleParallel();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -52,6 +51,8 @@ namespace Foxglove.Character {
                 characterAspect.PhysicsUpdate(ref FoxgloveContext, ref PhysicsContext);
             }
 
+
+            // IJobEntityChunkBeginEnd
             public bool OnChunkBegin(
                 in ArchetypeChunk chunk,
                 int unfilteredChunkIndex,

@@ -4,6 +4,10 @@ using Unity.Mathematics;
 using UnityEngine;
 
 namespace Foxglove.Camera {
+    /// <summary>
+    /// Authoring component for the OrbitCamera.
+    /// Used to configure the player's orbit camera in the inspector
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class OrbitCameraAuthoring : MonoBehaviour {
         [Header("Rotation")]

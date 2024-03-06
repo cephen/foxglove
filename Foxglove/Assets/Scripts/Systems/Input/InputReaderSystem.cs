@@ -2,6 +2,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Foxglove.Input {
     /// <summary>
@@ -43,16 +44,15 @@ namespace Foxglove.Input {
             // This preserves partial joystick inputs
             if (math.lengthsq(move) > 1f) move = math.normalize(move);
 
-            // When game isn't focused, this is null and causes exceptions when constructing AimState
-            bool aimDeviceExists = _actions.Gameplay.Aim.activeControl is not null;
+            // When game isn't focused (PC only), this is null and causes exceptions when constructing AimState
+            InputControl aimControl = _actions.Gameplay.Aim.activeControl;
 
             ref FoxgloveGameplayInput state = ref SystemAPI.GetSingletonRW<FoxgloveGameplayInput>().ValueRW;
 
             state.Move = move;
             state.Aim = new AimState {
                 Value = _actions.Gameplay.Aim.ReadValue<Vector2>(),
-                IsMouseAim = aimDeviceExists
-                             && _actions.KBMScheme.SupportsDevice(_actions.Gameplay.Aim.activeControl.device),
+                IsMouseAim = aimControl is not null && _actions.KBMScheme.SupportsDevice(aimControl.device),
             };
             if (_actions.Gameplay.Interact.IsPressed()) state.Interact.Set(tick);
             if (_actions.Gameplay.Sword.IsPressed()) state.Sword.Set(tick);

@@ -4,8 +4,12 @@ using Unity.Mathematics;
 using UnityEngine;
 
 namespace Foxglove.Character {
+    /// <summary>
+    /// Authoring component for configuring a character via the inspector.
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class CharacterAuthoring : MonoBehaviour {
+        // Physics properties of the character
         public AuthoringKinematicCharacterProperties CharacterProperties =
             AuthoringKinematicCharacterProperties.GetDefault();
 

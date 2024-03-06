@@ -22,11 +22,12 @@ namespace Foxglove.Camera {
             var foundValidCameraTarget = false;
             worldTransform = float4x4.identity;
 
-            // Camera target is either defined by the CameraTarget component, or if not, the transform of the followed character
+            // If the target character has a CameraTarget component, use that
             if (
                 cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
                 && localTransformLookup.HasComponent(cameraTarget.TargetEntity)
             ) {
+                // calculate the world transform of the target
                 // thank fuck this is free
                 TransformHelpers.ComputeWorldTransformMatrix(
                     cameraTarget.TargetEntity,
@@ -37,14 +38,28 @@ namespace Foxglove.Camera {
                 );
                 foundValidCameraTarget = true;
             }
-            else if (localTransformLookup.TryGetComponent(targetCharacterEntity, out LocalTransform characterLocalTransform)) {
+            // otherwise, if the target character has a LocalTransform component, use that
+            else if (
+                localTransformLookup.TryGetComponent(
+                    targetCharacterEntity,
+                    out LocalTransform characterLocalTransform
+                )
+            ) {
+                // Build a transform matrix from a Translation, Rotation, and Scale
                 worldTransform = float4x4.TRS(characterLocalTransform.Position, characterLocalTransform.Rotation, 1f);
                 foundValidCameraTarget = true;
             }
 
+            // otherwise return false because no valid camera target was found
             return foundValidCameraTarget;
         }
 
+        /// <summary>
+        /// Gets the interpolated world transform of a camera target.
+        /// Character movement is processed on a fixed time step, but their position is interpolated every frame,
+        /// this function returns the interpolated world transform of the target for smoother camera movement.
+        /// </summary>
+        /// <returns>true if a valid camera target was found</returns>
         public static bool TryGetCameraTargetInterpolatedWorldTransform(
             Entity targetCharacterEntity,
             ref ComponentLookup<LocalToWorld> localToWorldLookup,
@@ -54,10 +69,11 @@ namespace Foxglove.Camera {
             var foundValidCameraTarget = false;
             worldTransform = default;
 
-            // Get the interpolated transform of the target
+            // If the target character has a CameraTarget component, use that
             if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
                 && localToWorldLookup.TryGetComponent(cameraTarget.TargetEntity, out worldTransform))
                 foundValidCameraTarget = true;
+            // otherwise, if the target character has a LocalToWorld component, use that
             else if (localToWorldLookup.TryGetComponent(targetCharacterEntity, out worldTransform))
                 foundValidCameraTarget = true;
 
