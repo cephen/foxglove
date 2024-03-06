@@ -241,7 +241,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1692896102597148395, guid: 5fbcc801dea8fd640a004697d22ed448, type: 3}
       propertyPath: m_Name
-      value: ThirdPersonCharacter
+      value: PlayerCharacter
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -386,7 +386,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4729649056687684238, guid: 65701a63aea96444fa3a4b2ed4edbb25, type: 3}
       propertyPath: m_Name
-      value: ThirdPersonPlayer
+      value: PlayerController
       objectReference: {fileID: 0}
     - target: {fileID: 4729649056687684239, guid: 65701a63aea96444fa3a4b2ed4edbb25, type: 3}
       propertyPath: m_LocalPosition.x

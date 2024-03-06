@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: -861821676361314323}
   - component: {fileID: 7387275289881795637}
   m_Layer: 0
-  m_Name: Wisp
+  m_Name: WispCharacter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
