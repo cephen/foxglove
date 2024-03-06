@@ -7,6 +7,9 @@ using Unity.Physics;
 using Unity.Transforms;
 
 namespace Foxglove.Character {
+    /// <summary>
+    /// This system runs once per frame for every character in the world
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]

@@ -26,19 +26,23 @@ namespace Foxglove.Player {
             uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
 
-            foreach (ThirdPersonPlayer player in SystemAPI.Query<ThirdPersonPlayer>().WithAll<Simulate>()) {
+            foreach (RefRO<ThirdPersonPlayer> player in
+                SystemAPI.Query<RefRO<ThirdPersonPlayer>>().WithAll<Simulate>()) {
+                Entity controlledCharacter = player.ValueRO.ControlledCharacter;
+                Entity controlledCamera = player.ValueRO.ControlledCamera;
                 // Early exit if player isn't controlling a character
-                if (!SystemAPI.HasComponent<FoxgloveCharacterControl>(player.ControlledCharacter)) continue;
+                if (!SystemAPI.HasComponent<FoxgloveCharacterControl>(controlledCharacter)) continue;
 
-                var control = SystemAPI.GetComponent<FoxgloveCharacterControl>(player.ControlledCharacter);
-                var transform = SystemAPI.GetComponent<LocalTransform>(player.ControlledCharacter);
+                var control =
+                    SystemAPI.GetComponent<FoxgloveCharacterControl>(controlledCharacter);
+                var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
 
                 float3 characterUp = MathUtilities.GetUpFromRotation(transform.Rotation);
 
                 // player movement should be relative to camera rotation.
                 quaternion cameraRotation = quaternion.identity;
-                if (SystemAPI.HasComponent<OrbitCamera>(player.ControlledCamera)) {
-                    var camera = SystemAPI.GetComponent<OrbitCamera>(player.ControlledCamera);
+                if (SystemAPI.HasComponent<OrbitCamera>(controlledCamera)) {
+                    var camera = SystemAPI.GetComponent<OrbitCamera>(controlledCamera);
                     cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
                         characterUp,
                         camera.PlanarForward,
@@ -63,7 +67,7 @@ namespace Foxglove.Player {
                 // Jump
                 control.Jump = input.Jump.IsSet(tick);
 
-                SystemAPI.SetComponent(player.ControlledCharacter, control);
+                SystemAPI.SetComponent(controlledCharacter, control);
             }
         }
 

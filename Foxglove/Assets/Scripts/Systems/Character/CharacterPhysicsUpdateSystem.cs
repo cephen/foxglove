@@ -5,6 +5,10 @@ using Unity.Entities;
 using Unity.Physics;
 
 namespace Foxglove.Character {
+    /// <summary>
+    /// This system processes physics updates for all characters in the game,
+    /// It runs on a fixed time step
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(KinematicCharacterPhysicsUpdateGroup))]
     public partial struct CharacterPhysicsUpdateSystem : ISystem {

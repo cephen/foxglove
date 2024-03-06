@@ -24,18 +24,21 @@ namespace Foxglove.Player {
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
             var sensitivity = SystemAPI.GetSingleton<LookSensitivity>();
 
-            foreach (ThirdPersonPlayer player in SystemAPI.Query<ThirdPersonPlayer>().WithAll<Simulate>()) {
-                if (!SystemAPI.HasComponent<OrbitCameraControl>(player.ControlledCamera)) continue;
+            foreach (RefRO<ThirdPersonPlayer> player in
+                SystemAPI.Query<RefRO<ThirdPersonPlayer>>().WithAll<Simulate>()) {
+                Entity controlledCamera = player.ValueRO.ControlledCamera;
+                Entity controlledCharacter = player.ValueRO.ControlledCharacter;
+                if (!SystemAPI.HasComponent<OrbitCameraControl>(controlledCamera)) continue;
 
-                var cameraControl = SystemAPI.GetComponent<OrbitCameraControl>(player.ControlledCamera);
+                var cameraControl = SystemAPI.GetComponent<OrbitCameraControl>(controlledCamera);
 
-                cameraControl.FollowedCharacterEntity = player.ControlledCharacter;
+                cameraControl.FollowedCharacterEntity = controlledCharacter;
                 cameraControl.LookDegreesDelta = input.Aim.IsMouseAim switch {
                     true => input.Aim.Value * sensitivity.Mouse,
                     false => input.Aim.Value * sensitivity.Gamepad,
                 };
 
-                SystemAPI.SetComponent(player.ControlledCamera, cameraControl);
+                SystemAPI.SetComponent(controlledCamera, cameraControl);
             }
         }
 
