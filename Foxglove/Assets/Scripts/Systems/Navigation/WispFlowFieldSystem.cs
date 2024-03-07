@@ -1,4 +1,4 @@
-﻿using Foxglove.Agents;
+﻿using Foxglove.Character;
 using Foxglove.Groups;
 using Foxglove.Player;
 using Unity.Burst;
@@ -21,7 +21,7 @@ namespace Foxglove.Navigation {
             // flow fields provide pathing towards a player
             state.RequireForUpdate<PlayerController>();
             // Agent positions are used for flow field bounds calculation
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalToWorld, AgentTag>().Build());
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalToWorld, WispTag>().Build());
 
             state.RequireForUpdate(
                 SystemAPI
