@@ -9,11 +9,13 @@ namespace Foxglove.Player {
 
         public sealed class Baker : Baker<PlayerAuthoring> {
             public override void Bake(PlayerAuthoring authoring) {
-                Entity entity = GetEntity(TransformUsageFlags.None);
+                Entity controller = GetEntity(TransformUsageFlags.None);
+                Entity character = GetEntity(authoring.ControlledCharacter, TransformUsageFlags.Dynamic);
+                AddComponent<PlayerCharacterTag>(character);
                 AddComponent(
-                    entity,
+                    controller,
                     new PlayerController {
-                        ControlledCharacter = GetEntity(authoring.ControlledCharacter, TransformUsageFlags.Dynamic),
+                        ControlledCharacter = character,
                         ControlledCamera = GetEntity(authoring.ControlledCamera, TransformUsageFlags.Dynamic),
                     }
                 );
