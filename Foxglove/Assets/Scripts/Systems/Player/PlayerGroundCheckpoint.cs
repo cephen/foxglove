@@ -16,7 +16,7 @@ namespace Foxglove.Player {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<PlayerController>();
             state.RequireForUpdate<KinematicCharacterBody>();
-            state.EntityManager.CreateSingleton<Singleton>();
+            state.EntityManager.CreateOrAddSingleton<Singleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -24,7 +24,7 @@ namespace Foxglove.Player {
         public void OnUpdate(ref SystemState state) {
             foreach (RefRO<PlayerController> player in
                 SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
-                ref Singleton checkpoint = ref SystemAPI.GetSingletonRW<Singleton>().ValueRW;
+                var checkpoint = state.EntityManager.GetSingleton<Singleton>();
 
                 Entity characterEntity = player.ValueRO.ControlledCharacter;
                 var character = SystemAPI.GetComponent<KinematicCharacterBody>(characterEntity);
@@ -34,6 +34,8 @@ namespace Foxglove.Player {
                     checkpoint.Position = transform.Position;
                 else if (transform.Position.y < -3f)
                     transform.Position = checkpoint.Position;
+
+                state.EntityManager.CreateOrSetSingleton(checkpoint);
             }
         }
     }

@@ -4,23 +4,22 @@ using Unity.Entities;
 namespace Foxglove {
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderLast = true)]
-    public partial struct FixedTickSystem : ISystem {
-        public struct Singleton : IComponentData {
-            public uint Tick;
-        }
-
-        public void OnCreate(ref SystemState state) {
-            if (SystemAPI.HasSingleton<Singleton>()) return;
-            Entity singletonEntity = state.EntityManager.CreateEntity();
-            state.EntityManager.AddComponentData(singletonEntity, new Singleton());
+    public sealed partial class FixedTickSystem : SystemBase {
+        protected override void OnCreate() {
+            EntityManager.CreateOrAddSingleton<Singleton>();
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state) {
-            ref Singleton singleton = ref SystemAPI.GetSingletonRW<Singleton>().ValueRW;
-            singleton.Tick++;
+        protected override void OnUpdate() {
+            var tickData = EntityManager.GetSingleton<Singleton>();
+            tickData.Tick++;
+            EntityManager.CreateOrSetSingleton(tickData);
         }
 
-        void ISystem.OnDestroy(ref SystemState state) { }
+        protected override void OnDestroy() { }
+
+        public struct Singleton : IComponentData {
+            public uint Tick;
+        }
     }
 }

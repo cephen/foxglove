@@ -20,12 +20,7 @@ namespace Foxglove.Input {
             RequireForUpdate<FoxgloveGameplayInput>();
             RequireForUpdate<FixedTickSystem.Singleton>();
 
-            // Only one instance of InputState should exist
-            if (SystemAPI.HasSingleton<FoxgloveGameplayInput>()) return;
-
-            _inputStateEntity = EntityManager.CreateEntity();
-            EntityManager.SetName(_inputStateEntity, "Input State");
-            EntityManager.AddComponent<FoxgloveGameplayInput>(_inputStateEntity);
+            EntityManager.CreateOrAddSingleton<FoxgloveGameplayInput>();
         }
 
         protected override void OnStartRunning() {
@@ -38,7 +33,8 @@ namespace Foxglove.Input {
 
         [BurstCompile]
         protected override void OnUpdate() {
-            uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
+            uint tick = EntityManager.GetSingleton<FixedTickSystem.Singleton>().Tick;
+
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
             // Normalize input values with a length greater than 1
             // This preserves partial joystick inputs
@@ -47,22 +43,24 @@ namespace Foxglove.Input {
             // When game isn't focused (PC only), this is null and causes exceptions when constructing AimState
             InputControl aimControl = _actions.Gameplay.Aim.activeControl;
 
-            ref FoxgloveGameplayInput state = ref SystemAPI.GetSingletonRW<FoxgloveGameplayInput>().ValueRW;
+            var input = EntityManager.GetSingleton<FoxgloveGameplayInput>();
 
-            state.Move = move;
-            state.Aim = new AimState {
+            input.Move = move;
+            input.Aim = new AimState {
                 Value = _actions.Gameplay.Aim.ReadValue<Vector2>(),
                 IsMouseAim = aimControl is not null && _actions.KBMScheme.SupportsDevice(aimControl.device),
             };
-            if (_actions.Gameplay.Interact.IsPressed()) state.Interact.Set(tick);
-            if (_actions.Gameplay.Sword.IsPressed()) state.Sword.Set(tick);
-            if (_actions.Gameplay.Jump.IsPressed()) state.Jump.Set(tick);
-            if (_actions.Gameplay.Flask.IsPressed()) state.Flask.Set(tick);
-            if (_actions.Gameplay.Spell1.IsPressed()) state.Spell1.Set(tick);
-            if (_actions.Gameplay.Spell2.IsPressed()) state.Spell2.Set(tick);
-            if (_actions.Gameplay.Spell3.IsPressed()) state.Spell3.Set(tick);
-            if (_actions.Gameplay.Spell4.IsPressed()) state.Spell4.Set(tick);
-            if (_actions.Gameplay.Pause.IsPressed()) state.Pause.Set(tick);
+            if (_actions.Gameplay.Interact.IsPressed()) input.Interact.Set(tick);
+            if (_actions.Gameplay.Sword.IsPressed()) input.Sword.Set(tick);
+            if (_actions.Gameplay.Jump.IsPressed()) input.Jump.Set(tick);
+            if (_actions.Gameplay.Flask.IsPressed()) input.Flask.Set(tick);
+            if (_actions.Gameplay.Spell1.IsPressed()) input.Spell1.Set(tick);
+            if (_actions.Gameplay.Spell2.IsPressed()) input.Spell2.Set(tick);
+            if (_actions.Gameplay.Spell3.IsPressed()) input.Spell3.Set(tick);
+            if (_actions.Gameplay.Spell4.IsPressed()) input.Spell4.Set(tick);
+            if (_actions.Gameplay.Pause.IsPressed()) input.Pause.Set(tick);
+
+            EntityManager.CreateOrSetSingleton(input);
         }
     }
 }
