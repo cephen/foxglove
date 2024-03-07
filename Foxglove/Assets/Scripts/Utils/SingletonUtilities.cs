@@ -28,20 +28,20 @@ namespace Foxglove {
         public static Entity GetDefaultSingletonEntity(this EntityManager manager) => _singletonEntity;
 
         public static bool HasSingleton<T>(this EntityManager manager)
-            where T : struct, IComponentData => manager.HasComponent<T>(_singletonEntity);
+            where T : struct, IComponentData
+            => manager.HasComponent<T>(_singletonEntity);
 
         public static T GetSingleton<T>(this EntityManager manager)
-            where T : unmanaged, IComponentData => manager.GetComponentData<T>(_singletonEntity);
+            where T : unmanaged, IComponentData
+            => manager.GetComponentData<T>(_singletonEntity);
 
         /// <summary>
         /// Create or set a singleton
         /// </summary>
         public static Entity CreateOrSetSingleton<T>(this EntityManager manager, T data)
             where T : unmanaged, IComponentData {
-            if (manager.HasComponent<T>(_singletonEntity))
-                manager.SetComponentData(_singletonEntity, data);
-            else
-                manager.AddComponentData(_singletonEntity, data);
+            if (manager.HasComponent<T>(_singletonEntity)) manager.SetComponentData(_singletonEntity, data);
+            else manager.AddComponentData(_singletonEntity, data);
 
             return _singletonEntity;
         }
@@ -51,15 +51,13 @@ namespace Foxglove {
         /// </summary>
         public static Entity CreateOrAddSingleton<T>(this EntityManager manager)
             where T : unmanaged, IComponentData {
-            if (!manager.HasComponent<T>(_singletonEntity))
-                manager.AddComponent<T>(_singletonEntity);
+            if (!manager.HasComponent<T>(_singletonEntity)) manager.AddComponent<T>(_singletonEntity);
 
             return _singletonEntity;
         }
 
         public static void RemoveSingletonComponentIfExists<T>(this EntityManager manager) {
-            if (manager.HasComponent<T>(_singletonEntity))
-                manager.RemoveComponent<T>(_singletonEntity);
+            if (manager.HasComponent<T>(_singletonEntity)) manager.RemoveComponent<T>(_singletonEntity);
         }
     }
 }
