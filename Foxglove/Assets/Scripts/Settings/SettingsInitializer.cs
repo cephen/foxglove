@@ -13,9 +13,12 @@ namespace Foxglove.Settings {
             if (SystemAPI.HasSingleton<SettingsStoreTag>()) return;
 
             _singletonEntity = EntityManager.CreateSingleton<SettingsStoreTag>();
-            EntityManager.AddComponentData(_singletonEntity, new LookSensitivity {
-                Gamepad = 1f, Mouse = 0.3f,
-            });
+            EntityManager.AddComponentData(
+                _singletonEntity,
+                new LookSensitivity {
+                    Gamepad = 1f, Mouse = 0.3f,
+                }
+            );
         }
 
         protected override void OnUpdate() { }

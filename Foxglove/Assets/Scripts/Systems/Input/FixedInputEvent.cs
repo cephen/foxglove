@@ -14,8 +14,6 @@ namespace Foxglove.Input {
             return false;
         }
 
-        public readonly uint TicksSinceLastSet(in uint tick) {
-            return tick - _lastSetTick;
-        }
+        public readonly uint TicksSinceLastSet(in uint tick) => tick - _lastSetTick;
     }
 }

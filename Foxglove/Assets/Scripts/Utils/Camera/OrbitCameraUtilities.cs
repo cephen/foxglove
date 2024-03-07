@@ -87,8 +87,10 @@ namespace Foxglove.Camera {
             return cameraRotation;
         }
 
-        public static float3 CalculateCameraPosition(float3 targetPosition, quaternion cameraRotation, float distance) {
-            return targetPosition + -MathUtilities.GetForwardFromRotation(cameraRotation) * distance;
-        }
+        public static float3 CalculateCameraPosition(
+            float3 targetPosition,
+            quaternion cameraRotation,
+            float distance
+        ) => targetPosition + -MathUtilities.GetForwardFromRotation(cameraRotation) * distance;
     }
 }

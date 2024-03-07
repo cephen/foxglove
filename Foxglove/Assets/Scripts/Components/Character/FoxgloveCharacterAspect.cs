@@ -197,19 +197,18 @@ namespace Foxglove.Character {
                 false // clamp velocity magnitude to max value?
             );
 
-            // Cancel air acceleration from input if we would hit a non-grounded surface
-            // (prevents air-climbing slopes at high air accelerations)
+            // Cancel air acceleration from input if character would hit a non-grounded surface
+            // (prevents air-climbing slopes/walls)
             if (
                 characterSettings.PreventAirAccelerationAgainstUngroundedHits
-                && KinematicCharacter.MovementWouldHitNonGroundedObstruction(
+                && KinematicCharacter.MovementWouldHitNonGroundedObstruction( // d(*-* ')b
                     in this,
                     ref foxgloveContext,
                     ref kinematicContext,
                     characterBody.RelativeVelocity * deltaTime,
                     out _ // hit isn't used so discard it
                 )
-            )
-                characterBody.RelativeVelocity = tmpVelocity;
+            ) characterBody.RelativeVelocity = tmpVelocity;
         }
 
         /// <summary>
@@ -260,9 +259,7 @@ namespace Foxglove.Character {
             ref FoxgloveCharacterUpdateContext context,
             ref KinematicCharacterUpdateContext baseContext,
             in BasicHit hit
-        ) {
-            return PhysicsUtilities.IsCollidable(hit.Material);
-        }
+        ) => PhysicsUtilities.IsCollidable(hit.Material);
 
         public bool IsGroundedOnHit(
             ref FoxgloveCharacterUpdateContext context,
