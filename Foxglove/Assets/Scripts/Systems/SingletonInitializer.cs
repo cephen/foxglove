@@ -1,6 +1,8 @@
-﻿using Unity.Entities;
+﻿using Unity.Burst;
+using Unity.Entities;
 
 namespace Foxglove {
+    [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial struct SingletonInitializer : ISystem {
         public void OnCreate(ref SystemState state) {
