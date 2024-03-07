@@ -6,7 +6,7 @@ using Unity.Physics;
 namespace Foxglove.Character {
     // Aspects are used to query the ECS world for entities with a given set of components.
     // implementing IKinematicCharacterProcessor on this aspect allows the aspect to process physics updates for any entity with the required components
-    public readonly partial struct FoxgloveCharacterAspect : IAspect,
+    public readonly partial struct CharacterAspect : IAspect,
         IKinematicCharacterProcessor<FoxgloveCharacterUpdateContext> {
         // having another aspect as a field means components from that aspect are required to satisfy this aspect.
         public readonly KinematicCharacterAspect KinematicCharacter;

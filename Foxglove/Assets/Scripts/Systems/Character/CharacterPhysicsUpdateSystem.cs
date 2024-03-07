@@ -51,7 +51,7 @@ namespace Foxglove.Character {
             public FoxgloveCharacterUpdateContext FoxgloveContext;
             public KinematicCharacterUpdateContext PhysicsContext;
 
-            private void Execute(FoxgloveCharacterAspect characterAspect) {
+            private void Execute(CharacterAspect characterAspect) {
                 characterAspect.PhysicsUpdate(ref FoxgloveContext, ref PhysicsContext);
             }
 

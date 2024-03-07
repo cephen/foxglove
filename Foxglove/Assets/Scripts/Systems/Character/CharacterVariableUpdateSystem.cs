@@ -56,7 +56,7 @@ namespace Foxglove.Character {
             public KinematicCharacterUpdateContext PhysicsContext;
 
             // This method is called once per frame for every entity with the required components
-            private void Execute(FoxgloveCharacterAspect characterAspect) {
+            private void Execute(CharacterAspect characterAspect) {
                 characterAspect.FrameUpdate(ref FoxgloveContext, ref PhysicsContext);
             }
 
