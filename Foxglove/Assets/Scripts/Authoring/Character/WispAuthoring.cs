@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Foxglove.Agents;
+using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Character {
@@ -9,6 +10,7 @@ namespace Foxglove.Character {
             public override void Bake(WispAuthoring authoring) {
                 Entity wisp = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent<WispTag>(wisp);
+                AddComponent<AgentTag>(wisp);
             }
         }
     }
