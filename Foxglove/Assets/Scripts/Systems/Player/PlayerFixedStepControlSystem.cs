@@ -16,59 +16,58 @@ namespace Foxglove.Player {
     public partial struct PlayerFixedStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<FoxgloveGameplayInput>();
             state.RequireForUpdate<FixedTickSystem.Singleton>();
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<PlayerController, Simulate>().Build());
+            state.RequireForUpdate<FoxgloveGameplayInput>();
+            state.RequireForUpdate<PlayerController>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
             uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
+            var playerController = SystemAPI.GetSingleton<PlayerController>();
 
-            foreach (RefRO<PlayerController> player in
-                SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
-                Entity controlledCharacter = player.ValueRO.ControlledCharacter;
-                Entity controlledCamera = player.ValueRO.ControlledCamera;
-                // Early exit if player isn't controlling a character
-                if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) continue;
+            if (playerController.ControlledCharacter == Entity.Null) return;
+            Entity controlledCharacter = playerController.ControlledCharacter;
 
-                var control =
-                    SystemAPI.GetComponent<CharacterController>(controlledCharacter);
-                var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
+            if (playerController.ControlledCamera == Entity.Null) return;
+            Entity controlledCamera = playerController.ControlledCamera;
 
-                float3 characterUp = MathUtilities.GetUpFromRotation(transform.Rotation);
+            if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) return;
+            var control = SystemAPI.GetComponent<CharacterController>(controlledCharacter);
 
-                // player movement should be relative to camera rotation.
-                quaternion cameraRotation = quaternion.identity;
-                if (SystemAPI.HasComponent<OrbitCamera>(controlledCamera)) {
-                    var camera = SystemAPI.GetComponent<OrbitCamera>(controlledCamera);
-                    cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
-                        characterUp,
-                        camera.PlanarForward,
-                        camera.PitchAngle
-                    );
-                }
+            var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
+            float3 characterUp = MathUtilities.GetUpFromRotation(transform.Rotation);
 
-                float3 cameraForwardOnUpPlane =
-                    math.normalizesafe(
-                        MathUtilities.ProjectOnPlane(
-                            MathUtilities.GetForwardFromRotation(cameraRotation),
-                            characterUp
-                        )
-                    );
-                float3 cameraRight = MathUtilities.GetRightFromRotation(cameraRotation);
+            // player movement should be relative to camera rotation.
+            quaternion cameraRotation = quaternion.identity;
 
-                // Move
-                control.MoveVector = input.Move.y * cameraForwardOnUpPlane
-                                     + input.Move.x * cameraRight;
-                control.MoveVector = MathUtilities.ClampToMaxLength(control.MoveVector, 1f);
-
-                // Jump
-                control.Jump = input.Jump.IsSet(tick);
-
-                SystemAPI.SetComponent(controlledCharacter, control);
+            if (SystemAPI.HasComponent<OrbitCamera>(controlledCamera)) {
+                var camera = SystemAPI.GetComponent<OrbitCamera>(controlledCamera);
+                cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
+                    characterUp,
+                    camera.PlanarForward,
+                    camera.PitchAngle
+                );
             }
+
+            float3 cameraForwardOnUpPlane = math.normalizesafe(
+                MathUtilities.ProjectOnPlane(
+                    MathUtilities.GetForwardFromRotation(cameraRotation),
+                    characterUp
+                )
+            );
+            float3 cameraRight = MathUtilities.GetRightFromRotation(cameraRotation);
+
+            // Move
+            control.MoveVector = input.Move.y * cameraForwardOnUpPlane
+                                 + input.Move.x * cameraRight;
+            control.MoveVector = MathUtilities.ClampToMaxLength(control.MoveVector, 1f);
+
+            // Jump
+            control.Jump = input.Jump.IsSet(tick);
+
+            SystemAPI.SetComponent(controlledCharacter, control);
         }
 
         public void OnDestroy(ref SystemState state) { }

@@ -23,23 +23,24 @@ namespace Foxglove.Player {
         public void OnUpdate(ref SystemState state) {
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
             var sensitivity = SystemAPI.GetSingleton<LookSensitivity>();
+            var playerController = SystemAPI.GetSingleton<PlayerController>();
 
-            foreach (RefRO<PlayerController> player in
-                SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
-                Entity controlledCamera = player.ValueRO.ControlledCamera;
-                Entity controlledCharacter = player.ValueRO.ControlledCharacter;
-                if (!SystemAPI.HasComponent<OrbitCameraControl>(controlledCamera)) continue;
+            if (playerController.ControlledCharacter == Entity.Null) return;
+            Entity controlledCharacter = playerController.ControlledCharacter;
 
-                var cameraControl = SystemAPI.GetComponent<OrbitCameraControl>(controlledCamera);
+            if (playerController.ControlledCamera == Entity.Null) return;
+            Entity controlledCamera = playerController.ControlledCamera;
 
-                cameraControl.FollowedCharacterEntity = controlledCharacter;
-                cameraControl.LookDegreesDelta = input.Aim.IsMouseAim switch {
-                    true => input.Aim.Value * sensitivity.Mouse,
-                    false => input.Aim.Value * sensitivity.Gamepad,
-                };
+            if (!SystemAPI.HasComponent<OrbitCameraControl>(controlledCamera)) return;
+            var cameraControl = SystemAPI.GetComponent<OrbitCameraControl>(controlledCamera);
 
-                SystemAPI.SetComponent(controlledCamera, cameraControl);
-            }
+            cameraControl.FollowedCharacterEntity = controlledCharacter;
+            cameraControl.LookDegreesDelta = input.Aim.IsMouseAim switch {
+                true => input.Aim.Value * sensitivity.Mouse,
+                false => input.Aim.Value * sensitivity.Gamepad,
+            };
+
+            SystemAPI.SetComponent(controlledCamera, cameraControl);
         }
 
         public void OnDestroy(ref SystemState state) { }
