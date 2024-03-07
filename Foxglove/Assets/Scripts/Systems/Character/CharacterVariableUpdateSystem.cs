@@ -26,7 +26,7 @@ namespace Foxglove.Character {
             _characterQuery =
                 KinematicCharacterUtilities
                     .GetBaseCharacterQueryBuilder()
-                    .WithAll<FoxgloveCharacterSettings, FoxgloveCharacterControl>()
+                    .WithAll<CharacterSettings, CharacterController>()
                     .Build(ref state);
 
             _foxgloveContext = new FoxgloveCharacterUpdateContext();

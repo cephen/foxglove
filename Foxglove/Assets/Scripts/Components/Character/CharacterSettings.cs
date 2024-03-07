@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace Foxglove.Character {
     [Serializable]
-    public struct FoxgloveCharacterSettings : IComponentData {
+    public struct CharacterSettings : IComponentData {
         public float RotationSharpness;
         public float GroundMaxSpeed;
         public float GroundedMovementSharpness;
@@ -19,7 +19,7 @@ namespace Foxglove.Character {
     }
 
     [Serializable]
-    public struct FoxgloveCharacterControl : IComponentData {
+    public struct CharacterController : IComponentData {
         public float3 MoveVector;
         public bool Jump;
     }

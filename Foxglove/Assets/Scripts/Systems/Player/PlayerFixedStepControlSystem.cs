@@ -18,7 +18,7 @@ namespace Foxglove.Player {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<FoxgloveGameplayInput>();
             state.RequireForUpdate<FixedTickSystem.Singleton>();
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ThirdPersonPlayer, Simulate>().Build());
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<PlayerController, Simulate>().Build());
         }
 
         [BurstCompile]
@@ -26,15 +26,15 @@ namespace Foxglove.Player {
             uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
 
-            foreach (RefRO<ThirdPersonPlayer> player in
-                SystemAPI.Query<RefRO<ThirdPersonPlayer>>().WithAll<Simulate>()) {
+            foreach (RefRO<PlayerController> player in
+                SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
                 Entity controlledCharacter = player.ValueRO.ControlledCharacter;
                 Entity controlledCamera = player.ValueRO.ControlledCamera;
                 // Early exit if player isn't controlling a character
-                if (!SystemAPI.HasComponent<FoxgloveCharacterControl>(controlledCharacter)) continue;
+                if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) continue;
 
                 var control =
-                    SystemAPI.GetComponent<FoxgloveCharacterControl>(controlledCharacter);
+                    SystemAPI.GetComponent<CharacterController>(controlledCharacter);
                 var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
 
                 float3 characterUp = MathUtilities.GetUpFromRotation(transform.Rotation);

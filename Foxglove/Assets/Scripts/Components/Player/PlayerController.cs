@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace Foxglove.Player {
     [Serializable]
-    public struct ThirdPersonPlayer : IComponentData {
+    public struct PlayerController : IComponentData {
         public Entity ControlledCamera;
         public Entity ControlledCharacter;
     }

@@ -16,7 +16,7 @@ namespace Foxglove.Player {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<FoxgloveGameplayInput>();
             state.RequireForUpdate<LookSensitivity>();
-            state.RequireForUpdate<ThirdPersonPlayer>();
+            state.RequireForUpdate<PlayerController>();
         }
 
         [BurstCompile]
@@ -24,8 +24,8 @@ namespace Foxglove.Player {
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
             var sensitivity = SystemAPI.GetSingleton<LookSensitivity>();
 
-            foreach (RefRO<ThirdPersonPlayer> player in
-                SystemAPI.Query<RefRO<ThirdPersonPlayer>>().WithAll<Simulate>()) {
+            foreach (RefRO<PlayerController> player in
+                SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
                 Entity controlledCamera = player.ValueRO.ControlledCamera;
                 Entity controlledCharacter = player.ValueRO.ControlledCharacter;
                 if (!SystemAPI.HasComponent<OrbitCameraControl>(controlledCamera)) continue;

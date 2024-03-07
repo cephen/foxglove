@@ -10,13 +10,13 @@ namespace Foxglove.Character {
          * TODO: Flow Field angle?
          */
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FoxgloveCharacterControl, WispTag>().Build());
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<CharacterController, WispTag>().Build());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            foreach (RefRW<FoxgloveCharacterControl> control
-                in SystemAPI.Query<RefRW<FoxgloveCharacterControl>>().WithAll<WispTag>())
+            foreach (RefRW<CharacterController> control
+                in SystemAPI.Query<RefRW<CharacterController>>().WithAll<WispTag>())
                 control.ValueRW.MoveVector.y = 1f;
         }
 

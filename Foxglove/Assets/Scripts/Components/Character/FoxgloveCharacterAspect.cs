@@ -12,8 +12,8 @@ namespace Foxglove.Character {
         public readonly KinematicCharacterAspect KinematicCharacter;
 
         // These additional component types are needed to simulate character motion
-        public readonly RefRW<FoxgloveCharacterSettings> CharacterSettings;
-        public readonly RefRW<FoxgloveCharacterControl> CharacterControl;
+        public readonly RefRW<CharacterSettings> CharacterSettings;
+        public readonly RefRW<CharacterController> CharacterControl;
 
         /// <summary>
         /// This method is like GameObject.FixedUpdate, and will process every entity that has the required components.
@@ -25,7 +25,7 @@ namespace Foxglove.Character {
             ref FoxgloveCharacterUpdateContext foxgloveContext,
             ref KinematicCharacterUpdateContext physicsContext
         ) {
-            ref FoxgloveCharacterSettings characterSettings = ref CharacterSettings.ValueRW;
+            ref CharacterSettings characterSettings = ref CharacterSettings.ValueRW;
             ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
             ref float3 characterPosition = ref KinematicCharacter.LocalTransform.ValueRW.Position;
 
@@ -99,23 +99,28 @@ namespace Foxglove.Character {
             ref KinematicCharacterUpdateContext physicsContext
         ) {
             float deltaTime = physicsContext.Time.DeltaTime;
-            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            CharacterSettings characterSettings = CharacterSettings.ValueRO;
             ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
-            ref FoxgloveCharacterControl characterControl = ref CharacterControl.ValueRW;
+            ref CharacterController characterController = ref CharacterControl.ValueRW;
 
             // If the character has a parent, rotate the move input and velocity to take into account the parent's rotation
             if (characterBody.ParentEntity != Entity.Null) {
-                characterControl.MoveVector =
-                    math.rotate(characterBody.RotationFromParent, characterControl.MoveVector);
+                characterController.MoveVector =
+                    math.rotate(characterBody.RotationFromParent, characterController.MoveVector);
                 characterBody.RelativeVelocity =
                     math.rotate(characterBody.RotationFromParent, characterBody.RelativeVelocity);
             }
 
             if (characterBody.IsGrounded) {
-                HandleGroundedMovement(ref characterControl, ref characterBody, in characterSettings, deltaTime);
+                HandleGroundedMovement(
+                    ref characterController,
+                    ref characterBody,
+                    in characterSettings,
+                    deltaTime
+                );
             }
             else { // character is in air
-                float3 airAcceleration = characterControl.MoveVector * characterSettings.AirAcceleration;
+                float3 airAcceleration = characterController.MoveVector * characterSettings.AirAcceleration;
                 // if the magnitude of the air acceleration is greater than the smallest representable floating point value
                 // (filters out noisy inputs)
                 if (math.lengthsq(airAcceleration) > math.EPSILON)
@@ -145,12 +150,12 @@ namespace Foxglove.Character {
         }
 
         private void HandleGroundedMovement(
-            ref FoxgloveCharacterControl characterControl,
+            ref CharacterController characterController,
             ref KinematicCharacterBody characterBody,
-            in FoxgloveCharacterSettings characterSettings,
+            in CharacterSettings characterSettings,
             float deltaTime
         ) {
-            float3 targetVelocity = characterControl.MoveVector * characterSettings.GroundMaxSpeed;
+            float3 targetVelocity = characterController.MoveVector * characterSettings.GroundMaxSpeed;
 
             // CharacterControlUtilities comes from Unity.CharacterController,
             // and implements a bunch of functionality I was trying to do manually :'(
@@ -164,7 +169,7 @@ namespace Foxglove.Character {
             );
 
             // Handle jump input
-            if (characterControl.Jump)
+            if (characterController.Jump)
                 CharacterControlUtilities.StandardJump(
                     ref characterBody,
                     characterBody.GroundingUp * characterSettings.JumpSpeed, // jump velocity
@@ -177,7 +182,7 @@ namespace Foxglove.Character {
             ref FoxgloveCharacterUpdateContext foxgloveContext,
             ref KinematicCharacterUpdateContext kinematicContext,
             ref KinematicCharacterBody characterBody,
-            in FoxgloveCharacterSettings characterSettings,
+            in CharacterSettings characterSettings,
             float3 airAcceleration,
             float deltaTime
         ) {
@@ -214,8 +219,8 @@ namespace Foxglove.Character {
             ref FoxgloveCharacterUpdateContext foxgloveContext,
             ref KinematicCharacterUpdateContext kinematicContext
         ) {
-            FoxgloveCharacterControl characterControl = CharacterControl.ValueRO;
-            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            CharacterController characterController = CharacterControl.ValueRO;
+            CharacterSettings characterSettings = CharacterSettings.ValueRO;
             ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
             ref quaternion characterRotation = ref KinematicCharacter.LocalTransform.ValueRW.Rotation;
 
@@ -230,11 +235,11 @@ namespace Foxglove.Character {
             );
 
             // Rotate towards move direction
-            if (math.lengthsq(characterControl.MoveVector) > 0f)
+            if (math.lengthsq(characterController.MoveVector) > 0f)
                 CharacterControlUtilities.SlerpRotationTowardsDirectionAroundUp(
                     ref characterRotation,
                     kinematicContext.Time.DeltaTime,
-                    math.normalizesafe(characterControl.MoveVector),
+                    math.normalizesafe(characterController.MoveVector),
                     MathUtilities.GetUpFromRotation(characterRotation),
                     characterSettings.RotationSharpness
                 );
@@ -265,7 +270,7 @@ namespace Foxglove.Character {
             in BasicHit hit,
             int groundingEvaluationType
         ) {
-            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            CharacterSettings characterSettings = CharacterSettings.ValueRO;
 
             return KinematicCharacter.Default_IsGroundedOnHit(
                 in this,
@@ -288,7 +293,7 @@ namespace Foxglove.Character {
         ) {
             ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
             ref float3 characterPosition = ref KinematicCharacter.LocalTransform.ValueRW.Position;
-            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            CharacterSettings characterSettings = CharacterSettings.ValueRO;
 
             KinematicCharacter.Default_OnMovementHit(
                 in this,
@@ -326,7 +331,7 @@ namespace Foxglove.Character {
             in DynamicBuffer<KinematicVelocityProjectionHit> velocityProjectionHits,
             float3 originalVelocityDirection
         ) {
-            FoxgloveCharacterSettings characterSettings = CharacterSettings.ValueRO;
+            CharacterSettings characterSettings = CharacterSettings.ValueRO;
 
             KinematicCharacter.Default_ProjectVelocityOnHits(
                 ref velocity,

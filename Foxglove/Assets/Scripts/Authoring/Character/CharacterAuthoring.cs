@@ -34,7 +34,7 @@ namespace Foxglove.Character {
 
                 AddComponent(
                     entity,
-                    new FoxgloveCharacterSettings {
+                    new CharacterSettings {
                         RotationSharpness = authoring.RotationSharpness,
                         GroundMaxSpeed = authoring.GroundMaxSpeed,
                         GroundedMovementSharpness = authoring.GroundedMovementSharpness,
@@ -48,7 +48,7 @@ namespace Foxglove.Character {
                         StepAndSlopeHandling = authoring.StepAndSlopeHandling,
                     }
                 );
-                AddComponent<FoxgloveCharacterControl>(entity);
+                AddComponent<CharacterController>(entity);
             }
         }
     }
