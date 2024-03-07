@@ -5,7 +5,7 @@ namespace Foxglove {
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderLast = true)]
     public sealed partial class FixedTickSystem : SystemBase {
-        protected override void OnCreate() {
+        protected override void OnStartRunning() {
             EntityManager.CreateOrAddSingleton<Singleton>();
         }
 

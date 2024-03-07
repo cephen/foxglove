@@ -17,23 +17,23 @@ namespace Foxglove.Input {
 
         protected override void OnCreate() {
             _actions = new FoxgloveActions();
-            RequireForUpdate<FoxgloveGameplayInput>();
             RequireForUpdate<FixedTickSystem.Singleton>();
-
-            EntityManager.CreateOrAddSingleton<FoxgloveGameplayInput>();
         }
 
         protected override void OnStartRunning() {
             _actions.Enable();
+            EntityManager.CreateOrAddSingleton<FoxgloveGameplayInput>();
         }
 
         protected override void OnStopRunning() {
             _actions.Disable();
+            EntityManager.RemoveSingletonComponentIfExists<FoxgloveGameplayInput>();
         }
 
         [BurstCompile]
         protected override void OnUpdate() {
             uint tick = EntityManager.GetSingleton<FixedTickSystem.Singleton>().Tick;
+            var input = EntityManager.GetSingleton<FoxgloveGameplayInput>();
 
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
             // Normalize input values with a length greater than 1
@@ -42,8 +42,6 @@ namespace Foxglove.Input {
 
             // When game isn't focused (PC only), this is null and causes exceptions when constructing AimState
             InputControl aimControl = _actions.Gameplay.Aim.activeControl;
-
-            var input = EntityManager.GetSingleton<FoxgloveGameplayInput>();
 
             input.Move = move;
             input.Aim = new AimState {
