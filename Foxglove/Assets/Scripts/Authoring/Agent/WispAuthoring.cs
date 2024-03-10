@@ -1,10 +1,8 @@
-﻿using Foxglove.Agents;
+﻿using Foxglove.Agent;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Foxglove.Character {
-    public struct WispTag : IAgent { }
-
+namespace Foxglove.Authoring.Agent {
     public sealed class WispAuthoring : MonoBehaviour {
         public sealed class Baker : Baker<WispAuthoring> {
             public override void Bake(WispAuthoring authoring) {

@@ -1,14 +1,15 @@
+using Foxglove.Player;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Foxglove.Player {
+namespace Foxglove.Authoring.Player {
     [DisallowMultipleComponent]
-    public sealed class PlayerAuthoring : MonoBehaviour {
+    public sealed class PlayerControllerAuthoring : MonoBehaviour {
         public GameObject ControlledCharacter;
         public GameObject ControlledCamera;
 
-        public sealed class Baker : Baker<PlayerAuthoring> {
-            public override void Bake(PlayerAuthoring authoring) {
+        public sealed class Baker : Baker<PlayerControllerAuthoring> {
+            public override void Bake(PlayerControllerAuthoring authoring) {
                 Entity controller = GetEntity(TransformUsageFlags.None);
                 AddComponent(
                     controller,

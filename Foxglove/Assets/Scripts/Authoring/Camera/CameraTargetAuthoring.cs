@@ -1,16 +1,8 @@
-using System;
+using Foxglove.Camera;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Foxglove.Camera {
-    /// <summary>
-    /// Component that specifies a target for the camera
-    /// </summary>
-    [Serializable]
-    public struct CameraTarget : IComponentData {
-        public Entity TargetEntity;
-    }
-
+namespace Foxglove.Authoring.Camera {
     [DisallowMultipleComponent]
     public sealed class CameraTargetAuthoring : MonoBehaviour {
         public GameObject Target;

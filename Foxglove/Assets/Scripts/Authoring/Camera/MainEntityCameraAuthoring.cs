@@ -1,12 +1,8 @@
+using Foxglove.Camera;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Foxglove.Camera {
-    /// <summary>
-    /// Tag component for the main camera, there should only ever be one entity with this tag.
-    /// </summary>
-    public struct MainCameraTag : IComponentData { }
-
+namespace Foxglove.Authoring.Camera {
     [DisallowMultipleComponent]
     public sealed class MainEntityCameraAuthoring : MonoBehaviour {
         public sealed class Baker : Baker<MainEntityCameraAuthoring> {

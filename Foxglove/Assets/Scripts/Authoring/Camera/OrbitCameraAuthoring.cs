@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Foxglove.Camera;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Camera {
+namespace Foxglove.Authoring.Camera {
     /// <summary>
     /// Authoring component for the OrbitCamera.
     /// Used to configure the player's orbit camera in the inspector
