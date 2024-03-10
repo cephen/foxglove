@@ -1,18 +1,19 @@
 {
-    "name": "Foxglove",
+    "name": "Foxglove.Player",
     "rootNamespace": "Foxglove",
     "references": [
+        "GUID:64e39384c5ff4662907a8de829079c0d",
+        "GUID:3e205eb1d1642ffd3acc554261240219",
+        "GUID:7a9a88b7473743cb919b8fcbe0404614",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:e0cd26848372d4e5c891c569017e11f1",
-        "GUID:d8b63aba1907145bea998dd612889d6b",
-        "GUID:fd228c28e14f1a34cbe508676c914dd7",
-        "GUID:75469ad4d38634e559750d17036d5f7c",
         "GUID:734d92eba21c94caba915361bd5ac177",
         "GUID:8819f35a0fc84499b990e90a4ca1911f",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
         "GUID:a5baed0c9693541a5bd947d336ec7659",
-        "GUID:63afb046c8423dd448ae7aba042ea63d",
-        "GUID:e00140a815de944528348782854abe39",
-        "GUID:fba13774ff4078041871f6741c062151"
+        "GUID:fba13774ff4078041871f6741c062151",
+        "GUID:fd228c28e14f1a34cbe508676c914dd7",
+        "GUID:9c6dda6c7922c624cb7ea9a7f1c7d54a"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

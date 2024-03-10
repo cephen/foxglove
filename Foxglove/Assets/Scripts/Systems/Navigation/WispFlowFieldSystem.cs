@@ -1,14 +1,16 @@
-﻿using Foxglove.Character;
-using Foxglove.Groups;
+﻿using Foxglove.Agent;
 using Foxglove.Player;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Navigation {
-    public struct WispFlowField : IComponentData { }
-
+    /// <summary>
+    /// flow fields provide pathing 3D pathfinding towards a given destination
+    /// This system manages a flow field that Wisps use to navigate towards the player
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public partial struct WispFlowFieldSystem : ISystem {
@@ -16,9 +18,9 @@ namespace Foxglove.Navigation {
             public Entity FieldEntity;
         }
 
+        [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
-            // flow fields provide pathing towards a player
             state.RequireForUpdate<PlayerController>();
             // Agent positions are used for flow field bounds calculation
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalToWorld, WispTag>().Build());
@@ -31,20 +33,20 @@ namespace Foxglove.Navigation {
             );
 
             // Initializing wisp flow field
-            EntityCommandBuffer ecb = SystemAPI
-                .GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-            Entity flowField = ecb.CreateEntity();
-            ecb.SetName(flowField, "Wisp Flow Field");
-            ecb.AddComponent<WispFlowField>(flowField);
-            ecb.AddComponent(
-                flowField,
-                new FlowFieldTarget {
-                    TargetEntity = Entity.Null,
-                    TargetCoordinate = uint3.zero,
-                }
-            );
-            ecb.AddBuffer<FlowFieldSample>(flowField);
+            // EntityCommandBuffer ecb = SystemAPI
+            //     .GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+            //     .CreateCommandBuffer(state.WorldUnmanaged);
+            // Entity flowField = ecb.CreateEntity();
+            // ecb.SetName(flowField, "Wisp Flow Field");
+            // ecb.AddComponent<WispFlowField>(flowField);
+            // ecb.AddComponent(
+            //     flowField,
+            //     new FlowFieldTarget {
+            //         TargetEntity = Entity.Null,
+            //         TargetCoordinate = uint3.zero,
+            //     }
+            // );
+            // ecb.AddBuffer<FlowFieldSample>(flowField);
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -71,13 +73,21 @@ namespace Foxglove.Navigation {
                 float minX = float.MaxValue, minZ = float.MaxValue;
                 float maxX = float.MinValue, maxZ = float.MinValue;
 
-                foreach (RefRO<LocalToWorld> transform in SystemAPI.Query<RefRO<LocalToWorld>>().WithAll<AgentTag>()) {
+
+                foreach (RefRO<LocalToWorld> transform in SystemAPI.Query<RefRO<LocalToWorld>>().WithAny<WispTag>()) {
                     float3 position = transform.ValueRO.Position;
                     minX = math.min(math.floor(position.x), minX);
                     minZ = math.min(math.floor(position.z), minZ);
                     maxX = math.max(math.floor(position.x), maxX);
                     maxZ = math.max(math.floor(position.z), maxZ);
                 }
+
+                var fieldOrigin = new int2((int)minX, (int)minZ);
+                var fieldSize = new int2(
+                    (int)math.distance(maxX, minX),
+                    (int)math.distance(maxZ, minZ)
+                );
+                var samples = new NativeArray<FlowFieldSample>(fieldSize.x * fieldSize.y, Allocator.Temp);
             }
         }
     }

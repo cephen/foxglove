@@ -1,6 +1,5 @@
 using Foxglove.Camera;
 using Foxglove.Input;
-using Foxglove.Settings;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -9,8 +8,7 @@ namespace Foxglove.Player {
     /// Apply inputs that need to be read at a variable rate
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(PlayerSystemGroup))]
     public partial struct PlayerVariableStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {

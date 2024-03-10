@@ -1,13 +1,10 @@
 ﻿using Unity.Burst;
 using Unity.Entities;
 
-namespace Foxglove.Settings {
+namespace Foxglove.Input {
     [BurstCompile]
-    public sealed partial class SettingsInitializer : SystemBase {
-        private Entity _singletonEntity;
-
-        [BurstCompile]
-        protected override void OnCreate() {
+    public sealed partial class InputSettingsSystem : SystemBase {
+        protected override void OnStartRunning() {
             EntityManager.CreateOrSetSingleton(
                 new LookSensitivity {
                     Gamepad = 1f, Mouse = 0.3f,

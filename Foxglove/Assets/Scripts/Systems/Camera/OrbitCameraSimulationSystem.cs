@@ -1,6 +1,4 @@
-﻿using Foxglove.Character;
-using Foxglove.Player;
-using Unity.Burst;
+﻿using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Collections;
 using Unity.Entities;
@@ -9,11 +7,7 @@ using Unity.Transforms;
 
 namespace Foxglove.Camera {
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PlayerVariableStepControlSystem))]
-    [UpdateAfter(typeof(CharacterVariableUpdateSystem))]
-    [UpdateBefore(typeof(TransformSystemGroup))]
+    [UpdateInGroup(typeof(CameraSystemGroup))]
     public partial struct OrbitCameraSimulationSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {

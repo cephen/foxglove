@@ -1,20 +1,15 @@
-using Foxglove.Player;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.CharacterController;
 using Unity.Entities;
 using Unity.Physics;
-using Unity.Transforms;
 
 namespace Foxglove.Character {
     /// <summary>
     /// This system runs once per frame for every character in the world
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PlayerVariableStepControlSystem))]
-    [UpdateBefore(typeof(TransformSystemGroup))]
+    [UpdateInGroup(typeof(CharacterSystemGroup))]
     public partial struct CharacterVariableUpdateSystem : ISystem {
         private EntityQuery _characterQuery;
         private FoxgloveCharacterUpdateContext _foxgloveContext;

@@ -1,11 +1,11 @@
-using Foxglove.Groups;
+using Foxglove.Player;
 using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Foxglove.Player {
+namespace Foxglove.Checkpoints {
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public partial struct PlayerGroundCheckpoint : ISystem, ISystemStartStop {

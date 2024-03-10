@@ -4,6 +4,7 @@ using Foxglove.Input;
 using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Entities;
+using Unity.Logging;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -27,13 +28,25 @@ namespace Foxglove.Player {
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
             var playerController = SystemAPI.GetSingleton<PlayerController>();
 
-            if (playerController.ControlledCharacter == Entity.Null) return;
+            if (playerController.ControlledCharacter == Entity.Null) {
+                Log.Error("[PlayerFixedStepControlSystem] - playerController.ControlledCharacter is null");
+                return;
+            }
+
             Entity controlledCharacter = playerController.ControlledCharacter;
 
-            if (playerController.ControlledCamera == Entity.Null) return;
+            if (playerController.ControlledCamera == Entity.Null) {
+                Log.Error("[PlayerFixedStepControlSystem] - playerController.ControlledCamera is null");
+                return;
+            }
+
             Entity controlledCamera = playerController.ControlledCamera;
 
-            if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) return;
+            if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) {
+                Log.Error("[PlayerFixedStepControlSystem] - controlledCharacter has no CharacterController component");
+                return;
+            }
+
             var control = SystemAPI.GetComponent<CharacterController>(controlledCharacter);
 
             var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
