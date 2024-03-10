@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Logging;
-using IComponentData = Unity.Entities.IComponentData;
 
 namespace Foxglove {
     public struct DefaultSingleton : IComponentData { }
