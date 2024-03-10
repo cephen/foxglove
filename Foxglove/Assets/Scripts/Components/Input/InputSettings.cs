@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 
-namespace Foxglove.Settings {
+namespace Foxglove.Input {
     [Serializable]
     public struct LookSensitivity : IComponentData {
         public float Mouse;

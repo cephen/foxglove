@@ -26,15 +26,4 @@ namespace Foxglove.Camera {
         public float PitchAngle;
         public float3 PlanarForward;
     }
-
-    [Serializable]
-    public struct OrbitCameraControl : IComponentData {
-        public float2 LookDegreesDelta;
-        public Entity FollowedCharacterEntity;
-    }
-
-    [Serializable]
-    public struct OrbitCameraIgnoredEntityBufferElement : IBufferElementData {
-        public Entity Entity;
-    }
 }

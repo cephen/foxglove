@@ -1,5 +1,5 @@
 ﻿using Unity.Entities;
 
-namespace Foxglove.Agents {
+namespace Foxglove.Agent {
     public interface IAgent : IComponentData { }
 }

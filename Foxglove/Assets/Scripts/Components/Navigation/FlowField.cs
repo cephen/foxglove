@@ -17,6 +17,6 @@ namespace Foxglove.Navigation {
         public readonly Entity Entity;
         public readonly RefRW<FlowFieldTarget> Target;
         public readonly RefRW<LocalToWorld> Origin;
-        public readonly DynamicBuffer<FlowFieldSample> Samples;
+        public readonly DynamicBuffer<FlowFieldSample> Voxels;
     }
 }
