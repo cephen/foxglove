@@ -3,6 +3,7 @@ using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Logging;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -31,24 +32,29 @@ namespace Foxglove.Navigation {
             state.EntityManager.AddBuffer<FlowFieldSample>(fieldEntity);
         }
 
+        // Unused function but required by ISystem interface
         public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            // For each flow field, if a target exists && target voxel coordinate changed:
-            // - Update field target coordinates
-            // - Recalculate flow field samples
+            // Calculate field bounds in grid coordinates
+            var lowerBound = new int2(int.MaxValue);
+            var upperBound = new int2(int.MinValue);
 
-            // There's only one player controller but it's not stored as a singleton, will maybe fix later (sike)
-            // So a foreach loop must be written even though there will only ever be one iteration
-            foreach (FlowFieldAspect flowField in SystemAPI.Query<FlowFieldAspect>()) {
-                if (!SystemAPI.Exists(flowField.Target.ValueRO.TargetEntity)
-                    || flowField.Target.ValueRO.TargetEntity == Entity.Null) {
-                    Entity playerCharacter = SystemAPI.GetSingleton<PlayerController>().ControlledCharacter;
-                    flowField.Target.ValueRW.TargetEntity = playerCharacter;
-                }
+            foreach (RefRO<LocalToWorld> ltw in SystemAPI
+                .Query<RefRO<LocalToWorld>>()
+                .WithAny<PlayerCharacterTag, WispTag>()) {
+                lowerBound.x = math.min(lowerBound.x, (int)ltw.ValueRO.Position.x);
+                lowerBound.y = math.min(lowerBound.y, (int)ltw.ValueRO.Position.z);
+                upperBound.x = math.max(upperBound.x, (int)ltw.ValueRO.Position.x);
+                upperBound.y = math.max(upperBound.y, (int)ltw.ValueRO.Position.z);
+            }
 
-                Entity targetEntity = flowField.Target.ValueRO.TargetEntity;
+            // If all entities are in the same row or column,
+            // the calculated width/height will be zero,
+            // which can cause a zero sized buffer to be allocated later on
+            // of course, that is seriously no bueno :'c
+            int2 fieldSize = upperBound - lowerBound + 1;
 
                 float3 targetPosition = SystemAPI.GetComponent<LocalToWorld>(targetEntity).Position;
 
