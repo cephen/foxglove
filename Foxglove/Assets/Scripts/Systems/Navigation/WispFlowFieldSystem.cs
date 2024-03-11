@@ -56,26 +56,34 @@ namespace Foxglove.Navigation {
             // of course, that is seriously no bueno :'c
             int2 fieldSize = upperBound - lowerBound + 1;
 
-                float3 targetPosition = SystemAPI.GetComponent<LocalToWorld>(targetEntity).Position;
+            // In theory the blackboard should always be available, but just in case
+            if (!SystemAPI.HasSingleton<Blackboard>()) {
+                Log.Error("[WispFlowFieldSystem] Blackboard not found");
+                return;
+            }
 
-                float minX = float.MaxValue, minZ = float.MaxValue;
-                float maxX = float.MinValue, maxZ = float.MinValue;
+            var blackboard = SystemAPI.GetSingleton<Blackboard>();
+
+            Log.Debug("FlowField: Lower: {0}, Upper: {1}, Size: {2}", lowerBound, upperBound, fieldSize);
 
 
-                foreach (RefRO<LocalToWorld> transform in SystemAPI.Query<RefRO<LocalToWorld>>().WithAny<WispTag>()) {
-                    float3 position = transform.ValueRO.Position;
-                    minX = math.min(math.floor(position.x), minX);
-                    minZ = math.min(math.floor(position.z), minZ);
-                    maxX = math.max(math.floor(position.x), maxX);
-                    maxZ = math.max(math.floor(position.z), maxZ);
-                }
+            foreach (RefRW<FlowField> field in SystemAPI
+                .Query<RefRW<FlowField>>()
+                .WithAll<WispFlowField>()) {
+                field.ValueRW.Destination = ToGridCoordinates(blackboard.PlayerPosition);
+                field.ValueRW.RegionSize = fieldSize;
+                field.ValueRW.LowerBound = lowerBound;
+                field.ValueRW.UpperBound = upperBound;
+            }
 
-                var fieldOrigin = new int2((int)minX, (int)minZ);
-                var fieldSize = new int2(
-                    (int)math.distance(maxX, minX),
-                    (int)math.distance(maxZ, minZ)
-                );
-                var samples = new NativeArray<FlowFieldSample>(fieldSize.x * fieldSize.y, Allocator.Temp);
+            // Perform flow field calculations on a background thread
+            new FlowFieldCalculationJob().Schedule();
+        }
+
+        [BurstCompile]
+        private readonly int2 ToGridCoordinates(in float3 position) =>
+            new((int)position.x, (int)position.z);
+
             }
         }
     }
