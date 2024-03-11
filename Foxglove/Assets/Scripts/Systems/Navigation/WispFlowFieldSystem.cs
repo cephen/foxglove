@@ -1,4 +1,4 @@
-﻿using Foxglove.Agent;
+using Foxglove.Agent;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;
@@ -8,45 +8,27 @@ using Unity.Transforms;
 
 namespace Foxglove.Navigation {
     /// <summary>
-    /// flow fields provide pathing 3D pathfinding towards a given destination
+    /// flow fields provide 3D pathfinding towards a given destination
     /// This system manages a flow field that Wisps use to navigate towards the player
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public partial struct WispFlowFieldSystem : ISystem {
-        public struct Singleton : IComponentData {
-            public Entity FieldEntity;
-        }
-
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
-            state.RequireForUpdate<PlayerController>();
-            // Agent positions are used for flow field bounds calculation
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalToWorld, WispTag>().Build());
-
+            // Query for transforms relevant to field calculation
             state.RequireForUpdate(
-                SystemAPI
-                    .QueryBuilder()
-                    .WithAll<FlowFieldTarget, FlowFieldSample, WispFlowField>()
-                    .Build()
+                SystemAPI.QueryBuilder().WithAll<LocalToWorld>().WithAny<PlayerCharacterTag, WispTag>().Build()
             );
+            state.RequireForUpdate<Blackboard>();
 
-            // Initializing wisp flow field
-            // EntityCommandBuffer ecb = SystemAPI
-            //     .GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
-            //     .CreateCommandBuffer(state.WorldUnmanaged);
-            // Entity flowField = ecb.CreateEntity();
-            // ecb.SetName(flowField, "Wisp Flow Field");
-            // ecb.AddComponent<WispFlowField>(flowField);
-            // ecb.AddComponent(
-            //     flowField,
-            //     new FlowFieldTarget {
-            //         TargetEntity = Entity.Null,
-            //         TargetCoordinate = uint3.zero,
-            //     }
-            // );
-            // ecb.AddBuffer<FlowFieldSample>(flowField);
+            if (SystemAPI.HasSingleton<WispFlowField>()) return;
+
+            Entity fieldEntity = state.EntityManager.CreateEntity();
+            state.EntityManager.SetName(fieldEntity, "Wisp Flow Field");
+            state.EntityManager.AddComponent<FlowField>(fieldEntity);
+            state.EntityManager.AddComponent<WispFlowField>(fieldEntity);
+            state.EntityManager.AddBuffer<FlowFieldSample>(fieldEntity);
         }
 
         public void OnDestroy(ref SystemState state) { }
