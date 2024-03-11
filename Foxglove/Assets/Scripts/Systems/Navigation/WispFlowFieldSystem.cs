@@ -1,4 +1,4 @@
-using Foxglove.Agent;
+﻿using Foxglove.Agent;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;
@@ -84,33 +84,97 @@ namespace Foxglove.Navigation {
         private readonly int2 ToGridCoordinates(in float3 position) =>
             new((int)position.x, (int)position.z);
 
-            }
-        }
-    }
-
-    [BurstCompile]
-    public partial struct FlowFieldUpdateJob : IJobEntity {
-        // Length of each side of the field in voxels
-        private const uint FieldSideLength = 100;
-
-        // This method will be run for each flow field
+        /// <summary>
+        /// This struct performs flow direction calculation for every node in the field.
+        /// Implementing this as an IJob allows it to be run on a background thread.
+        /// </summary>
         [BurstCompile]
-        public void Execute(ref FlowFieldTarget flowFieldTarget, ref DynamicBuffer<FlowFieldSample> samples) {
-            // Create a list of nodes to scan, starting with the destination
-            // For each node in open list:
-            // - Add node neighbours to open list if not already searched
-            // - Determine cost of node
-            // - Determine direction of node
-            // - Add node to closed list
-        }
+        private partial struct FlowFieldCalculationJob : IJobEntity {
+            /// <summary>
+            /// Here's where all the work really happens.
+            /// For each flow field in the world, perform a breadth first search starting from the destination.
+            /// For now, each node has a uniform travel cost, so the first time a node is found it's flow
+            /// can be assumed to travel to the neighbour it was discovered from
+            /// </summary>
+            [BurstCompile]
+            public void Execute(ref FlowField field, ref DynamicBuffer<FlowFieldSample> samples) {
+                // Set sample buffer to the correct size
+                samples.Resize(field.RegionSize.x * field.RegionSize.y, NativeArrayOptions.ClearMemory);
 
-        private int2 ToGridCoordinates(float3 position, float3 fieldOrigin) {
-            float3 positionInField = position - fieldOrigin;
-            var positionCoordinates = new int2(
-                (int)math.floor(positionInField.x),
-                (int)math.floor(positionInField.z)
-            );
-            return positionCoordinates;
+                // Temporary collections used to store cells to check
+                NativeQueue<int2> frontier = new(Allocator.Temp);
+                // And cells that have already been visited
+                NativeHashSet<int2> visited = new(field.RegionSize.x * field.RegionSize.y, Allocator.Temp);
+
+                // The destination cell should be the first one checked
+                frontier.Enqueue(field.Destination);
+                visited.Add(field.Destination);
+
+                // While there are cells left to check
+                while (!frontier.IsEmpty()) {
+                    int2 current = frontier.Dequeue();
+
+                    // For each potential neighbour of the current cell
+                    NativeArray<int2> neighbours = NeighboursOf(current);
+                    foreach (int2 next in neighbours) {
+                        // Skip cells outside the bounds of the field
+                        if (!IsInBounds(next, field.RegionSize)) continue;
+
+                        // Skip cells already visited
+                        if (visited.Contains(next)) continue;
+
+                        // Queue new cells
+                        frontier.Enqueue(next);
+                        visited.Add(next);
+
+                        // Store flow direction from neighbour to current
+                        samples[IndexFromPosition(next, field.LowerBound, field.RegionSize)] = next - current;
+                    }
+
+                    // Deallocate the collection now that we're done with it
+                    // This is necessary for all NativeCollection types provided by Unity.Collections
+                    neighbours.Dispose();
+                }
+
+                // Same as above
+                frontier.Dispose();
+                visited.Dispose();
+            }
+
+            /// <summary>
+            /// Converts a position to an array index
+            /// </summary>
+            [BurstCompile]
+            private readonly int IndexFromPosition(in int2 position, in int2 lowerBound, in int2 fieldSize) {
+                int2 offsetPosition = position - lowerBound;
+                return offsetPosition.y + offsetPosition.x * fieldSize.x;
+            }
+
+            /// <summary>
+            /// Returns the coordinates of potential neighbours of a given position
+            /// </summary>
+            [BurstCompile]
+            private readonly NativeArray<int2> NeighboursOf(in int2 position) {
+                var array = new NativeArray<int2>(8, Allocator.Temp);
+                array[0] = position + new int2(-1, -1);
+                array[1] = position + new int2(-1, +0);
+                array[2] = position + new int2(-1, +1);
+                array[3] = position + new int2(+0, +1);
+                array[4] = position + new int2(+1, +1);
+                array[5] = position + new int2(+1, +0);
+                array[6] = position + new int2(+1, -1);
+                array[7] = position + new int2(+0, -1);
+                return array;
+            }
+
+            /// <summary>
+            /// Helper function to check if a position is within the bounds of the flow field
+            /// </summary>
+            [BurstCompile]
+            private readonly bool IsInBounds(in int2 position, in int2 regionSize) =>
+                position is { x: >= 0, y: >= 0 } // funny pattern matching syntax to check if both x and y are >= 0
+                && position.x < regionSize.x
+                && position.y < regionSize.y;
         }
     }
 }
