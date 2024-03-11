@@ -8,7 +8,7 @@ namespace Foxglove.Player {
     /// Apply inputs that need to be read at a variable rate
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(PlayerSystemGroup))]
+    [UpdateInGroup(typeof(PlayerVariableStepSystemGroup))]
     public partial struct PlayerVariableStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {

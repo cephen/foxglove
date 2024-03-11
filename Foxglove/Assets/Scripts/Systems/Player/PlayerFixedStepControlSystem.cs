@@ -13,7 +13,7 @@ namespace Foxglove.Player {
     /// Apply inputs that need to be read at a fixed rate (specifically, movement related inputs)
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(PlayerFixedStepSystemGroup), OrderFirst = true)]
     public partial struct PlayerFixedStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
