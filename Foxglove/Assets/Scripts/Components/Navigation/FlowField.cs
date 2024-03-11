@@ -1,22 +1,26 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 
 namespace Foxglove.Navigation {
-    public struct FlowFieldTarget : IComponentData {
-        public Entity TargetEntity;
-        public uint3 TargetCoordinate;
+    public struct FlowField : IComponentData {
+        public int2 Destination;
+        public int2 RegionSize;
+        public int2 LowerBound;
+        public int2 UpperBound;
     }
 
     public struct FlowFieldSample : IBufferElementData {
-        public float Cost;
-        public float3 Direction;
-    }
+        public int2 Direction;
 
-    public readonly partial struct FlowFieldAspect : IAspect {
-        public readonly Entity Entity;
-        public readonly RefRW<FlowFieldTarget> Target;
-        public readonly RefRW<LocalToWorld> Origin;
-        public readonly DynamicBuffer<FlowFieldSample> Voxels;
+        /// <summary>
+        /// Allows implicit conversion from int2 to FlowFieldSample.
+        /// For example, allowing code like FlowFieldSample x = new int2(1,2);
+        /// </summary>
+        public static implicit operator FlowFieldSample(int2 value) => new() { Direction = value };
+
+        /// <summary>
+        /// The same as above, but in reverse!
+        /// </summary>
+        public static implicit operator int2(FlowFieldSample value) => value.Direction;
     }
 }
