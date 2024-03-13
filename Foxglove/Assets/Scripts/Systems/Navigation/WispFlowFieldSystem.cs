@@ -14,6 +14,7 @@ namespace Foxglove.Navigation {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
+    [DisableAutoCreation] // Disable this system for now
     public partial struct WispFlowFieldSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
