@@ -66,11 +66,11 @@ namespace Foxglove.Navigation {
 
             Log.Debug("FlowField: Lower: {0}, Upper: {1}, Size: {2}", lowerBound, upperBound, fieldSize);
 
-
             foreach (RefRW<FlowField> field in SystemAPI
                 .Query<RefRW<FlowField>>()
                 .WithAll<WispFlowField>()) {
-                field.ValueRW.Destination = ToGridCoordinates(blackboard.PlayerPosition);
+                // Convert destination from worldspace to fieldspace
+                field.ValueRW.Destination = ToGridCoordinates(blackboard.PlayerPosition) - lowerBound;
                 field.ValueRW.RegionSize = fieldSize;
                 field.ValueRW.LowerBound = lowerBound;
                 field.ValueRW.UpperBound = upperBound;
