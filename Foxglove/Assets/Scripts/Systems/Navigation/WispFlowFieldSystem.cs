@@ -99,12 +99,13 @@ namespace Foxglove.Navigation {
             [BurstCompile]
             public void Execute(ref FlowField field, ref DynamicBuffer<FlowFieldSample> samples) {
                 // Set sample buffer to the correct size
-                samples.Resize(field.RegionSize.x * field.RegionSize.y, NativeArrayOptions.ClearMemory);
+                int cellCount = field.RegionSize.x * field.RegionSize.y;
+                samples.Resize(cellCount, NativeArrayOptions.ClearMemory);
 
                 // Temporary collections used to store cells to check
                 NativeQueue<int2> frontier = new(Allocator.Temp);
                 // And cells that have already been visited
-                NativeHashSet<int2> visited = new(field.RegionSize.x * field.RegionSize.y, Allocator.Temp);
+                NativeHashSet<int2> visited = new(cellCount, Allocator.Temp);
 
                 // The destination cell should be the first one checked
                 frontier.Enqueue(field.Destination);
