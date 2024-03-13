@@ -1,4 +1,4 @@
-﻿using Foxglove.Agent;
+using Foxglove.Agent;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;
@@ -156,14 +156,14 @@ namespace Foxglove.Navigation {
             [BurstCompile]
             private readonly NativeArray<int2> NeighboursOf(in int2 position) {
                 var array = new NativeArray<int2>(8, Allocator.Temp);
-                array[0] = position + new int2(-1, -1);
-                array[1] = position + new int2(-1, +0);
-                array[2] = position + new int2(-1, +1);
-                array[3] = position + new int2(+0, +1);
-                array[4] = position + new int2(+1, +1);
-                array[5] = position + new int2(+1, +0);
-                array[6] = position + new int2(+1, -1);
-                array[7] = position + new int2(+0, -1);
+                array[0] = position + new int2(-1, -1); // Southwest
+                array[1] = position + new int2(-1, +0); // West
+                array[2] = position + new int2(-1, +1); // Northwest
+                array[3] = position + new int2(+0, +1); // North
+                array[4] = position + new int2(+1, +1); // Northeast
+                array[5] = position + new int2(+1, +0); // East
+                array[6] = position + new int2(+1, -1); // Southeast
+                array[7] = position + new int2(+0, -1); // South
                 return array;
             }
 
