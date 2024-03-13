@@ -29,8 +29,11 @@ namespace Foxglove.Agent {
             foreach ((RefRW<CharacterController> controller, RefRO<LocalToWorld> transform) in SystemAPI
                 .Query<RefRW<CharacterController>, RefRO<LocalToWorld>>()
                 .WithAll<WispTag>()) {
-                controller.ValueRW.MoveVector =
-                    math.normalizesafe(blackboard.PlayerPosition - transform.ValueRO.Position);
+                float3 move = math.normalizesafe(blackboard.PlayerPosition - transform.ValueRO.Position);
+
+                move.y = 0;
+
+                controller.ValueRW.MoveVector = move;
             }
         }
     }
