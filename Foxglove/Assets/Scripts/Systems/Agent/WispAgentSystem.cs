@@ -1,4 +1,5 @@
 using Foxglove.Character;
+using Foxglove.Navigation;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
@@ -14,6 +15,11 @@ namespace Foxglove.Agent {
                     .QueryBuilder()
                     .WithAll<WispTag, CharacterController, LocalToWorld>()
                     .Build()
+            );
+
+            // Navigation components
+            state.RequireForUpdate(
+                SystemAPI.QueryBuilder().WithAll<FlowField, FlowFieldSample, WispFlowField>().Build()
             );
 
             state.RequireForUpdate<Blackboard>();
