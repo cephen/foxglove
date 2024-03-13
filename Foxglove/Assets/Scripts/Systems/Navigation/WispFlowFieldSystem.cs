@@ -145,10 +145,13 @@ namespace Foxglove.Navigation {
             /// <summary>
             /// Converts a position to an array index
             /// </summary>
+            /// <param name="position">The WorldSpace grid coordinate of the position to be checked</param>
+            /// <param name="lowerBound">The minimum WorldSpace grid coordinate of the field</param>
+            /// <param name="fieldSize">The size of the field in cells</param>
             [BurstCompile]
             private readonly int IndexFromPosition(in int2 position, in int2 lowerBound, in int2 fieldSize) {
-                int2 offsetPosition = position - lowerBound;
-                return offsetPosition.y + offsetPosition.x * fieldSize.x;
+                int2 fieldSpacePosition = position - lowerBound;
+                return fieldSpacePosition.y + fieldSpacePosition.x * fieldSize.x;
             }
 
             /// <summary>
