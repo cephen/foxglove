@@ -1,13 +1,13 @@
 using Foxglove.Character;
-using Foxglove.Navigation;
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Agent {
     [BurstCompile]
     [UpdateInGroup(typeof(AgentUpdateGroup))]
-    public partial struct WispAgentSystem : ISystem {
+    public partial struct WispPathfindingSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             // Agent components
             state.RequireForUpdate(
@@ -17,17 +17,21 @@ namespace Foxglove.Agent {
                     .Build()
             );
 
-            // Navigation components
-            state.RequireForUpdate(
-                SystemAPI.QueryBuilder().WithAll<FlowField, FlowFieldSample, WispFlowField>().Build()
-            );
-
             state.RequireForUpdate<Blackboard>();
         }
 
         public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state) { }
+        public void OnUpdate(ref SystemState state) {
+            var blackboard = SystemAPI.GetSingleton<Blackboard>();
+
+            foreach ((RefRW<CharacterController> controller, RefRO<LocalToWorld> transform) in SystemAPI
+                .Query<RefRW<CharacterController>, RefRO<LocalToWorld>>()
+                .WithAll<WispTag>()) {
+                controller.ValueRW.MoveVector =
+                    math.normalizesafe(blackboard.PlayerPosition - transform.ValueRO.Position);
+            }
+        }
     }
 }
