@@ -127,26 +127,17 @@ namespace Foxglove.Navigation {
                         frontier.Enqueue(next);
                         visited.Add(next);
 
+                        int index = next.y * field.RegionSize.x + next.x;
+
                         // Store flow direction from neighbour to current
-                        samples[IndexFromPosition(next, field.LowerBound, field.RegionSize)] = next - current;
+                        samples[index] = next - current;
                     }
+                }
 
                 // Deallocate the collection now that we're done with it
                 // This is necessary for all NativeCollection types provided by Unity.Collections
                 frontier.Dispose();
                 visited.Dispose();
-            }
-
-            /// <summary>
-            /// Converts a position to an array index
-            /// </summary>
-            /// <param name="position">The WorldSpace grid coordinate of the position to be checked</param>
-            /// <param name="lowerBound">The minimum WorldSpace grid coordinate of the field</param>
-            /// <param name="fieldSize">The size of the field in cells</param>
-            [BurstCompile]
-            private readonly int IndexFromPosition(in int2 position, in int2 lowerBound, in int2 fieldSize) {
-                int2 fieldSpacePosition = position - lowerBound;
-                return fieldSpacePosition.y + fieldSpacePosition.x * fieldSize.x;
             }
 
             /// <summary>
