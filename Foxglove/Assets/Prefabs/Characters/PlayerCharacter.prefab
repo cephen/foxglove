@@ -112,7 +112,7 @@ MonoBehaviour:
     z: -0
   PreventAirAccelerationAgainstUngroundedHits: 1
   StepAndSlopeHandling:
-    StepHandling: 0
+    StepHandling: 1
     MaxStepHeight: 0.5
     ExtraStepChecksDistance: 0.1
     CharacterWidthForStepGroundingCheck: 1
