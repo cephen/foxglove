@@ -32,9 +32,15 @@ namespace Foxglove.Agent {
         public void OnUpdate(ref SystemState state) {
             var blackboard = SystemAPI.GetSingleton<Blackboard>();
 
+            Entity flowFieldEntity = SystemAPI.GetSingletonEntity<WispFlowField>();
+            var field = SystemAPI.GetAspect<FlowFieldAspect>(flowFieldEntity);
+
             foreach ((RefRW<CharacterController> controller, RefRO<LocalToWorld> transform) in SystemAPI
                 .Query<RefRW<CharacterController>, RefRO<LocalToWorld>>()
                 .WithAll<WispTag>()) {
+                float3 position = transform.ValueRO.Position;
+                float2 sampledDirection = field.DirectionAt(position);
+
                 float3 move = math.normalizesafe(blackboard.PlayerPosition - transform.ValueRO.Position);
 
                 move.y = 0;
