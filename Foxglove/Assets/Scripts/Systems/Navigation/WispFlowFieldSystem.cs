@@ -116,8 +116,7 @@ namespace Foxglove.Navigation {
                     int2 current = frontier.Dequeue();
 
                     // For each potential neighbour of the current cell
-                    NativeArray<int2> neighbours = NeighboursOf(current);
-                    foreach (int2 next in neighbours) {
+                    foreach (int2 next in NeighboursOf(current)) {
                         // Skip cells outside the bounds of the field
                         if (!IsInBounds(next, field.RegionSize)) continue;
 
@@ -132,12 +131,8 @@ namespace Foxglove.Navigation {
                         samples[IndexFromPosition(next, field.LowerBound, field.RegionSize)] = next - current;
                     }
 
-                    // Deallocate the collection now that we're done with it
-                    // This is necessary for all NativeCollection types provided by Unity.Collections
-                    neighbours.Dispose();
-                }
-
-                // Same as above
+                // Deallocate the collection now that we're done with it
+                // This is necessary for all NativeCollection types provided by Unity.Collections
                 frontier.Dispose();
                 visited.Dispose();
             }
