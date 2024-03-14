@@ -49,11 +49,12 @@ namespace Foxglove.Navigation {
                 upperBound = math.max(upperBound, (int2)math.ceil(ltw.ValueRO.Position.xz));
             }
 
-            // If all entities are in the same row or column,
-            // the calculated width/height will be zero,
-            // which can cause a zero sized buffer to be allocated later on
-            // of course, that is seriously no bueno :'c
-            int2 fieldSize = upperBound - lowerBound + 1;
+            // Expand the border of the field by one unit in every direction,
+            // ensuring the field is never zero sized
+            lowerBound--;
+            upperBound++;
+
+            int2 fieldSize = upperBound - lowerBound;
 
             // In theory the blackboard should always be available, but just in case
             if (!SystemAPI.HasSingleton<Blackboard>()) {
