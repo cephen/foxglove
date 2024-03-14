@@ -11,21 +11,20 @@ namespace Foxglove.Navigation {
         public readonly DynamicBuffer<FlowFieldSample> Samples;
 
         public float2 DirectionAt(float3 position) {
-            int2 gridCoordinates = ToGridCoordinates(position);
+            int2 worldspaceGridCoords = ToGridCoordinates(position);
+            int2 fieldCoords = worldspaceGridCoords - FlowField.ValueRO.LowerBound;
 
-            if (!IsInBounds(gridCoordinates)) {
+            if (!IsInBounds(worldspaceGridCoords)) {
                 Log.Error(
                     "[FlowField] Position {position} is outside field with size {size} and Lower bound {lowerBound}",
-                    gridCoordinates,
+                    worldspaceGridCoords,
                     FlowField.ValueRO.RegionSize,
                     FlowField.ValueRO.LowerBound
                 );
                 return float2.zero;
             }
 
-            int index = IndexFromPosition(gridCoordinates);
-
-            return math.normalizesafe(Samples[index].Direction);
+            return math.normalizesafe(Samples[IndexFromPosition(fieldCoords)].Direction);
         }
 
         public float3 ToWorldspace(in int2 gridCoordinates) => new(
