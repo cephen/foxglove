@@ -1,4 +1,5 @@
 using Foxglove.Character;
+using Foxglove.Navigation;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -9,12 +10,17 @@ namespace Foxglove.Agent {
     [UpdateInGroup(typeof(AgentUpdateGroup))]
     public partial struct WispPathfindingSystem : ISystem {
         public void OnCreate(ref SystemState state) {
-            // Agent components
+            // Agent query
             state.RequireForUpdate(
                 SystemAPI
                     .QueryBuilder()
                     .WithAll<WispTag, CharacterController, LocalToWorld>()
                     .Build()
+            );
+
+            // Flow Field query
+            state.RequireForUpdate(
+                SystemAPI.QueryBuilder().WithAll<WispFlowField, FlowField, FlowFieldSample>().Build()
             );
 
             state.RequireForUpdate<Blackboard>();
