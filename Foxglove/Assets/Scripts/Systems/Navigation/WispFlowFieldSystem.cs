@@ -45,10 +45,8 @@ namespace Foxglove.Navigation {
             foreach (RefRO<LocalToWorld> ltw in SystemAPI
                 .Query<RefRO<LocalToWorld>>()
                 .WithAny<PlayerCharacterTag, WispTag>()) {
-                lowerBound.x = math.min(lowerBound.x, (int)ltw.ValueRO.Position.x);
-                lowerBound.y = math.min(lowerBound.y, (int)ltw.ValueRO.Position.z);
-                upperBound.x = math.max(upperBound.x, (int)ltw.ValueRO.Position.x);
-                upperBound.y = math.max(upperBound.y, (int)ltw.ValueRO.Position.z);
+                lowerBound = math.min(lowerBound, (int2)math.floor(ltw.ValueRO.Position.xz));
+                upperBound = math.max(upperBound, (int2)math.ceil(ltw.ValueRO.Position.xz));
             }
 
             // If all entities are in the same row or column,
