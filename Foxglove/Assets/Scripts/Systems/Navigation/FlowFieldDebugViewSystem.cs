@@ -13,15 +13,15 @@ namespace Foxglove.Navigation {
         protected override void OnUpdate() {
             foreach ((RefRO<FlowField> flowField, DynamicBuffer<FlowFieldSample> flowFieldSamples) in SystemAPI
                 .Query<RefRO<FlowField>, DynamicBuffer<FlowFieldSample>>()) {
-                int2 lowerBound = flowField.ValueRO.LowerBound;
-                int2 upperBound = flowField.ValueRO.UpperBound;
+                int2 lowerBound = flowField.ValueRO.SouthWestCorner;
+                int2 upperBound = flowField.ValueRO.NorthEastCorner;
 
-                for (var x = 0; x < flowField.ValueRO.RegionSize.x; x++) {
-                    for (var y = 0; y < flowField.ValueRO.RegionSize.y; y++) {
+                for (var x = 0; x < flowField.ValueRO.FieldSize.x; x++) {
+                    for (var y = 0; y < flowField.ValueRO.FieldSize.y; y++) {
                         float3 cellCenter = new float3(x, 0, y) + 0.5f;
                         cellCenter.xz += lowerBound;
 
-                        int sampleIndex = x + y * flowField.ValueRO.RegionSize.x;
+                        int sampleIndex = x + y * flowField.ValueRO.FieldSize.x;
                         int2 sampleDirection = flowFieldSamples[sampleIndex].Direction;
 
                         float3 lineEnd = cellCenter;
