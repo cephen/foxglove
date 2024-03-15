@@ -4,9 +4,9 @@ using Unity.Mathematics;
 namespace Foxglove.Navigation {
     public struct FlowField : IComponentData {
         public int2 Destination;
-        public int2 RegionSize;
-        public int2 LowerBound;
-        public int2 UpperBound;
+        public int2 FieldSize;
+        public int2 SouthWestCorner;
+        public int2 NorthEastCorner;
     }
 
     public struct FlowFieldSample : IBufferElementData {
