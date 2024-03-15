@@ -38,22 +38,23 @@ namespace Foxglove.Navigation {
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
             // Calculate field bounds in grid coordinates
-            var lowerBound = new int2(int.MaxValue);
-            var upperBound = new int2(int.MinValue);
+            var southWestCorner = new int2(int.MaxValue);
+            var northEastCorner = new int2(int.MinValue);
 
             foreach (RefRO<LocalToWorld> ltw in SystemAPI
                 .Query<RefRO<LocalToWorld>>()
                 .WithAny<PlayerCharacterTag, WispTag>()) {
-                lowerBound = math.min(lowerBound, (int2)math.floor(ltw.ValueRO.Position.xz));
-                upperBound = math.max(upperBound, (int2)math.ceil(ltw.ValueRO.Position.xz));
+                float2 position = ltw.ValueRO.Position.xz;
+                southWestCorner = math.min(southWestCorner, (int2)math.floor(position));
+                northEastCorner = math.max(northEastCorner, (int2)math.ceil(position));
             }
 
             // Expand the border of the field by one unit in every direction,
             // ensuring the field is never zero sized
-            lowerBound--;
-            upperBound++;
+            southWestCorner--;
+            northEastCorner++;
 
-            int2 fieldSize = upperBound - lowerBound;
+            int2 fieldSize = northEastCorner - southWestCorner;
 
             // In theory the blackboard should always be available, but just in case
             if (!SystemAPI.HasSingleton<Blackboard>()) {
@@ -63,25 +64,21 @@ namespace Foxglove.Navigation {
 
             var blackboard = SystemAPI.GetSingleton<Blackboard>();
 
-            Log.Debug("FlowField: Lower: {0}, Upper: {1}, Size: {2}", lowerBound, upperBound, fieldSize);
+            Log.Debug("FlowField: Lower: {0}, Upper: {1}, Size: {2}", southWestCorner, northEastCorner, fieldSize);
 
-            foreach (RefRW<FlowField> field in SystemAPI
-                .Query<RefRW<FlowField>>()
+            foreach ((FlowFieldAspect field, DynamicBuffer<FlowFieldSample> sampleBuffer) in SystemAPI
+                .Query<FlowFieldAspect, DynamicBuffer<FlowFieldSample>>()
                 .WithAll<WispFlowField>()) {
-                // Convert destination from worldspace to fieldspace
-                field.ValueRW.Destination = ToGridCoordinates(blackboard.PlayerPosition) - lowerBound;
-                field.ValueRW.RegionSize = fieldSize;
-                field.ValueRW.LowerBound = lowerBound;
-                field.ValueRW.UpperBound = upperBound;
+                field.SetDestination(blackboard.PlayerPosition);
+                field.FlowField.ValueRW.FieldSize = fieldSize;
+                field.FlowField.ValueRW.SouthWestCorner = southWestCorner;
+                field.FlowField.ValueRW.NorthEastCorner = northEastCorner;
+                sampleBuffer.Resize(fieldSize.x * fieldSize.y, NativeArrayOptions.ClearMemory);
             }
 
             // Perform flow field calculations on a background thread
             new FlowFieldCalculationJob().Schedule();
         }
-
-        [BurstCompile]
-        private readonly int2 ToGridCoordinates(in float3 position) =>
-            new((int)position.x, (int)position.z);
 
         /// <summary>
         /// This struct performs flow direction calculation for every node in the field.
