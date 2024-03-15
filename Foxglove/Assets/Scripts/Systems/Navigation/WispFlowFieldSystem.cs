@@ -93,14 +93,14 @@ namespace Foxglove.Navigation {
             /// can be assumed to travel to the neighbour it was discovered from
             /// </summary>
             [BurstCompile]
-            public void Execute(ref FlowField field, ref DynamicBuffer<FlowFieldSample> samples) {
-                // Set sample buffer to the correct size
-                int cellCount = field.RegionSize.x * field.RegionSize.y;
-                samples.Resize(cellCount, NativeArrayOptions.ClearMemory);
+            public readonly void Execute(FlowFieldAspect aspect) {
+                DynamicBuffer<FlowFieldSample> flowBuffer = aspect.Samples;
+                ref FlowField field = ref aspect.FlowField.ValueRW;
+                int cellCount = field.FieldSize.x * field.FieldSize.y;
 
-                // Temporary collections used to store cells to check
+                // Temporary collections used to store cells to check...
                 NativeQueue<int2> frontier = new(Allocator.Temp);
-                // And cells that have already been visited
+                // ...and cells that have already been checked
                 NativeHashSet<int2> visited = new(cellCount, Allocator.Temp);
 
                 // The destination cell should be the first one checked
@@ -110,27 +110,32 @@ namespace Foxglove.Navigation {
                 // While there are cells left to check
                 while (!frontier.IsEmpty()) {
                     int2 current = frontier.Dequeue();
+                    float currentDistance = math.distance(current, field.Destination);
+
+                    float bestNeighbourCost = currentDistance;
 
                     // For each potential neighbour of the current cell
-                    foreach (int2 next in NeighboursOf(current)) {
-                        // Skip cells outside the bounds of the field
-                        if (!IsInBounds(next, field.RegionSize)) continue;
+                    foreach (int2 neighbour in NeighboursOf(current)) {
+                        // Skip neighbour if it's outside the bounds of the field
+                        if (!aspect.IsInBounds(neighbour)) continue;
 
-                        // Skip cells already visited
-                        if (visited.Contains(next)) continue;
+                        // If neighbour hasn't been checked before, add it to the queue
+                        if (!visited.Contains(neighbour)) {
+                            frontier.Enqueue(neighbour);
+                            visited.Add(neighbour);
+                        }
 
-                        // Queue new cells
-                        frontier.Enqueue(next);
-                        visited.Add(next);
+                        // Update flow direction if neighbour costs less than previous cheapest neighbour
+                        float neighbourCost = math.distance(neighbour, field.Destination);
+                        if (neighbourCost > bestNeighbourCost) continue;
 
-                        int index = next.y * field.RegionSize.x + next.x;
-
-                        // Store flow direction from neighbour to current
-                        samples[index] = next - current;
+                        // Store best flow direction
+                        flowBuffer[aspect.IndexFromFieldCoordinates(neighbour)] = neighbour - current;
+                        bestNeighbourCost = neighbourCost;
                     }
                 }
 
-                // Deallocate the collection now that we're done with it
+                // Deallocate the collections now that we're done with them
                 // This is necessary for all NativeCollection types provided by Unity.Collections
                 frontier.Dispose();
                 visited.Dispose();
@@ -152,15 +157,6 @@ namespace Foxglove.Navigation {
                 array[7] = position + new int2(+0, -1); // South
                 return array;
             }
-
-            /// <summary>
-            /// Helper function to check if a position is within the bounds of the flow field
-            /// </summary>
-            [BurstCompile]
-            private readonly bool IsInBounds(in int2 position, in int2 regionSize) =>
-                position is { x: >= 0, y: >= 0 } // funny pattern matching syntax to check if both x and y are >= 0
-                && position.x < regionSize.x
-                && position.y < regionSize.y;
         }
     }
 }
