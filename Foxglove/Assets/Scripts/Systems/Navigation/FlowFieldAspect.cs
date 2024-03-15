@@ -26,22 +26,25 @@ namespace Foxglove.Navigation {
             return float2.zero;
         }
 
-        public float3 ToWorldspace(in int2 gridCoordinates) => new(
-            gridCoordinates.x + FlowField.ValueRO.LowerBound.x,
-            0f,
-            gridCoordinates.y + FlowField.ValueRO.LowerBound.y
-        );
+        [BurstCompile]
+        public void SetDestination(in float3 worldPosition) =>
+            FlowField.ValueRW.Destination = WorldToField(worldPosition);
 
-        private static int2 ToGridCoordinates(in float3 position) =>
-            new((int)position.x, (int)position.z);
+        [BurstCompile]
+        public int2 WorldToField(in int2 worldCoordinates) => worldCoordinates - FlowField.ValueRO.SouthWestCorner;
+
+        [BurstCompile]
+        private int2 WorldToField(in float3 worldPosition) => WorldToField((int2)math.floor(worldPosition.xz));
 
         /// <summary>
         /// Helper function to check if a position is within the bounds of the flow field
         /// </summary>
-        private bool IsInBounds(int2 position) =>
-            position is { x: >= 0, y: >= 0 } // funny pattern matching syntax to check if both x and y are >= 0
-            && position.x < FlowField.ValueRO.RegionSize.x
-            && position.y < FlowField.ValueRO.RegionSize.y;
+        [BurstCompile]
+        public bool IsInBounds(in int2 fieldCoordinates) =>
+            fieldCoordinates is { x: >= 0, y: >= 0 } // funny pattern matching syntax to check if both x and y are >= 0
+            && fieldCoordinates.x < FlowField.ValueRO.FieldSize.x
+            && fieldCoordinates.y < FlowField.ValueRO.FieldSize.y;
+
 
         /// <summary>
         /// Converts a field space coordinate to an array index
