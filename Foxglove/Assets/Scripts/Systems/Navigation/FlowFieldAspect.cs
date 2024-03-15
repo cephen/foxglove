@@ -7,7 +7,7 @@ namespace Foxglove.Navigation {
     [BurstCompile]
     public readonly partial struct FlowFieldAspect : IAspect {
         public readonly Entity Entity;
-        public readonly RefRO<FlowField> FlowField;
+        public readonly RefRW<FlowField> FlowField;
         public readonly DynamicBuffer<FlowFieldSample> Samples;
 
         public float2 DirectionAt(float3 position) {
