@@ -10,21 +10,20 @@ namespace Foxglove.Navigation {
         public readonly RefRW<FlowField> FlowField;
         public readonly DynamicBuffer<FlowFieldSample> Samples;
 
-        public float2 DirectionAt(float3 position) {
-            int2 worldspaceGridCoords = ToGridCoordinates(position);
-            int2 fieldCoords = worldspaceGridCoords - FlowField.ValueRO.LowerBound;
+        [BurstCompile]
+        public float2 FlowDirectionAtWorldPosition(in float3 position) {
+            int2 coords = WorldToField(position);
 
-            if (!IsInBounds(worldspaceGridCoords)) {
-                Log.Error(
-                    "[FlowField] Position {position} is outside field with size {size} and Lower bound {lowerBound}",
-                    worldspaceGridCoords,
-                    FlowField.ValueRO.RegionSize,
-                    FlowField.ValueRO.LowerBound
-                );
-                return float2.zero;
-            }
+            int i = IndexFromFieldCoordinates(coords);
+            if (IsInBounds(coords)) return math.normalizesafe(Samples[i].Direction);
 
-            return math.normalizesafe(Samples[IndexFromPosition(fieldCoords)].Direction);
+            Log.Error(
+                "[FlowField] Position {position} is outside field with size {size} and Lower bound {lowerBound}",
+                coords,
+                FlowField.ValueRO.FieldSize,
+                FlowField.ValueRO.SouthWestCorner
+            );
+            return float2.zero;
         }
 
         public float3 ToWorldspace(in int2 gridCoordinates) => new(
