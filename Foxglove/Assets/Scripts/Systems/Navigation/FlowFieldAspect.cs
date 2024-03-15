@@ -45,12 +45,17 @@ namespace Foxglove.Navigation {
             && position.y < FlowField.ValueRO.RegionSize.y;
 
         /// <summary>
-        /// Converts a position to an array index
+        /// Converts a field space coordinate to an array index
         /// </summary>
         [BurstCompile]
-        private int IndexFromPosition(in int2 position) {
-            int2 offsetPosition = position - FlowField.ValueRO.LowerBound;
-            return offsetPosition.y + offsetPosition.x * FlowField.ValueRO.RegionSize.x;
-        }
+        public int IndexFromFieldCoordinates(in int2 coordinate) =>
+            coordinate.x + coordinate.y * FlowField.ValueRO.FieldSize.x;
+
+        /// <summary>
+        /// Converts a world space position to an array index
+        /// </summary>
+        [BurstCompile]
+        public int IndexFromWorldPosition(in float3 position) =>
+            IndexFromFieldCoordinates(WorldToField(position));
     }
 }
