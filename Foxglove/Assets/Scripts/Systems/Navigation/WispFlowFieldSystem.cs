@@ -13,7 +13,7 @@ namespace Foxglove.Navigation {
     /// This system manages a flow field that Wisps use to navigate towards the player
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(CheckpointUpdateGroup))]
+    [UpdateInGroup(typeof(BlackboardUpdateGroup))]
     public partial struct WispFlowFieldSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
