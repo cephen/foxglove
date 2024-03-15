@@ -22,30 +22,22 @@ namespace Foxglove.Agent {
             state.RequireForUpdate(
                 SystemAPI.QueryBuilder().WithAll<WispFlowField, FlowField, FlowFieldSample>().Build()
             );
-
-            state.RequireForUpdate<Blackboard>();
         }
 
         public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            var blackboard = SystemAPI.GetSingleton<Blackboard>();
-
             Entity flowFieldEntity = SystemAPI.GetSingletonEntity<WispFlowField>();
             var field = SystemAPI.GetAspect<FlowFieldAspect>(flowFieldEntity);
 
             foreach ((RefRW<CharacterController> controller, RefRO<LocalToWorld> transform) in SystemAPI
                 .Query<RefRW<CharacterController>, RefRO<LocalToWorld>>()
                 .WithAll<WispTag>()) {
-                float3 position = transform.ValueRO.Position;
-                float2 sampledDirection = field.DirectionAt(position);
-
-                float3 move = math.normalizesafe(blackboard.PlayerPosition - transform.ValueRO.Position);
-
-                move.y = 0;
-
-                controller.ValueRW.MoveVector = move;
+                float2 sampledDirection = field.FlowDirectionAtWorldPosition(transform.ValueRO.Position);
+                controller.ValueRW.MoveVector = math.normalizesafe(
+                    new float3(sampledDirection.x, 0, sampledDirection.y)
+                );
             }
         }
     }
