@@ -21,10 +21,10 @@ namespace Foxglove.Navigation {
                         cellCenter.xz += southWestCoords;
 
                         int sampleIndex = aspect.IndexFromFieldCoordinates(new int2(x, y));
-                        int2 sampleDirection = aspect.Samples[sampleIndex].Direction;
+                        int2 flowDirection = aspect.Samples[sampleIndex].Direction;
 
                         float3 lineEnd = cellCenter;
-                        lineEnd.xz += sampleDirection;
+                        lineEnd.xz += flowDirection;
 
                         Debug.DrawLine(cellCenter, cellCenter + math.up(), Color.cyan, SystemAPI.Time.DeltaTime);
                         Debug.DrawLine(cellCenter, lineEnd, Color.magenta, SystemAPI.Time.DeltaTime);

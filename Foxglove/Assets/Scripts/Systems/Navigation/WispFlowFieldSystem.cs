@@ -99,17 +99,17 @@ namespace Foxglove.Navigation {
                 int cellCount = field.FieldSize.x * field.FieldSize.y;
 
                 // Temporary collections used to store cells to check...
-                NativeQueue<int2> frontier = new(Allocator.Temp);
+                NativeQueue<int2> uncheckedCells = new(Allocator.Temp);
                 // ...and cells that have already been checked
-                NativeHashSet<int2> visited = new(cellCount, Allocator.Temp);
+                NativeHashSet<int2> checkedCells = new(cellCount, Allocator.Temp);
 
                 // The destination cell should be the first one checked
-                frontier.Enqueue(field.Destination);
-                visited.Add(field.Destination);
+                uncheckedCells.Enqueue(field.Destination);
+                checkedCells.Add(field.Destination);
 
                 // While there are cells left to check
-                while (!frontier.IsEmpty()) {
-                    int2 current = frontier.Dequeue();
+                while (!uncheckedCells.IsEmpty()) {
+                    int2 current = uncheckedCells.Dequeue();
                     float currentDistance = math.distance(current, field.Destination);
 
                     float bestNeighbourCost = currentDistance;
@@ -120,9 +120,9 @@ namespace Foxglove.Navigation {
                         if (!aspect.IsInBounds(neighbour)) continue;
 
                         // If neighbour hasn't been checked before, add it to the queue
-                        if (!visited.Contains(neighbour)) {
-                            frontier.Enqueue(neighbour);
-                            visited.Add(neighbour);
+                        if (!checkedCells.Contains(neighbour)) {
+                            uncheckedCells.Enqueue(neighbour);
+                            checkedCells.Add(neighbour);
                         }
 
                         // Update flow direction if neighbour costs less than previous cheapest neighbour
@@ -137,8 +137,8 @@ namespace Foxglove.Navigation {
 
                 // Deallocate the collections now that we're done with them
                 // This is necessary for all NativeCollection types provided by Unity.Collections
-                frontier.Dispose();
-                visited.Dispose();
+                uncheckedCells.Dispose();
+                checkedCells.Dispose();
             }
 
             /// <summary>
