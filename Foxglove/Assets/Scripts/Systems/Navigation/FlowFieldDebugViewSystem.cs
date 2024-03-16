@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR // Debug view is only needed in the editor, don't compile this system for builds
+#if UNITY_EDITOR // Debug view is only needed in the editor, don't compile this system for builds
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -26,6 +26,7 @@ namespace Foxglove.Navigation {
                         float3 lineEnd = cellCenter;
                         lineEnd.xz += sampleDirection;
 
+                        Debug.DrawLine(cellCenter, cellCenter + math.up(), Color.cyan, SystemAPI.Time.DeltaTime);
                         Debug.DrawLine(cellCenter, lineEnd, Color.magenta, SystemAPI.Time.DeltaTime);
                     }
                 }
