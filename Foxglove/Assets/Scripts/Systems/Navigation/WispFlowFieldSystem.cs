@@ -115,9 +115,9 @@ namespace Foxglove.Navigation {
                 // While there are cells left to check
                 while (!uncheckedCells.IsEmpty()) {
                     int2 current = uncheckedCells.Dequeue();
-                    float currentDistance = math.distance(current, field.Destination);
 
-                    float bestNeighbourCost = currentDistance;
+                    var lowestNeighbourCost = int.MaxValue;
+                    int2 neighbourToFlowTo = int2.zero;
 
                     // For each potential neighbour of the current cell
                     foreach (int2 neighbour in NeighboursOf(current)) {
@@ -130,14 +130,15 @@ namespace Foxglove.Navigation {
                             checkedCells.Add(neighbour);
                         }
 
-                        // Update flow direction if neighbour costs less than previous cheapest neighbour
-                        float neighbourCost = math.distance(neighbour, field.Destination);
-                        if (neighbourCost > bestNeighbourCost) continue;
-
-                        // Store best flow direction
-                        flowBuffer[aspect.IndexFromFieldCoordinates(neighbour)] = neighbour - current;
-                        bestNeighbourCost = neighbourCost;
+                        // Track lowest cost neighbour
+                        int neighbourCost = CellCost(neighbour, field.Destination);
+                        if (neighbourCost >= lowestNeighbourCost) continue;
+                        lowestNeighbourCost = neighbourCost;
+                        neighbourToFlowTo = neighbour;
                     }
+
+                    // Store best flow direction
+                    flowBuffer[aspect.IndexFromFieldCoordinates(current)] = neighbourToFlowTo - current;
                 }
 
                 // Deallocate the collections now that we're done with them
