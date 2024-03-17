@@ -37,7 +37,7 @@ namespace Foxglove.Navigation {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            // Calculate field bounds in grid coordinates
+            // Calculate field bounds in WorldSpace grid coordinates
             var southWestCorner = new int2(int.MaxValue);
             var northEastCorner = new int2(int.MinValue);
 
@@ -50,7 +50,7 @@ namespace Foxglove.Navigation {
             }
 
             // Expand the border of the field by one unit in every direction,
-            // ensuring the field is never zero sized
+            // ensuring the field is never zero sized, and all agents are within its bounds
             southWestCorner--;
             northEastCorner++;
 
@@ -63,8 +63,6 @@ namespace Foxglove.Navigation {
             }
 
             var blackboard = SystemAPI.GetSingleton<Blackboard>();
-
-            Log.Debug("FlowField: Lower: {0}, Upper: {1}, Size: {2}", southWestCorner, northEastCorner, fieldSize);
 
             foreach ((FlowFieldAspect field, DynamicBuffer<FlowFieldSample> sampleBuffer) in SystemAPI
                 .Query<FlowFieldAspect, DynamicBuffer<FlowFieldSample>>()
@@ -107,11 +105,6 @@ namespace Foxglove.Navigation {
                 uncheckedCells.Enqueue(field.Destination);
                 checkedCells.Add(field.Destination);
 
-                int CellCost(int2 cell, int2 destination) {
-                    int2 offset = cell - destination;
-                    return math.abs(offset.x) + math.abs(offset.y);
-                }
-
                 // While there are cells left to check
                 while (!uncheckedCells.IsEmpty()) {
                     int2 current = uncheckedCells.Dequeue();
@@ -145,6 +138,15 @@ namespace Foxglove.Navigation {
                 // This is necessary for all NativeCollection types provided by Unity.Collections
                 uncheckedCells.Dispose();
                 checkedCells.Dispose();
+            }
+
+            /// <summary>
+            /// Helper function used to estimate the cost of moving from a given cell to the field's destination
+            /// </summary>
+            [BurstCompile]
+            private readonly int CellCost(in int2 cell, in int2 destination) {
+                int2 offset = cell - destination;
+                return math.abs(offset.x) + math.abs(offset.y);
             }
 
             /// <summary>
