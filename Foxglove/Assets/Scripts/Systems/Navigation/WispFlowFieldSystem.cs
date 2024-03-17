@@ -107,6 +107,11 @@ namespace Foxglove.Navigation {
                 uncheckedCells.Enqueue(field.Destination);
                 checkedCells.Add(field.Destination);
 
+                int CellCost(int2 cell, int2 destination) {
+                    int2 offset = cell - destination;
+                    return math.abs(offset.x) + math.abs(offset.y);
+                }
+
                 // While there are cells left to check
                 while (!uncheckedCells.IsEmpty()) {
                     int2 current = uncheckedCells.Dequeue();
