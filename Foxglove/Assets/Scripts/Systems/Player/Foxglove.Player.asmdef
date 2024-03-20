@@ -3,6 +3,7 @@
     "rootNamespace": "Foxglove",
     "references": [
         "GUID:64e39384c5ff4662907a8de829079c0d",
+        "GUID:fe50a76e7fbb785d89c4f759fb1187aa",
         "GUID:3e205eb1d1642ffd3acc554261240219",
         "GUID:7a9a88b7473743cb919b8fcbe0404614",
         "GUID:2665a8d13d1b3f18800f46e256720795",

@@ -13,7 +13,7 @@ namespace Foxglove.Input {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    internal sealed partial class InputReaderSystem : SystemBase {
+    public sealed partial class InputReaderSystem : SystemBase {
         private FoxgloveActions _actions;
         private Entity _inputStateEntity;
 
@@ -24,18 +24,18 @@ namespace Foxglove.Input {
 
         protected override void OnStartRunning() {
             _actions.Enable();
-            EntityManager.CreateOrAddSingleton<FoxgloveGameplayInput>();
+            EntityManager.CreateOrAddSingleton<State>();
         }
 
         protected override void OnStopRunning() {
             _actions.Disable();
-            EntityManager.RemoveSingletonComponentIfExists<FoxgloveGameplayInput>();
+            EntityManager.RemoveSingletonComponentIfExists<State>();
         }
 
         [BurstCompile]
         protected override void OnUpdate() {
             uint tick = EntityManager.GetSingleton<FixedTickSystem.State>().Tick;
-            var input = EntityManager.GetSingleton<FoxgloveGameplayInput>();
+            ref State input = ref SystemAPI.GetSingletonRW<State>().ValueRW;
 
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
             // Normalize input values with a length greater than 1
@@ -59,8 +59,24 @@ namespace Foxglove.Input {
             if (_actions.Gameplay.Spell3.IsPressed()) input.Spell3.Set(tick);
             if (_actions.Gameplay.Spell4.IsPressed()) input.Spell4.Set(tick);
             if (_actions.Gameplay.Pause.IsPressed()) input.Pause.Set(tick);
+        }
 
-            EntityManager.CreateOrSetSingleton(input);
+        public struct State : IComponentData {
+            /// <summary>
+            /// Input move vector with a max length of 1
+            /// </summary>
+            public float2 Move;
+
+            public AimState Aim;
+            public FixedInputEvent Interact;
+            public FixedInputEvent Jump;
+            public FixedInputEvent Flask;
+            public FixedInputEvent Sword;
+            public FixedInputEvent Spell1;
+            public FixedInputEvent Spell2;
+            public FixedInputEvent Spell3;
+            public FixedInputEvent Spell4;
+            public FixedInputEvent Pause;
         }
     }
 }
