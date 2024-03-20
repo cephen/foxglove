@@ -7,7 +7,9 @@ using UnityEngine.InputSystem;
 namespace Foxglove.Input {
     /// <summary>
     /// This system is responsible for parsing and storing input state.
-    /// It runs before any gameplay simulation code
+    /// It runs before any gameplay simulation code.
+    /// This system stores a managed type (<see cref="FoxgloveActions" />) as a field,
+    /// so must be implemented as a class inheriting from <see cref="SystemBase" />
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
