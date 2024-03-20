@@ -1,9 +1,9 @@
-#if UNITY_EDITOR // Debug view is only needed in the editor, don't compile this system for builds
+using Foxglove.Navigation;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Navigation {
+namespace Foxglove.Editor {
     public sealed partial class FlowFieldDebugViewSystem : SystemBase {
         protected override void OnCreate() {
             RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FlowField, FlowFieldSample>().Build());
@@ -46,4 +46,3 @@ namespace Foxglove.Navigation {
         }
     }
 }
-#endif
