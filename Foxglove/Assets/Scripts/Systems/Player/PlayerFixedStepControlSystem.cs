@@ -17,14 +17,14 @@ namespace Foxglove.Player {
     public partial struct PlayerFixedStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<FixedTickSystem.Singleton>();
+            state.RequireForUpdate<FixedTickSystem.State>();
             state.RequireForUpdate<FoxgloveGameplayInput>();
             state.RequireForUpdate<PlayerController>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
+            uint tick = SystemAPI.GetSingleton<FixedTickSystem.State>().Tick;
             var input = SystemAPI.GetSingleton<FoxgloveGameplayInput>();
             var playerController = SystemAPI.GetSingleton<PlayerController>();
 

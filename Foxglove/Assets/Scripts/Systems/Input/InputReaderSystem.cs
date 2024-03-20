@@ -17,7 +17,7 @@ namespace Foxglove.Input {
 
         protected override void OnCreate() {
             _actions = new FoxgloveActions();
-            RequireForUpdate<FixedTickSystem.Singleton>();
+            RequireForUpdate<FixedTickSystem.State>();
         }
 
         protected override void OnStartRunning() {
@@ -32,7 +32,7 @@ namespace Foxglove.Input {
 
         [BurstCompile]
         protected override void OnUpdate() {
-            uint tick = EntityManager.GetSingleton<FixedTickSystem.Singleton>().Tick;
+            uint tick = EntityManager.GetSingleton<FixedTickSystem.State>().Tick;
             var input = EntityManager.GetSingleton<FoxgloveGameplayInput>();
 
             float2 move = _actions.Gameplay.Move.ReadValue<Vector2>();
