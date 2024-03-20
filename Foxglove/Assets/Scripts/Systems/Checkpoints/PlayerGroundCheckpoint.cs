@@ -9,7 +9,7 @@ namespace Foxglove.Checkpoints {
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public partial struct PlayerGroundCheckpoint : ISystem, ISystemStartStop {
-        public struct Singleton : IComponentData {
+        public struct State : IComponentData {
             public float3 Position;
         }
 
@@ -19,23 +19,22 @@ namespace Foxglove.Checkpoints {
         }
 
         public void OnStartRunning(ref SystemState state) {
-            state.EntityManager.CreateOrAddSingleton<Singleton>();
+            state.EntityManager.CreateOrAddSingleton<State>();
         }
 
         public void OnStopRunning(ref SystemState state) {
-            state.EntityManager.RemoveSingletonComponentIfExists<Singleton>();
+            state.EntityManager.RemoveSingletonComponentIfExists<State>();
         }
 
         public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state) {
+            ref State checkpoint = ref SystemAPI.GetSingletonRW<State>().ValueRW;
+
             foreach (RefRO<PlayerController> player in SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
                 Entity characterEntity = player.ValueRO.ControlledCharacter;
-                var character = SystemAPI.GetComponent<KinematicCharacterBody>(characterEntity);
                 ref LocalTransform transform = ref SystemAPI.GetComponentRW<LocalTransform>(characterEntity).ValueRW;
-
-                Entity singletonEntity = state.EntityManager.GetDefaultSingletonEntity();
-                ref Singleton checkpoint = ref SystemAPI.GetComponentRW<Singleton>(singletonEntity).ValueRW;
+                var character = SystemAPI.GetComponent<KinematicCharacterBody>(characterEntity);
 
                 if (character.IsGrounded) checkpoint.Position = transform.Position;
                 else if (transform.Position.y < -3f) transform.Position = checkpoint.Position;
