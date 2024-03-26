@@ -2,6 +2,9 @@
 using Unity.Entities;
 
 namespace Foxglove {
+    /// <summary>
+    /// This system runs once on game start and initializes an entity that will hold all of the game's singletons
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial struct SingletonInitializer : ISystem {

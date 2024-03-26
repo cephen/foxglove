@@ -2,12 +2,15 @@ using Unity.Entities;
 using Unity.Logging;
 
 namespace Foxglove {
+    /// <summary>
+    /// Tag to mark the entity that will hold Foxglove Singletons
+    /// </summary>
     public struct DefaultSingleton : IComponentData { }
 
     /// <summary>
     /// This class contains extension methods for working with ECS singletons in a more performant way.
     /// By default, every new singleton causes a whole archetype to be allocated
-    /// meaning 16kb of memory is allocated regardless of the singleton's actual size.
+    /// meaning 16kb of memory is allocated for each singleton regardless of the singleton's actual size.
     /// This class provides a way to reduce that memory footprint
     /// by instead attaching all singleton components to a single tracked entity.
     /// </summary>

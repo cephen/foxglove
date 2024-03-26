@@ -2,6 +2,9 @@ using Unity.Burst;
 using Unity.Entities;
 
 namespace Foxglove {
+    /// <summary>
+    /// This system tracks how many fixed updates have happened since the start of the game
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderLast = true)]
     public partial struct FixedTickSystem : ISystem {
