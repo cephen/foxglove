@@ -24,8 +24,14 @@ namespace Foxglove.Navigation {
             // Convert WorldSpace position to FieldSpace coordinates
             int2 coords = WorldToField(position);
 
-            int i = IndexFromFieldCoordinates(coords);
-            if (IsInBounds(coords)) return math.normalizesafe(Samples[i].Direction);
+            if (IsInBounds(coords)) {
+                int i = IndexFromFieldCoordinates(coords);
+                // calculated direction is not normalized if diagonal
+                // normalizesafe is used because the flow direction at the destination grid cell
+                // will have a magnitude of zero, meaning it cannot be normalized.
+                // normalizesafe returns a default of float2.zero in those cases
+                return math.normalizesafe(Samples[i].Direction);
+            }
 
             Log.Error(
                 "[FlowField] Position {position} is outside field with size {size} and Lower bound {lowerBound}",
