@@ -15,12 +15,8 @@ namespace Foxglove.Authoring.Camera {
             public override void Bake(CameraTargetAuthoring authoring) {
                 // The camera target can move at runtime so a dynamic transform is needed.
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-                AddComponent(
-                    entity,
-                    new CameraTarget {
-                        TargetEntity = GetEntity(authoring.Target, TransformUsageFlags.Dynamic),
-                    }
-                );
+                Entity targetEntity = GetEntity(authoring.Target, TransformUsageFlags.Dynamic);
+                AddComponent(entity, new CameraTarget(targetEntity));
             }
         }
     }

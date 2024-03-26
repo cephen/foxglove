@@ -8,5 +8,7 @@ namespace Foxglove.Camera {
     [Serializable]
     public struct CameraTarget : IComponentData {
         public Entity TargetEntity;
+
+        public CameraTarget(Entity targetEntity) => TargetEntity = targetEntity;
     }
 }
