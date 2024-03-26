@@ -4,6 +4,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Foxglove.Character {
+    /// <summary>
+    /// Settings for character movement
+    /// </summary>
     [Serializable]
     public struct CharacterSettings : IComponentData {
         public float RotationSharpness;

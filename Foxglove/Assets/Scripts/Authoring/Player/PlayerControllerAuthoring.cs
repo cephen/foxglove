@@ -3,6 +3,10 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Authoring.Player {
+    /// <summary>
+    /// Used to configure the player controller,
+    /// which is a simple component containing references to the camera and character the player controls
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class PlayerControllerAuthoring : MonoBehaviour {
         public GameObject ControlledCharacter;

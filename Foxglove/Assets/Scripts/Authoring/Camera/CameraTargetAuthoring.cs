@@ -3,6 +3,10 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Authoring.Camera {
+    /// <summary>
+    /// Added to the a child of the player character prefab around which the camera orbits,
+    /// when instantiated this component is converted to a <see cref="CameraTarget" />
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class CameraTargetAuthoring : MonoBehaviour {
         public GameObject Target;

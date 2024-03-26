@@ -1,4 +1,8 @@
 namespace Foxglove.Input {
+    /// <summary>
+    /// Systems running on worker threads may span multiple frames,
+    /// this struct is used to work around frame rate dependency issues
+    /// </summary>
     public struct FixedInputEvent {
         private byte _wasEverSet;
         private uint _lastSetTick;

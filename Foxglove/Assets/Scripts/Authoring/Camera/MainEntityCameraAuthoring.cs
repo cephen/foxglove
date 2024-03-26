@@ -3,6 +3,9 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Authoring.Camera {
+    /// <summary>
+    /// For the main camera prefab, adds a tag component to the entity that represents the main camera
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class MainEntityCameraAuthoring : MonoBehaviour {
         public sealed class Baker : Baker<MainEntityCameraAuthoring> {

@@ -3,6 +3,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Foxglove.Camera {
+    /// <summary>
+    /// Configuration for the gameplay camera that orbits around the player
+    /// </summary>
     [Serializable]
     public struct OrbitCamera : IComponentData {
         public float RotationSpeed;

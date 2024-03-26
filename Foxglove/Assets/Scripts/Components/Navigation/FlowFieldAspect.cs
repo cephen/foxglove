@@ -4,14 +4,24 @@ using Unity.Logging;
 using Unity.Mathematics;
 
 namespace Foxglove.Navigation {
+    /// <summary>
+    /// Aspects are used to query the ECS world for entities with a given set of components.
+    /// They can additionally define methods that need to be shared across systems.
+    /// </summary>
     [BurstCompile]
     public readonly partial struct FlowFieldAspect : IAspect {
-        public readonly Entity Entity;
+        // flow field settings
         public readonly RefRW<FlowField> FlowField;
+
+        // buffer containing flow direction data
         public readonly DynamicBuffer<FlowFieldSample> Samples;
 
+        /// <summary>
+        /// Look up the horizontal flow direction at a given world position
+        /// </summary>
         [BurstCompile]
         public float2 FlowDirectionAtWorldPosition(in float3 position) {
+            // Convert WorldSpace position to FieldSpace coordinates
             int2 coords = WorldToField(position);
 
             int i = IndexFromFieldCoordinates(coords);
