@@ -34,10 +34,9 @@ namespace Foxglove.Navigation {
             }
 
             Log.Error(
-                "[FlowField] Position {position} is outside field with size {size} and Lower bound {lowerBound}",
+                "[FlowFieldAspect] Position {position} is outside field with size {size}",
                 coords,
-                FlowField.ValueRO.FieldSize,
-                FlowField.ValueRO.SouthWestCorner
+                FlowField.ValueRO.FieldSize
             );
             return float2.zero;
         }
