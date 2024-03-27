@@ -29,26 +29,18 @@ namespace Foxglove {
     public sealed partial class PlayerFixedStepSystemGroup : ComponentSystemGroup { }
 
     /// <summary>
-    /// This group doesn't hold any systems itself, but instead acts as a parent for all other agent system groups.
-    /// This is done in order to ensure that all agent systems are run after the player systems for a given fixed update tick
-    /// </summary>
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PlayerFixedStepSystemGroup))]
-    public sealed partial class FoxgloveAgentGroup : ComponentSystemGroup { }
-
-    /// <summary>
     /// This system group is responsible for gathering and storing world state on the globally accessible blackboard
     /// </summary>
-    [UpdateInGroup(typeof(FoxgloveAgentGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public sealed partial class BlackboardUpdateGroup : ComponentSystemGroup { }
 
     /// <summary>
     /// This system group holds all systems responsible for updating agents.
     /// All systems in this group are guaranteed to run after the blackboard has finished updating.
     /// </summary>
-    [UpdateInGroup(typeof(FoxgloveAgentGroup))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     [UpdateAfter(typeof(BlackboardUpdateGroup))]
-    public sealed partial class AgentUpdateGroup : ComponentSystemGroup { }
+    public sealed partial class AgentSimulationGroup : ComponentSystemGroup { }
 
     /// <summary>
     /// Checkpoints are updated once per second
