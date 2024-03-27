@@ -11,6 +11,7 @@ namespace Foxglove.Agent {
         public readonly RefRW<CharacterController> CharacterController;
         public readonly RefRW<WispState> State;
         public readonly RefRW<Health> Health;
+        public readonly RefRW<DespawnTimer> DespawnTimer;
 
         public readonly RefRO<CharacterSettings> CharacterSettings;
 

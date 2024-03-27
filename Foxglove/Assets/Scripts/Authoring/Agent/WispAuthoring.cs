@@ -1,4 +1,5 @@
 using Foxglove.Agent;
+using Foxglove.Character;
 using Unity.Entities;
 using UnityEngine;
 
