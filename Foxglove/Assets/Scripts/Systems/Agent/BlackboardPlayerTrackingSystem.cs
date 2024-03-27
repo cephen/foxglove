@@ -1,8 +1,10 @@
 using Foxglove.Player;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
 namespace Foxglove.Agent {
+    [BurstCompile]
     [UpdateInGroup(typeof(BlackboardUpdateGroup))]
     public partial struct BlackboardPlayerTrackingSystem : ISystem {
         public void OnCreate(ref SystemState state) {
@@ -12,8 +14,9 @@ namespace Foxglove.Agent {
 
         public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            var blackboard = state.EntityManager.GetSingleton<Blackboard>();
+            ref Blackboard blackboard = ref SystemAPI.GetSingletonRW<Blackboard>().ValueRW;
 
             foreach ((RefRO<LocalToWorld> ltw, Entity entity) in SystemAPI
                 .Query<RefRO<LocalToWorld>>()
