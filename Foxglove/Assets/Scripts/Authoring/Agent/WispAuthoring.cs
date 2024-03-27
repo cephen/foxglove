@@ -11,6 +11,7 @@ namespace Foxglove.Authoring.Agent {
             public override void Bake(WispAuthoring authoring) {
                 Entity wisp = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent<WispTag>(wisp);
+                AddComponent(wisp, WispState.Default());
             }
         }
     }
