@@ -8,7 +8,7 @@ namespace Foxglove.Character {
     /// This component is used for both Agent characters and the Player character.
     /// </summary>
     [Serializable]
-    public struct CharacterController : IComponentData {
+    public struct CharacterController : IComponentData, IEnableableComponent {
         public float3 MoveVector;
         public bool Jump;
     }
