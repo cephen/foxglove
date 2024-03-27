@@ -35,9 +35,7 @@ namespace Foxglove.Agent {
                 .Query<RefRW<CharacterController>, RefRO<LocalToWorld>>()
                 .WithAll<WispTag>()) {
                 float2 sampledDirection = field.FlowDirectionAtWorldPosition(transform.ValueRO.Position);
-                controller.ValueRW.MoveVector = math.normalizesafe(
-                    new float3(sampledDirection.x, 0, sampledDirection.y)
-                );
+                controller.ValueRW.MoveVector.xz = math.normalizesafe(sampledDirection);
             }
         }
     }
