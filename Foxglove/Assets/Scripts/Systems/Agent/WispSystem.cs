@@ -3,6 +3,7 @@ using Foxglove.Character;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Logging;
+using Unity.Mathematics;
 
 namespace Foxglove.Agent {
     [BurstCompile]
