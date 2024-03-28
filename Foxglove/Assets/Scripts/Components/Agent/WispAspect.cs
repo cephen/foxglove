@@ -1,4 +1,4 @@
-using Foxglove.Character;
+﻿using Foxglove.Character;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
@@ -14,6 +14,7 @@ namespace Foxglove.Agent {
 
         public readonly RefRO<LocalToWorld> LocalToWorld;
         public readonly RefRO<CharacterSettings> CharacterSettings;
+        public readonly EnabledRefRO<CharacterController> IsCharacterControllerEnabled;
 
         private readonly RefRO<WispTag> _wispTag;
     }
