@@ -46,6 +46,11 @@ namespace Foxglove.Agent {
                         // Set default stats
                         aspect.Health.ValueRW.Max = 100;
                         aspect.Health.ValueRW.Current = 100;
+                        // Enable Character Controller
+                        ecb.SetComponentEnabled<CharacterController>(aspect.Entity, true);
+                        // Transition to Patrol state
+                        wispState.Current = WispState.State.Patrol;
+                        wispState.Previous = WispState.State.Spawn;
                         break;
                     case WispState.State.Patrol:
                         // If in range of player transition to attack
