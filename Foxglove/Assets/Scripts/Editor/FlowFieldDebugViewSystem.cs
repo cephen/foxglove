@@ -1,16 +1,28 @@
 using Foxglove.Navigation;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace Foxglove.Editor {
-    public sealed partial class FlowFieldDebugViewSystem : SystemBase {
-        protected override void OnCreate() {
-            RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FlowField, FlowFieldSample>().Build());
+    [BurstCompile]
+    public partial struct FlowFieldDebugViewSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FlowField, FlowFieldSample>().Build());
         }
 
-        protected override void OnUpdate() {
-            foreach (FlowFieldAspect aspect in SystemAPI.Query<FlowFieldAspect>()) {
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state) {
+            state.Dependency = new PaintDebugLinesJob().ScheduleParallel(state.Dependency);
+        }
+
+        [BurstCompile]
+        [WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
+        private partial struct PaintDebugLinesJob : IJobEntity {
+            public float DeltaTime;
+
+            [BurstCompile]
+            public readonly void Execute(FlowFieldAspect aspect) {
                 FlowField field = aspect.FlowField.ValueRO;
                 int2 southWestCoords = field.SouthWestCorner;
                 int2 northEastCoords = field.NorthEastCorner;
@@ -26,8 +38,8 @@ namespace Foxglove.Editor {
                         float3 lineEnd = cellCenter;
                         lineEnd.xz += flowDirection;
 
-                        Debug.DrawLine(cellCenter, cellCenter + math.up(), Color.cyan, SystemAPI.Time.DeltaTime);
-                        Debug.DrawLine(cellCenter, lineEnd, Color.magenta, SystemAPI.Time.DeltaTime);
+                        Debug.DrawLine(cellCenter, cellCenter + math.up(), Color.cyan, DeltaTime);
+                        Debug.DrawLine(cellCenter, lineEnd, Color.magenta, DeltaTime);
                     }
                 }
 
@@ -38,10 +50,10 @@ namespace Foxglove.Editor {
                 float3 northEastCorner = new(northEastCoords.x + 0.5f, 0.5f, northEastCoords.y + 0.5f);
 
                 // Draw field bounds
-                Debug.DrawLine(southEastCorner, southWestCorner, Color.green, SystemAPI.Time.DeltaTime);
-                Debug.DrawLine(southWestCorner, northWestCorner, Color.green, SystemAPI.Time.DeltaTime);
-                Debug.DrawLine(northWestCorner, northEastCorner, Color.green, SystemAPI.Time.DeltaTime);
-                Debug.DrawLine(northEastCorner, southEastCorner, Color.green, SystemAPI.Time.DeltaTime);
+                Debug.DrawLine(southEastCorner, southWestCorner, Color.green, DeltaTime);
+                Debug.DrawLine(southWestCorner, northWestCorner, Color.green, DeltaTime);
+                Debug.DrawLine(northWestCorner, northEastCorner, Color.green, DeltaTime);
+                Debug.DrawLine(northEastCorner, southEastCorner, Color.green, DeltaTime);
             }
         }
     }
