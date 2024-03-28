@@ -12,6 +12,8 @@ namespace Foxglove.Navigation {
         public int2 NorthEastCorner;
     }
 
+    public struct RecalculateField : IComponentData, IEnableableComponent { }
+
     public struct FlowFieldSample : IBufferElementData {
         public int2 Direction;
 

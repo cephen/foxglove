@@ -12,6 +12,7 @@ namespace Foxglove.Navigation {
     public readonly partial struct FlowFieldAspect : IAspect {
         // flow field settings
         public readonly RefRW<FlowField> FlowField;
+        public readonly EnabledRefRW<RecalculateField> RecalculateField;
 
         // buffer containing flow direction data
         public readonly DynamicBuffer<FlowFieldSample> Samples;
