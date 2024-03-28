@@ -28,10 +28,10 @@ namespace Foxglove.Agent {
 
             state.Dependency = new WispStateMachineJob {
                 Commands = commands.AsParallelWriter(),
-                Blackboard = SystemAPI.GetSingleton<Blackboard>(),
+                PlayerPosition = SystemAPI.GetSingleton<Blackboard>().PlayerPosition,
                 Tick = SystemAPI.GetSingleton<FixedTickSystem.State>().Tick,
                 Rng = SystemAPI.GetSingleton<RandomNumberSystem.Singleton>().Random,
-            }.ScheduleParallel( /*wispQuery,*/ state.Dependency);
+            }.ScheduleParallel(state.Dependency);
         }
 
         [BurstCompile]
@@ -39,7 +39,7 @@ namespace Foxglove.Agent {
         private partial struct WispStateMachineJob : IJobEntity {
             public uint Tick;
             public Random Rng;
-            public Blackboard Blackboard;
+            public float3 PlayerPosition;
             public EntityCommandBuffer.ParallelWriter Commands;
 
             public void Execute(Entity entity, WispAspect aspect, [ChunkIndexInQuery] int chunkIndex) {
@@ -68,10 +68,7 @@ namespace Foxglove.Agent {
                         break;
                     case WispState.State.Patrol:
                         // If in range of player transition to attack
-                        float distanceToPlayer = math.distance(
-                            aspect.LocalToWorld.ValueRO.Position,
-                            Blackboard.PlayerPosition
-                        );
+                        float distanceToPlayer = math.distance(aspect.LocalToWorld.ValueRO.Position, PlayerPosition);
 
                         // TODO: Add line of sight check
                         bool attackCooledDown = aspect.Wisp.ValueRO.CanAttackAt <= Tick;
