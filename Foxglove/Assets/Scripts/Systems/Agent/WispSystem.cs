@@ -12,7 +12,7 @@ namespace Foxglove.Agent {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Blackboard>();
             state.RequireForUpdate<FixedTickSystem.State>();
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -26,7 +26,7 @@ namespace Foxglove.Agent {
             uint tick = SystemAPI.GetSingleton<FixedTickSystem.State>().Tick;
 
             EntityCommandBuffer ecb = SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             foreach (WispAspect aspect in SystemAPI
