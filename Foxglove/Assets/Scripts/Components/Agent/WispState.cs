@@ -18,5 +18,10 @@ namespace Foxglove.Agent {
             Current = State.Spawn,
             Previous = State.Inactive,
         };
+
+        public void TransitionTo(State next) {
+            Previous = Current;
+            Current = next;
+        }
     }
 }
