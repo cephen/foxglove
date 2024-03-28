@@ -7,6 +7,7 @@ namespace Foxglove.Agent {
     [BurstCompile]
     public readonly partial struct WispAspect : IAspect {
         public readonly Entity Entity;
+        public readonly RefRW<Wisp> Wisp;
         public readonly RefRW<CharacterController> CharacterController;
         public readonly RefRW<WispState> State;
         public readonly RefRW<Health> Health;
@@ -15,7 +16,5 @@ namespace Foxglove.Agent {
         public readonly RefRO<LocalToWorld> LocalToWorld;
         public readonly RefRO<CharacterSettings> CharacterSettings;
         public readonly EnabledRefRO<CharacterController> IsCharacterControllerEnabled;
-
-        private readonly RefRO<WispTag> _wispTag;
     }
 }

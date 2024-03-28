@@ -14,7 +14,7 @@ namespace Foxglove.Agent {
             state.RequireForUpdate(
                 SystemAPI
                     .QueryBuilder()
-                    .WithAll<WispTag, CharacterController, LocalToWorld>()
+                    .WithAll<Wisp, CharacterController, LocalToWorld>()
                     .Build()
             );
 
@@ -33,7 +33,7 @@ namespace Foxglove.Agent {
 
             foreach ((RefRW<CharacterController> controller, RefRO<LocalToWorld> transform) in SystemAPI
                 .Query<RefRW<CharacterController>, RefRO<LocalToWorld>>()
-                .WithAll<WispTag>()) {
+                .WithAll<Wisp>()) {
                 float2 sampledDirection = field.FlowDirectionAtWorldPosition(transform.ValueRO.Position);
                 controller.ValueRW.MoveVector.xz = math.normalizesafe(sampledDirection);
             }

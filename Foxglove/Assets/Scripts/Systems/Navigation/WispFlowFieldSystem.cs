@@ -19,7 +19,7 @@ namespace Foxglove.Navigation {
         public void OnCreate(ref SystemState state) {
             // Query for transforms relevant to field calculation
             state.RequireForUpdate(
-                SystemAPI.QueryBuilder().WithAll<LocalToWorld>().WithAny<PlayerCharacterTag, WispTag>().Build()
+                SystemAPI.QueryBuilder().WithAll<LocalToWorld>().WithAny<PlayerCharacterTag, Wisp>().Build()
             );
             state.RequireForUpdate<Blackboard>();
 
@@ -43,7 +43,7 @@ namespace Foxglove.Navigation {
 
             foreach (RefRO<LocalToWorld> ltw in SystemAPI
                 .Query<RefRO<LocalToWorld>>()
-                .WithAny<PlayerCharacterTag, WispTag>()) {
+                .WithAny<PlayerCharacterTag, Wisp>()) {
                 float2 position = ltw.ValueRO.Position.xz;
                 southWestCorner = math.min(southWestCorner, (int2)math.floor(position));
                 northEastCorner = math.max(northEastCorner, (int2)math.ceil(position));

@@ -5,5 +5,9 @@ namespace Foxglove.Agent {
     /// Components with no data are used to tag entities,
     /// this one is used to tag wisps
     /// </summary>
-    public struct WispTag : IComponentData { }
+    public struct Wisp : IComponentData {
+        public uint LastAttackTick;
+        public uint MinAttackCooldown;
+        public uint MaxAttackCooldown;
+    }
 }
