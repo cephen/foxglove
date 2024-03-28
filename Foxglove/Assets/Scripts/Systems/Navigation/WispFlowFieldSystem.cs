@@ -29,6 +29,7 @@ namespace Foxglove.Navigation {
             state.EntityManager.SetName(fieldEntity, "Wisp Flow Field");
             state.EntityManager.AddComponent<FlowField>(fieldEntity);
             state.EntityManager.AddComponent<WispFlowField>(fieldEntity);
+            state.EntityManager.AddComponent<RecalculateField>(fieldEntity);
             state.EntityManager.AddBuffer<FlowFieldSample>(fieldEntity);
         }
 
@@ -66,8 +67,11 @@ namespace Foxglove.Navigation {
 
             foreach ((FlowFieldAspect field, DynamicBuffer<FlowFieldSample> sampleBuffer) in SystemAPI
                 .Query<FlowFieldAspect, DynamicBuffer<FlowFieldSample>>()
-                .WithAll<WispFlowField>()) {
+                .WithAll<WispFlowField>()
+                .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)) {
                 field.SetDestination(blackboard.PlayerPosition);
+                // Skip recalculation if destination is unchanged
+                if (!field.RecalculateField.ValueRO) continue;
                 field.FlowField.ValueRW.FieldSize = fieldSize;
                 field.FlowField.ValueRW.SouthWestCorner = southWestCorner;
                 field.FlowField.ValueRW.NorthEastCorner = northEastCorner;
@@ -138,6 +142,9 @@ namespace Foxglove.Navigation {
                 // This is necessary for all NativeCollection types provided by Unity.Collections
                 uncheckedCells.Dispose();
                 checkedCells.Dispose();
+
+                // Mark field as calculated
+                aspect.RecalculateField.ValueRW = false;
             }
 
             /// <summary>
