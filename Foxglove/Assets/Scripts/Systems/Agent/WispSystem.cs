@@ -54,6 +54,17 @@ namespace Foxglove.Agent {
                         break;
                     case WispState.State.Patrol:
                         // If in range of player transition to attack
+                        float distanceToPlayer = math.distance(
+                            aspect.LocalToWorld.ValueRO.Position,
+                            blackboard.PlayerPosition
+                        );
+
+                        if (distanceToPlayer < 10f) {
+                            Log.Debug("Wisp {wisp} attacking player", aspect.Entity);
+                            wispState.Current = WispState.State.Attack;
+                            wispState.Previous = WispState.State.Patrol;
+                        }
+
                         break;
                     case WispState.State.Attack:
                         // Spawn projectile
