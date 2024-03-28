@@ -1,6 +1,5 @@
 using Foxglove.Player;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -12,9 +11,7 @@ namespace Foxglove.Agent {
 
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Blackboard>();
-            _playerQuery = new EntityQueryBuilder(Allocator.Persistent)
-                .WithAll<LocalToWorld, PlayerCharacterTag>()
-                .Build(ref state);
+            _playerQuery = SystemAPI.QueryBuilder().WithAll<LocalToWorld, PlayerCharacterTag>().Build();
         }
 
         public void OnDestroy(ref SystemState state) { }
