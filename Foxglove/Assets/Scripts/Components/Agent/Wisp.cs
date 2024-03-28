@@ -6,7 +6,7 @@ namespace Foxglove.Agent {
     /// this one is used to tag wisps
     /// </summary>
     public struct Wisp : IComponentData {
-        public uint LastAttackTick;
+        public uint CanAttackAt;
         public uint MinAttackCooldown;
         public uint MaxAttackCooldown;
     }

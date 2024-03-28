@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Logging;
 using Unity.Mathematics;
+using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Agent {
     [BurstCompile]
@@ -14,6 +15,7 @@ namespace Foxglove.Agent {
             state.RequireForUpdate<Blackboard>();
             state.RequireForUpdate<FixedTickSystem.State>();
             state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<RandomNumberSystem.Singleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -35,6 +37,7 @@ namespace Foxglove.Agent {
                 Tick = tick,
                 Blackboard = blackboard,
                 Commands = commands.AsParallelWriter(),
+                Rng = SystemAPI.GetSingleton<RandomNumberSystem.Singleton>().Random,
             }.ScheduleParallel( /*wispQuery,*/ state.Dependency);
         }
 
@@ -42,6 +45,7 @@ namespace Foxglove.Agent {
         [WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
         private partial struct WispStateMachineJob : IJobEntity {
             public uint Tick;
+            public Random Rng;
             public Blackboard Blackboard;
             public EntityCommandBuffer.ParallelWriter Commands;
 
@@ -79,8 +83,8 @@ namespace Foxglove.Agent {
                         );
 
                         // TODO: Add line of sight check
-                        // TODO: add attack cooldown
-                        if (distanceToPlayer <= 10) {
+                        bool attackCooledDown = aspect.Wisp.ValueRO.CanAttackAt <= Tick;
+                        if (distanceToPlayer <= 10 && attackCooledDown) {
                             Log.Debug("Wisp {entity} transitioning to Attack State", entityDebugName);
                             wispState.TransitionTo(WispState.State.Attack);
                         }
@@ -88,6 +92,12 @@ namespace Foxglove.Agent {
                         break;
                     case WispState.State.Attack:
                         Log.Debug("Wisp {wisp} attacking player", entityDebugName);
+                        uint cooldownDuration = Rng.NextUInt(
+                            aspect.Wisp.ValueRO.MinAttackCooldown,
+                            aspect.Wisp.ValueRO.MaxAttackCooldown
+                        );
+                        aspect.Wisp.ValueRW.CanAttackAt = Tick + cooldownDuration;
+
                         // TODO: spawn projectile
                         wispState.TransitionTo(WispState.State.Patrol);
                         break;

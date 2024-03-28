@@ -18,7 +18,7 @@ namespace Foxglove.Authoring.Agent {
                 AddComponent(
                     wisp,
                     new Wisp {
-                        LastAttackTick = 0,
+                        CanAttackAt = 0,
                         MinAttackCooldown = authoring.MinAttackCooldown,
                         MaxAttackCooldown = authoring.MaxAttackCooldown,
                     }
