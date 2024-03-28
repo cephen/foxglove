@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Foxglove.Character;
 using Unity.Burst;
 using Unity.Entities;
@@ -40,6 +40,7 @@ namespace Foxglove.Agent {
                     case WispState.State.Inactive:
                         // Only used on freshly spawned wisps
                         // No associated behaviour
+                        Log.Warning("Wisp {wisp} should not be inactive but is", aspect.Entity);
                         break;
                     case WispState.State.Spawn:
                         // Set default stats
