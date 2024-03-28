@@ -43,8 +43,14 @@ namespace Foxglove.Navigation {
         }
 
         [BurstCompile]
-        public void SetDestination(in float3 worldPosition) =>
+        public void SetDestination(in float3 worldPosition) {
+            int2 newDestination = WorldToField(worldPosition);
+
+            if (FlowField.ValueRO.Destination.Equals(newDestination)) return;
+            // If the destination has changed, recalculate the field
             FlowField.ValueRW.Destination = WorldToField(worldPosition);
+            RecalculateField.ValueRW = true;
+        }
 
         [BurstCompile]
         public int2 WorldToField(in int2 worldCoordinates) => worldCoordinates - FlowField.ValueRO.SouthWestCorner;
