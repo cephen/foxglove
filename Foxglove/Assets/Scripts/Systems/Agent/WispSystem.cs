@@ -68,7 +68,10 @@ namespace Foxglove.Agent {
                         break;
                     case WispState.State.Attack:
                         // Spawn projectile
-                        // Transition back to Patrol
+                        Log.Debug("Wisp {wisp} spawning projectile", aspect.Entity);
+                        // Transition to Patrol
+                        wispState.Current = WispState.State.Patrol;
+                        wispState.Previous = WispState.State.Attack;
                         break;
                     case WispState.State.Die:
                         // Disable character controller
