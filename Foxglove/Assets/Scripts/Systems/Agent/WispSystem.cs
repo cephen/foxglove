@@ -22,21 +22,14 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            if (!SystemAPI.TryGetSingleton(out Blackboard blackboard)) {
-                Log.Error("[WispStateSystem] Blackboard does not exist");
-                return;
-            }
-
-            uint tick = SystemAPI.GetSingleton<FixedTickSystem.State>().Tick;
-
             EntityCommandBuffer commands = SystemAPI
                 .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             state.Dependency = new WispStateMachineJob {
-                Tick = tick,
-                Blackboard = blackboard,
                 Commands = commands.AsParallelWriter(),
+                Blackboard = SystemAPI.GetSingleton<Blackboard>(),
+                Tick = SystemAPI.GetSingleton<FixedTickSystem.State>().Tick,
                 Rng = SystemAPI.GetSingleton<RandomNumberSystem.Singleton>().Random,
             }.ScheduleParallel( /*wispQuery,*/ state.Dependency);
         }
