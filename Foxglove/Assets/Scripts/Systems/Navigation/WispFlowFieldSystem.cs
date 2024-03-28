@@ -79,7 +79,7 @@ namespace Foxglove.Navigation {
             }
 
             // Perform flow field calculations on a background thread
-            new FlowFieldCalculationJob().Schedule();
+            state.Dependency = new FlowFieldCalculationJob().Schedule(state.Dependency);
         }
 
         /// <summary>
