@@ -53,13 +53,11 @@ namespace Foxglove.Agent {
                 // regular ToString is disallowed in burst because it allocates on the heap
                 FixedString64Bytes entityDebugName = entity.ToFixedString();
 
-                ref WispState wispState = ref aspect.State.ValueRW;
-
                 if (aspect.Health.ValueRO.Current <= 0
                     && aspect.State.ValueRO.Current is not WispState.State.Die)
-                    wispState.TransitionTo(WispState.State.Die);
+                    aspect.State.ValueRW.TransitionTo(WispState.State.Die);
 
-                switch (wispState.Current) {
+                switch (aspect.State.ValueRO.Current) {
                     case WispState.State.Inactive:
                         // Freshly spawned wisps have state {current = Spawn, previous = Inactive}
                         // Inactive is not used anywhere else, so this branch should never be entered
@@ -73,7 +71,7 @@ namespace Foxglove.Agent {
                         // Enable Character Controller
                         Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, true);
                         // Transition to Patrol state
-                        wispState.TransitionTo(WispState.State.Patrol);
+                        aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
                         break;
                     case WispState.State.Patrol:
                         // If in range of player transition to attack
@@ -86,7 +84,7 @@ namespace Foxglove.Agent {
                         bool attackCooledDown = aspect.Wisp.ValueRO.CanAttackAt <= Tick;
                         if (distanceToPlayer <= 10 && attackCooledDown) {
                             Log.Debug("Wisp {entity} transitioning to Attack State", entityDebugName);
-                            wispState.TransitionTo(WispState.State.Attack);
+                            aspect.State.ValueRW.TransitionTo(WispState.State.Attack);
                         }
 
                         break;
@@ -99,7 +97,7 @@ namespace Foxglove.Agent {
                         aspect.Wisp.ValueRW.CanAttackAt = Tick + cooldownDuration;
 
                         // TODO: spawn projectile
-                        wispState.TransitionTo(WispState.State.Patrol);
+                        aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
                         break;
                     case WispState.State.Die:
                         if (aspect.IsCharacterControllerEnabled.ValueRO) {
@@ -116,7 +114,7 @@ namespace Foxglove.Agent {
                         else if (aspect.DespawnTimer.ValueRO.TickToDestroy <= Tick) {
                             // Transition to Despawn after 1 second
                             Log.Debug("Despawning Wisp {entity}", entityDebugName);
-                            wispState.TransitionTo(WispState.State.Despawn);
+                            aspect.State.ValueRW.TransitionTo(WispState.State.Despawn);
                         }
 
                         break;
@@ -127,7 +125,7 @@ namespace Foxglove.Agent {
                         Log.Error(
                             "Wisp {wisp} is in invalid state {state}",
                             entityDebugName,
-                            nameof(wispState.Current)
+                            nameof(aspect.State.ValueRO.Current)
                         );
                         throw new ArgumentOutOfRangeException();
                 }
