@@ -18,6 +18,7 @@ namespace Foxglove.Agent {
 
         public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state) {
             if (!SystemAPI.TryGetSingleton(out Blackboard blackboard)) {
                 Log.Error("[WispStateSystem] Blackboard does not exist");
