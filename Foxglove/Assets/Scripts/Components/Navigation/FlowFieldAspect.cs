@@ -53,6 +53,23 @@ namespace Foxglove.Navigation {
         }
 
         [BurstCompile]
+        public void SetFieldBounds(in int2 southWestCorner, in int2 northEastCorner) {
+            int2 fieldSize = northEastCorner - southWestCorner;
+            FlowField fieldRO = FlowField.ValueRO;
+
+            // If all properties are unchanged, do nothing
+            if (fieldRO.NorthEastCorner.Equals(northEastCorner)
+                && fieldRO.SouthWestCorner.Equals(southWestCorner)
+                && fieldRO.FieldSize.Equals(fieldSize)) return;
+
+            // Otherwise trigger a recalculation
+            FlowField.ValueRW.SouthWestCorner = southWestCorner;
+            FlowField.ValueRW.NorthEastCorner = northEastCorner;
+            FlowField.ValueRW.FieldSize = fieldSize;
+            RecalculateField.ValueRW = true;
+        }
+
+        [BurstCompile]
         public int2 WorldToField(in int2 worldCoordinates) => worldCoordinates - FlowField.ValueRO.SouthWestCorner;
 
         [BurstCompile]
