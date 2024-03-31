@@ -37,7 +37,7 @@ namespace Foxglove.Character {
             _foxgloveContext.OnSystemUpdate(ref state);
             _physicsContext.OnSystemUpdate(ref state, SystemAPI.Time, SystemAPI.GetSingleton<PhysicsWorldSingleton>());
 
-            var job = new ThirdPersonCharacterVariableUpdateJob {
+            var job = new CharacterVariableUpdateJob {
                 FoxgloveContext = _foxgloveContext,
                 PhysicsContext = _physicsContext,
             };
@@ -46,7 +46,7 @@ namespace Foxglove.Character {
 
         [BurstCompile]
         [WithAll(typeof(Simulate))] // Only run for entities with Simulate Enabled
-        public partial struct ThirdPersonCharacterVariableUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
+        public partial struct CharacterVariableUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
             public FoxgloveCharacterUpdateContext FoxgloveContext;
             public KinematicCharacterUpdateContext PhysicsContext;
 
