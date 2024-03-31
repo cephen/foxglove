@@ -12,14 +12,14 @@ namespace Foxglove.Player {
     public partial struct PlayerVariableStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<InputReaderSystem.State>();
+            state.RequireForUpdate<InputState>();
             state.RequireForUpdate<LookSensitivity>();
             state.RequireForUpdate<PlayerController>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            var input = SystemAPI.GetSingleton<InputReaderSystem.State>();
+            var input = SystemAPI.GetSingleton<InputState>();
             var sensitivity = SystemAPI.GetSingleton<LookSensitivity>();
             var playerController = SystemAPI.GetSingleton<PlayerController>();
 

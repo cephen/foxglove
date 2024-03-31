@@ -12,10 +12,10 @@ namespace Foxglove.Agent {
     [UpdateInGroup(typeof(AgentSimulationGroup))]
     public partial struct WispSystem : ISystem {
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<Blackboard>();
-            state.RequireForUpdate<FixedTickSystem.State>();
             state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
-            state.RequireForUpdate<RandomNumberSystem.Singleton>();
+            state.RequireForUpdate<RandomNumberGenerators>();
+            state.RequireForUpdate<Blackboard>();
+            state.RequireForUpdate<Tick>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -29,8 +29,8 @@ namespace Foxglove.Agent {
             state.Dependency = new WispStateMachineJob {
                 Commands = commands.AsParallelWriter(),
                 PlayerPosition = SystemAPI.GetSingleton<Blackboard>().PlayerPosition,
-                Tick = SystemAPI.GetSingleton<FixedTickSystem.State>().Tick,
-                Rng = SystemAPI.GetSingleton<RandomNumberSystem.Singleton>().Random,
+                Tick = SystemAPI.GetSingleton<Tick>().Value,
+                Rng = SystemAPI.GetSingleton<RandomNumberGenerators>().Base,
             }.ScheduleParallel(state.Dependency);
         }
 

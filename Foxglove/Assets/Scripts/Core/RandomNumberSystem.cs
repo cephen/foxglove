@@ -4,19 +4,23 @@ using Unity.Entities;
 using Random = Unity.Mathematics.Random;
 
 namespace Foxglove {
+    public struct RandomNumberGenerators : IComponentData {
+        public readonly uint Seed;
+        public Random Base;
+
+        public RandomNumberGenerators(uint seed) {
+            Seed = seed;
+            Base = new Random(Seed);
+        }
+    }
+
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct RandomNumberSystem : ISystem {
-        public struct Singleton : IComponentData {
-            public Random Random;
-        }
-
         public void OnCreate(ref SystemState state) {
-            state.EntityManager.CreateOrSetSingleton(
-                new Singleton {
-                    Random = new Random((uint)DateTimeOffset.UtcNow.GetHashCode()),
-                }
-            );
+            var seed = (uint)DateTimeOffset.UtcNow.GetHashCode();
+            state.EntityManager.AddComponent<RandomNumberGenerators>(state.SystemHandle);
+            state.EntityManager.SetComponentData(state.SystemHandle, new RandomNumberGenerators(seed));
         }
 
         public void OnDestroy(ref SystemState state) { }

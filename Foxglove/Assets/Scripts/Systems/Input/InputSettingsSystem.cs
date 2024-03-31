@@ -3,15 +3,15 @@ using Unity.Entities;
 
 namespace Foxglove.Input {
     [BurstCompile]
-    public sealed partial class InputSettingsSystem : SystemBase {
-        protected override void OnStartRunning() {
-            EntityManager.CreateOrSetSingleton(
-                new LookSensitivity {
-                    Gamepad = 1f, Mouse = 0.3f,
-                }
-            );
+    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    public partial struct InputSettingsSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.EntityManager.AddComponent<LookSensitivity>(state.SystemHandle);
+            SystemAPI.SetComponent(state.SystemHandle, new LookSensitivity { Gamepad = 1f, Mouse = 0.3f });
         }
 
-        protected override void OnUpdate() { }
+        public void OnDestroy(ref SystemState state) { }
+
+        public void OnUpdate(ref SystemState state) { }
     }
 }
