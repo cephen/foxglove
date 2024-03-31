@@ -16,7 +16,7 @@ namespace Foxglove {
 
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial struct RandomNumberSystem : ISystem {
+    internal partial struct RandomNumberSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             var seed = (uint)DateTimeOffset.UtcNow.GetHashCode();
             state.EntityManager.AddComponent<RandomNumberGenerators>(state.SystemHandle);

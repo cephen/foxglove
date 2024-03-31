@@ -14,7 +14,7 @@ namespace Foxglove.Navigation {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BlackboardUpdateGroup))]
-    public partial struct FlowFieldSystem : ISystem {
+    internal partial struct FlowFieldSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             // Query for transforms relevant to field calculation

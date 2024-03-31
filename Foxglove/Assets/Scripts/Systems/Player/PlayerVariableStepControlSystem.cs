@@ -9,7 +9,7 @@ namespace Foxglove.Player {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(PlayerVariableStepSystemGroup))]
-    public partial struct PlayerVariableStepControlSystem : ISystem {
+    internal partial struct PlayerVariableStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<InputState>();

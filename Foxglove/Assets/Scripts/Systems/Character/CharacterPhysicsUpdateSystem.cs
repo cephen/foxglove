@@ -11,7 +11,7 @@ namespace Foxglove.Character {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(KinematicCharacterPhysicsUpdateGroup))]
-    public partial struct CharacterPhysicsUpdateSystem : ISystem {
+    internal partial struct CharacterPhysicsUpdateSystem : ISystem {
         private EntityQuery _characterQuery;
         private FoxgloveCharacterUpdateContext _foxgloveContext;
         private KinematicCharacterUpdateContext _physicsContext;
@@ -47,7 +47,7 @@ namespace Foxglove.Character {
 
         [BurstCompile]
         [WithAll(typeof(Simulate))]
-        public partial struct CharacterPhysicsUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
+        internal partial struct CharacterPhysicsUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
             public FoxgloveCharacterUpdateContext FoxgloveContext;
             public KinematicCharacterUpdateContext PhysicsContext;
 

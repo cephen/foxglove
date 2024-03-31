@@ -14,7 +14,7 @@ namespace Foxglove.Player {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(PlayerFixedStepSystemGroup), OrderFirst = true)]
-    public partial struct PlayerFixedStepControlSystem : ISystem {
+    internal partial struct PlayerFixedStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Tick>();

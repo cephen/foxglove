@@ -13,7 +13,7 @@ namespace Foxglove.Camera {
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(TransformSystemGroup))]
-    public partial struct OrbitCameraLateUpdateSystem : ISystem {
+    internal partial struct OrbitCameraLateUpdateSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<PhysicsWorldSingleton>();
@@ -43,7 +43,7 @@ namespace Foxglove.Camera {
         /// </summary>
         [BurstCompile]
         [WithAll(typeof(Simulate))] // Only run for enabled entities
-        public partial struct OrbitCameraLateUpdateJob : IJobEntity {
+        internal partial struct OrbitCameraLateUpdateJob : IJobEntity {
             public float DeltaTime; // Unity Time APIs aren't accessible on worker threads
             [ReadOnly] public PhysicsWorld PhysicsWorld;
 

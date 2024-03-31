@@ -10,7 +10,7 @@ namespace Foxglove.Character {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CharacterSystemGroup))]
-    public partial struct CharacterVariableUpdateSystem : ISystem {
+    internal partial struct CharacterVariableUpdateSystem : ISystem {
         private EntityQuery _characterQuery;
         private FoxgloveCharacterUpdateContext _foxgloveContext;
         private KinematicCharacterUpdateContext _physicsContext;
@@ -46,7 +46,7 @@ namespace Foxglove.Character {
 
         [BurstCompile]
         [WithAll(typeof(Simulate))] // Only run for entities with Simulate Enabled
-        public partial struct CharacterVariableUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
+        internal partial struct CharacterVariableUpdateJob : IJobEntity, IJobEntityChunkBeginEnd {
             public FoxgloveCharacterUpdateContext FoxgloveContext;
             public KinematicCharacterUpdateContext PhysicsContext;
 

@@ -8,7 +8,7 @@ using Unity.Transforms;
 namespace Foxglove.Agent {
     [BurstCompile]
     [UpdateInGroup(typeof(AgentSimulationGroup))]
-    public partial struct WispPathfindingSystem : ISystem {
+    internal partial struct WispPathfindingSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             // Agent query
             state.RequireForUpdate(

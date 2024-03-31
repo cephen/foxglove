@@ -7,7 +7,7 @@ using Unity.Transforms;
 namespace Foxglove.Checkpoints {
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
-    public partial struct PlayerCheckpointSystem : ISystem {
+    internal partial struct PlayerCheckpointSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<PlayerController>();
             state.RequireForUpdate<KinematicCharacterBody>();

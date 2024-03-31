@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Foxglove.Editor {
     [BurstCompile]
-    public partial struct FlowFieldDebugViewSystem : ISystem {
+    internal partial struct FlowFieldDebugViewSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FlowField, FlowFieldSample>().Build());
         }

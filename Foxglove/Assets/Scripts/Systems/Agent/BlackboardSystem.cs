@@ -9,7 +9,7 @@ namespace Foxglove.Agent {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BlackboardUpdateGroup))]
-    public partial struct BlackboardSystem : ISystem {
+    internal partial struct BlackboardSystem : ISystem {
         public void OnCreate(ref SystemState state) =>
             state.EntityManager.AddComponent(state.SystemHandle, ComponentType.ReadWrite<Blackboard>());
 

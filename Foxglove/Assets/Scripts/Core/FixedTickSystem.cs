@@ -7,7 +7,7 @@ namespace Foxglove {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderLast = true)]
-    public partial struct FixedTickSystem : ISystem {
+    internal partial struct FixedTickSystem : ISystem {
         public void OnCreate(ref SystemState state) => state.EntityManager.AddComponent<Tick>(state.SystemHandle);
 
         [BurstCompile]

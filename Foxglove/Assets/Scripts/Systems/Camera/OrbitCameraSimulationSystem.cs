@@ -8,7 +8,7 @@ using Unity.Transforms;
 namespace Foxglove.Camera {
     [BurstCompile]
     [UpdateInGroup(typeof(CameraSystemGroup))]
-    public partial struct OrbitCameraSimulationSystem : ISystem {
+    internal partial struct OrbitCameraSimulationSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build());
@@ -30,7 +30,7 @@ namespace Foxglove.Camera {
 
         [BurstCompile]
         [WithAll(typeof(Simulate))]
-        public partial struct OrbitCameraSimulationJob : IJobEntity {
+        internal partial struct OrbitCameraSimulationJob : IJobEntity {
             public float DeltaTime;
 
             public ComponentLookup<LocalTransform> LocalTransformLookup;
