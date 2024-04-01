@@ -7,7 +7,7 @@ namespace Foxglove.Input {
     internal partial struct InputSettingsSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             state.EntityManager.AddComponent<LookSensitivity>(state.SystemHandle);
-            SystemAPI.SetComponent(state.SystemHandle, new LookSensitivity { Gamepad = 1f, Mouse = 0.3f });
+            SystemAPI.SetComponent(state.SystemHandle, new LookSensitivity { Gamepad = 1f, Mouse = 1f });
         }
 
         public void OnDestroy(ref SystemState state) { }

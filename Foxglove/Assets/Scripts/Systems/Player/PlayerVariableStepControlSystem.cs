@@ -34,7 +34,7 @@ namespace Foxglove.Player {
 
             cameraControl.FollowedCharacterEntity = controlledCharacter;
             cameraControl.LookDegreesDelta = input.Aim.IsMouseAim switch {
-                true => input.Aim.Value * sensitivity.Mouse,
+                true => input.Aim.Value * sensitivity.Mouse / 10,
                 false => input.Aim.Value * sensitivity.Gamepad,
             };
 
