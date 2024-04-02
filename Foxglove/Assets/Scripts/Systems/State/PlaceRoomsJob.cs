@@ -1,8 +1,9 @@
-﻿using Unity.Burst;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace Foxglove.State {
     internal struct Room : IComponentData {
@@ -16,13 +17,16 @@ namespace Foxglove.State {
         public ushort LevelRadius;
         public byte MinRoomSize;
         public byte MaxRoomSize;
+        public byte RoomsToPlace;
+        public EntityCommandBuffer Commands;
+        public Entity LevelRoot;
 
-        // Buffer should have a capacity equal to the number of rooms to generate
-        public NativeList<Room> Rooms;
 
         [BurstCompile]
         public void Execute() {
-            while (Rooms.Length < Rooms.Capacity) {
+            var rooms = new NativeList<Room>(RoomsToPlace, Allocator.Temp);
+
+            while (rooms.Length < RoomsToPlace) {
                 int2 position = Generator.NextInt2(-LevelRadius, LevelRadius);
                 int2 roomSize = Generator.NextInt2(MinRoomSize, MaxRoomSize);
 
@@ -34,7 +38,7 @@ namespace Foxglove.State {
                 var add = true;
 
                 // try again if room overlaps existing room
-                foreach (Room room in Rooms) {
+                foreach (Room room in rooms) {
                     if (!Intersects(proposed, room)) continue;
                     add = false;
                     break;
@@ -44,8 +48,21 @@ namespace Foxglove.State {
                 if (position.x + roomSize.x > LevelRadius
                     || position.y + roomSize.y > LevelRadius) add = false;
 
-                if (add) Rooms.Add(proposed);
+                if (add) rooms.Add(proposed);
             }
+
+            foreach (Room room in rooms) AddRoom(room);
+            rooms.Dispose();
+        }
+
+        [BurstCompile]
+        private void AddRoom(in Room room) {
+            var position = new float3(room.Position.x, 0, room.Position.y);
+
+            Entity e = Commands.CreateEntity();
+            Commands.AddComponent(e, room);
+            Commands.AddComponent(e, new Parent { Value = LevelRoot });
+            Commands.AddComponent(e, LocalTransform.FromPosition(position));
         }
 
         /// <summary>
