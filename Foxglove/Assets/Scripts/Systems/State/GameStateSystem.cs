@@ -35,6 +35,7 @@ namespace Foxglove.State {
             state.RequireForUpdate<RandomNumberGenerators>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
 
+            state.EntityManager.AddComponentData<CurrentState<GameState>>(state.SystemHandle, GameState.Initialize);
             state.EntityManager.AddComponentData<NextState<GameState>>(state.SystemHandle, GameState.Initialize);
             SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, true);
         }
