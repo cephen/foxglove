@@ -58,6 +58,7 @@ namespace Foxglove.State {
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             CheckTransitions(ref state, ref ecb);
+            RunStateUpdate(ref state, ref ecb);
         }
 
         private void CheckTransitions(ref SystemState state, ref EntityCommandBuffer ecb) {
@@ -117,7 +118,9 @@ namespace Foxglove.State {
             }
         }
 
-        private void HandleCurrentState(ref SystemState state) {
+        private void RunStateUpdate(ref SystemState state, ref EntityCommandBuffer ecb) {
+            if (!SystemAPI.HasComponent<CurrentState<GameState>>(state.SystemHandle)) return;
+
             GameState current = SystemAPI.GetComponent<CurrentState<GameState>>(state.SystemHandle);
 
             switch (current) {
@@ -134,6 +137,29 @@ namespace Foxglove.State {
                     SetNextState(ref state, GameState.Play);
                     break;
                 case GameState.Play:
+                    uint tick = SystemAPI.GetSingleton<Tick>();
+                    uint changedStateTick = SystemAPI.GetComponent<ChangedStateAt>(state.SystemHandle);
+                    // debugging purposes only, regenerate level five times per second
+                    if (tick - changedStateTick >= 10) {
+                        Log.Debug("[GameStateSystem] Regenerating level");
+                        // Despawn level roots
+                        NativeArray<Entity> roots =
+                            SystemAPI
+                                .QueryBuilder()
+                                .WithAll<LevelRoot, Child>()
+                                .Build()
+                                .ToEntityArray(Allocator.Temp);
+
+                        foreach (Entity root in roots) {
+                            NativeArray<Entity> children =
+                                SystemAPI.GetBuffer<Child>(root).Reinterpret<Entity>().AsNativeArray();
+                            ecb.DestroyEntity(children);
+                            ecb.DestroyEntity(root);
+                        }
+
+                        SetNextState(ref state, GameState.Generate);
+                    }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
