@@ -27,6 +27,8 @@ namespace Foxglove.State {
         public NativeArray<Room> Rooms;
     }
 
+    internal struct LevelRoot : IComponentData { }
+
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct GameStateSystem : ISystem {
