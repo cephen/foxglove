@@ -27,18 +27,26 @@ namespace Foxglove.State {
         public NativeArray<Room> Rooms;
     }
 
+    internal struct ChangedStateAt : IComponentData {
+        public uint Value;
+        public static implicit operator uint(ChangedStateAt t) => t.Value;
+        public static implicit operator ChangedStateAt(uint t) => new() { Value = t };
+    }
+
     internal struct LevelRoot : IComponentData { }
 
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct GameStateSystem : ISystem {
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<Tick>();
             state.RequireForUpdate<NextState<GameState>>();
             state.RequireForUpdate<RandomNumberGenerators>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
 
             state.EntityManager.AddComponentData<CurrentState<GameState>>(state.SystemHandle, GameState.Initialize);
             state.EntityManager.AddComponentData<NextState<GameState>>(state.SystemHandle, GameState.Initialize);
+            state.EntityManager.AddComponentData<ChangedStateAt>(state.SystemHandle, 0);
             SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, true);
         }
 
@@ -139,6 +147,9 @@ namespace Foxglove.State {
 
             SystemAPI.SetComponent<CurrentState<GameState>>(state.SystemHandle, current);
             SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, false);
+
+            uint tick = SystemAPI.GetSingleton<Tick>();
+            SystemAPI.SetComponent<ChangedStateAt>(state.SystemHandle, tick);
         }
 
         private void SetNextState(ref SystemState state, GameState next) {
