@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Logging;
 using Unity.Transforms;
+using Random = Unity.Mathematics.Random;
 
 [assembly: RegisterGenericComponentType(typeof(CurrentState<GameState>))]
 [assembly: RegisterGenericComponentType(typeof(NextState<GameState>))]
