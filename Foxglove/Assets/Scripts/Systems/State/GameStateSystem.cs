@@ -117,10 +117,10 @@ namespace Foxglove.State {
                     // Unreachable
                     break;
                 case GameState.Generate:
+                    // If job tracking info doesn't exist, exit
+                    if (!SystemAPI.HasComponent<LevelGenerationJobs>(state.SystemHandle)) return;
+                    // If job isn't finished, exit
                     if (!state.Dependency.IsCompleted) return;
-                    // Place calculated objects
-                    var levelJobs = SystemAPI.GetComponent<LevelGenerationJobs>(state.SystemHandle);
-                    levelJobs.PlaceRooms.Rooms.Dispose();
 
                     state.EntityManager.RemoveComponent<LevelGenerationJobs>(state.SystemHandle);
                     SetNextState(ref state, GameState.Play);
