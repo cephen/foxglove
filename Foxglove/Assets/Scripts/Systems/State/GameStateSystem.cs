@@ -59,7 +59,7 @@ namespace Foxglove.State {
                 case GameState.Initialize: // Set up required gameplay components & systems
                     Log.Debug("[GameStateSystem] Entering Initialize State");
                     state.EntityManager.AddComponentData<CurrentLevel>(state.SystemHandle, 1);
-                    SystemAPI.SetComponent<NextState<GameState>>(state.SystemHandle, GameState.Generate);
+                    SetNextState(ref state, GameState.Generate);
                     break;
                 case GameState.Generate: // Generate the level
                     Log.Debug("[GameStateSystem] Entering Generate State");
@@ -95,10 +95,11 @@ namespace Foxglove.State {
                     // Triangulate
                     // Create Hallways
                     // Simplify Hallways
-                    SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, false);
+                    SetCurrentState(ref state, GameState.Generate);
                     break;
                 case GameState.Play:
                     Log.Debug("[GameStateSystem] Entering Play State");
+                    SetCurrentState(ref state, GameState.Play);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -119,6 +120,7 @@ namespace Foxglove.State {
                     levelJobs.PlaceRooms.Rooms.Dispose();
 
                     state.EntityManager.RemoveComponent<LevelGenerationJobs>(state.SystemHandle);
+                    SetNextState(ref state, GameState.Play);
                     break;
                 case GameState.Play:
                     break;
@@ -127,12 +129,22 @@ namespace Foxglove.State {
             }
         }
 
-        private void TransitionTo(ref SystemState state, GameState nextState) {
+        private void SetCurrentState(ref SystemState state, GameState current) {
+            Log.Debug("[GameStateSystem] Setting current state to {0} State", current);
             if (!SystemAPI.HasComponent<CurrentState<GameState>>(state.SystemHandle))
                 state.EntityManager.AddComponent<CurrentState<GameState>>(state.SystemHandle);
 
-            SystemAPI.SetComponent<NextState<GameState>>(state.SystemHandle, nextState);
+            SystemAPI.SetComponent<CurrentState<GameState>>(state.SystemHandle, current);
             SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, false);
+        }
+
+        private void SetNextState(ref SystemState state, GameState next) {
+            Log.Debug("[GameStateSystem] Setting next state to {0} State", next);
+            if (!SystemAPI.HasComponent<NextState<GameState>>(state.SystemHandle))
+                state.EntityManager.AddComponent<NextState<GameState>>(state.SystemHandle);
+
+            SystemAPI.SetComponent<NextState<GameState>>(state.SystemHandle, next);
+            SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, true);
         }
     }
 }
