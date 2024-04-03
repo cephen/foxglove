@@ -1,13 +1,15 @@
 using System;
 using Foxglove.Maps.Delaunay;
-using Foxglove.Maps.Editor;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Logging;
 using Unity.Transforms;
+#if UNITY_EDITOR
+using Foxglove.Maps.Editor;
 using UnityEngine;
+#endif
 
 namespace Foxglove.Maps {
     [BurstCompile]
@@ -23,7 +25,9 @@ namespace Foxglove.Maps {
             Idle,
             Generating,
             Spawning,
+#if UNITY_EDITOR
             DrawDebug,
+#endif
             Dispose,
         }
 
@@ -61,6 +65,27 @@ namespace Foxglove.Maps {
                     SpawnMap(ref state);
                     _currentState = State.DrawDebug;
                     return;
+#if UNITY_EDITOR
+                case State.DrawDebug:
+                    if (!state.Dependency.IsCompleted) return;
+
+                    Log.Debug("[MapGeneratorSystem] Drawing debug lines");
+
+                    state.Dependency = new DrawRoomDebugLinesJob {
+                        DeltaTime = 1f,
+                        Colour = Color.yellow,
+                        Rooms = _rooms.AsArray().AsReadOnly(),
+                    }.Schedule(_rooms.Length, state.Dependency);
+
+                    state.Dependency = new DrawEdgeDebugLinesJob {
+                        DeltaTime = 1f,
+                        Colour = Color.red,
+                        Edges = _edges.AsArray().AsReadOnly(),
+                    }.Schedule(_edges.Length, state.Dependency);
+
+                    _currentState = State.Dispose;
+                    return;
+#endif
                 default:
                     throw new ArgumentOutOfRangeException();
             }
