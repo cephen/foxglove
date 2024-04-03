@@ -10,7 +10,7 @@ namespace Foxglove.Maps.Editor {
     internal struct DrawEdgeDebugLinesJob : IJobFor {
         public float DeltaTime;
         public Color Colour;
-        [ReadOnly] public NativeArray<Edge> Edges;
+        public NativeArray<Edge>.ReadOnly Edges;
 
         [BurstCompile]
         public readonly void Execute(int i) {

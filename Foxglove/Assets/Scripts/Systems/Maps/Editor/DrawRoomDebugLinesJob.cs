@@ -9,7 +9,7 @@ namespace Foxglove.Maps.Editor {
     internal struct DrawRoomDebugLinesJob : IJobFor {
         public float DeltaTime;
         public Color Colour;
-        [ReadOnly] public NativeArray<Room> Rooms;
+        public NativeArray<Room>.ReadOnly Rooms;
 
         [BurstCompile]
         public readonly void Execute(int i) {
