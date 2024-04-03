@@ -115,6 +115,9 @@ namespace Foxglove.Maps {
                 cmd.AddComponent(e, new Parent { Value = config.MapRoot });
             }
 
+            state.Dependency.Complete();
+
+
             state.Dependency = new DrawRoomDebugLinesJob {
                 DeltaTime = 10f,
                 Colour = Color.yellow,
@@ -125,6 +128,10 @@ namespace Foxglove.Maps {
                 Colour = Color.red,
                 Edges = _edges.AsArray(),
             }.Schedule(_edges.Length, state.Dependency);
+
+            _rooms.Dispose(state.Dependency);
+            _edges.Dispose(state.Dependency);
+            _cellTypes.Dispose(state.Dependency);
         }
     }
 }
