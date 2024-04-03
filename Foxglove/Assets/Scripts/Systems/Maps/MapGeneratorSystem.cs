@@ -18,12 +18,17 @@ namespace Foxglove.Maps {
         private State _generatorState;
 
         private enum State {
-            Idle, Generating, Spawning,
+            Initialize,
+            Idle,
+            Generating,
+            Spawning,
+            DrawDebug,
+            Dispose,
         }
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            _generatorState = State.Idle;
+            _currentState = State.Initialize;
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.EntityManager.AddComponent<ShouldGenerateMap>(state.SystemHandle);
             state.EntityManager.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
