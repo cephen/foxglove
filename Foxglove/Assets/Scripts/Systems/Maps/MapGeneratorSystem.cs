@@ -172,10 +172,9 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         private void SpawnMap(ref SystemState state) {
-            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
-
-            var ecbSystem = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            EntityCommandBuffer cmd = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged);
+            EntityCommandBuffer cmd = SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
             foreach (Room room in _rooms) {
                 Entity e = cmd.CreateEntity(_roomArchetype);
@@ -187,11 +186,11 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         private void DespawnRooms(ref SystemState state) {
-            var ecbSystem = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            EntityCommandBuffer cmd = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged);
+            EntityCommandBuffer cmd = SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            EntityQuery roomQuery = SystemAPI.QueryBuilder().WithAll<Room>().Build();
-            cmd.DestroyEntity(roomQuery, EntityQueryCaptureMode.AtRecord);
+            cmd.DestroyEntity(SystemAPI.QueryBuilder().WithAll<Room>().Build(), EntityQueryCaptureMode.AtRecord);
         }
     }
 }
