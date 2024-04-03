@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Logging;
+using Unity.Mathematics;
 using Unity.Transforms;
 #if UNITY_EDITOR
 using Foxglove.Maps.Editor;
@@ -115,11 +116,8 @@ namespace Foxglove.Maps {
         [BurstCompile]
         public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
         private void StartGeneration(ref SystemState state) {
-            EntityCommandBuffer commands = SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
             MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
 
             Log.Debug(
@@ -127,10 +125,6 @@ namespace Foxglove.Maps {
                 config.Diameter,
                 config.Seed
             );
-
-            // Ensure map root has a world space transform
-            if (!SystemAPI.HasComponent<LocalToWorld>(config.MapRoot))
-                commands.AddComponent<LocalToWorld>(config.MapRoot);
 
             _cellTypes = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.TempJob);
             _rooms = new NativeList<Room>(config.RoomsToGenerate, Allocator.TempJob);
@@ -157,18 +151,18 @@ namespace Foxglove.Maps {
             SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
         }
 
+        [BurstCompile]
         private void SpawnMap(ref SystemState state) {
             MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
 
-            EntityCommandBuffer cmd = SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
+            var ecbSystem = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+            EntityCommandBuffer cmd = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (Room room in _rooms.AsReadOnly()) {
-                Entity e = cmd.CreateEntity();
-                cmd.AddComponent(e, room);
-                cmd.AddComponent(e, LocalTransform.FromPosition(room.Position.x, 0f, room.Position.y));
-                cmd.AddComponent(e, new Parent { Value = config.MapRoot });
+            foreach (Room room in _rooms) {
+                Entity e = cmd.CreateEntity(_roomArchetype);
+                cmd.SetComponent(e, room);
+                cmd.SetComponent(e, LocalTransform.FromPosition(room.Position.x, 0f, room.Position.y));
+                cmd.SetComponent(e, new Parent { Value = _mapRoot });
             }
         }
 
