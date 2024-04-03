@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using Foxglove.Maps.Delaunay;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,6 +11,7 @@ namespace Foxglove.Maps {
     [BurstCompile]
     internal partial struct MapGeneratorSystem : ISystem {
         private NativeList<Room> _rooms;
+        private NativeList<Edge> _edges;
         private NativeArray<CellType> _cellTypes;
         private State _generatorState;
 
@@ -56,6 +58,10 @@ namespace Foxglove.Maps {
         public void OnDestroy(ref SystemState state) { }
 
         private void StartGeneration(ref SystemState state) {
+            EntityCommandBuffer commands = SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+
             MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
 
             Log.Debug(
@@ -64,28 +70,29 @@ namespace Foxglove.Maps {
                 config.Seed
             );
 
-            EntityCommandBuffer commands = SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
-            // Configure Jobs
             // Ensure map root has a world space transform
             if (!SystemAPI.HasComponent<LocalToWorld>(config.MapRoot))
                 commands.AddComponent<LocalToWorld>(config.MapRoot);
 
-            _rooms = new NativeList<Room>(config.RoomsToGenerate, Allocator.TempJob);
             _cellTypes = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.TempJob);
+            _rooms = new NativeList<Room>(config.RoomsToGenerate, Allocator.TempJob);
+            _edges = new NativeList<Edge>(Allocator.TempJob);
 
-            var placeRooms = new PlaceRoomsJob {
+            // Configure Jobs
+            PlaceRoomsJob placeRooms = new() {
                 Config = config,
                 Rooms = _rooms,
                 Cells = _cellTypes,
             };
 
+            TriangulateMapJob triangulate = new() {
+                Rooms = _rooms,
+                Edges = _edges,
+            };
+
             // Schedule jobs
-            // Place Rooms
             state.Dependency = placeRooms.Schedule(state.Dependency);
-            // Build Map Graph
+            state.Dependency = triangulate.Schedule(state.Dependency);
             // Create Hallways
             // Set up flow fields
 
