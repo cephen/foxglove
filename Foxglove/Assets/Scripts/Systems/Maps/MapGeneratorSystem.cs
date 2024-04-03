@@ -1,11 +1,13 @@
 using System;
 using Foxglove.Maps.Delaunay;
+using Foxglove.Maps.Editor;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Logging;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Foxglove.Maps {
     [BurstCompile]
@@ -113,8 +115,16 @@ namespace Foxglove.Maps {
                 cmd.AddComponent(e, new Parent { Value = config.MapRoot });
             }
 
-            _rooms.Dispose();
-            _cellTypes.Dispose();
+            state.Dependency = new DrawRoomDebugLinesJob {
+                DeltaTime = 10f,
+                Colour = Color.yellow,
+                Rooms = _rooms.AsArray(),
+            }.Schedule(_rooms.Length, state.Dependency);
+            state.Dependency = new DrawEdgeDebugLinesJob {
+                DeltaTime = 10f,
+                Colour = Color.red,
+                Edges = _edges.AsArray(),
+            }.Schedule(_edges.Length, state.Dependency);
         }
     }
 }
