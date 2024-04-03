@@ -82,7 +82,7 @@ namespace Foxglove.Maps {
         private static void RemoveBadTriangles(NativeList<Triangle> triangles) {
             for (int i = triangles.Length - 1; i >= 0; i--) {
                 if (triangles[i].IsBad)
-                    triangles.RemoveAtSwapBack(i--);
+                    triangles.RemoveAtSwapBack(i);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Foxglove.Maps {
 
             for (int i = polygon.Length - 1; i >= 0; i--) {
                 if (polygon[i].IsBad)
-                    polygon.RemoveAtSwapBack(i--);
+                    polygon.RemoveAtSwapBack(i);
             }
         }
 
@@ -122,7 +122,7 @@ namespace Foxglove.Maps {
                 Triangle t = triangles[i];
                 if (t.ContainsVertex(v1)
                     || t.ContainsVertex(v2)
-                    || t.ContainsVertex(v3)) triangles.RemoveAtSwapBack(i--);
+                    || t.ContainsVertex(v3)) triangles.RemoveAtSwapBack(i);
             }
         }
 
