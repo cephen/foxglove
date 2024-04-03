@@ -18,6 +18,7 @@ namespace Foxglove.Maps {
         private NativeList<Edge> _edges;
         private NativeArray<CellType> _cellTypes;
         private State _currentState;
+        private EntityArchetype _roomArchetype;
         private Entity _mapRoot;
 
         private enum State {
@@ -43,6 +44,7 @@ namespace Foxglove.Maps {
         public void OnUpdate(ref SystemState state) {
             switch (_currentState) {
                 case State.Initialize:
+                    LoadArchetypes(ref state);
                     SpawnMapRoot(ref state);
                     _currentState = State.Idle;
                     break;
@@ -86,6 +88,13 @@ namespace Foxglove.Maps {
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private void LoadArchetypes(ref SystemState state) {
+            SystemHandle archetypeManager =
+                state.WorldUnmanaged.GetExistingUnmanagedSystem<MapArchetypeInitializer>();
+            var archetypes = SystemAPI.GetComponent<MapArchetypes>(archetypeManager);
+            _roomArchetype = archetypes.Room;
         }
 
         private void SpawnMapRoot(ref SystemState state) {
