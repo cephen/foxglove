@@ -45,7 +45,7 @@ namespace Foxglove.Maps {
                 case State.Idle:
                     if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
                     StartGeneration(ref state);
-                    _generatorState = State.Generating;
+                    _currentState = State.Generating;
                     return;
                 case State.Generating:
                     if (!state.Dependency.IsCompleted) {
@@ -54,12 +54,12 @@ namespace Foxglove.Maps {
                     }
 
                     Log.Debug("[MapGeneratorSystem] Map generation complete");
-                    _generatorState = State.Spawning;
+                    _currentState = State.Spawning;
                     return;
                 case State.Spawning:
                     Log.Debug("[MapGeneratorSystem] Spawning map");
                     SpawnMap(ref state);
-                    _generatorState = State.Idle;
+                    _currentState = State.DrawDebug;
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
