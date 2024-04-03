@@ -52,10 +52,7 @@ namespace Foxglove.Maps {
                     _currentState = State.Generating;
                     return;
                 case State.Generating:
-                    if (!state.Dependency.IsCompleted) {
-                        Log.Debug("[MapGeneratorSystem] Map still generating");
-                        return;
-                    }
+                    if (!state.Dependency.IsCompleted) return;
 
                     Log.Debug("[MapGeneratorSystem] Map generation complete");
                     _currentState = State.Spawning;
