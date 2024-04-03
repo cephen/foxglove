@@ -2,7 +2,6 @@
 
 namespace Foxglove.Maps {
     public struct MapConfig {
-        public Entity MapRoot;
         public uint Seed;
         public int RoomsToGenerate;
         public int MinRoomSize;

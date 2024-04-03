@@ -2,9 +2,7 @@
 using Unity.Entities;
 
 namespace Foxglove.Maps {
-    public struct Map : IComponentData {
-        public int Radius;
-    }
+    public struct Map : IComponentData { }
 
     [BurstCompile]
     public readonly partial struct MapAspect : IAspect {

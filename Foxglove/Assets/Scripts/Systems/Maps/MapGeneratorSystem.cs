@@ -15,7 +15,8 @@ namespace Foxglove.Maps {
         private NativeList<Room> _rooms;
         private NativeList<Edge> _edges;
         private NativeArray<CellType> _cellTypes;
-        private State _generatorState;
+        private State _currentState;
+        private Entity _mapRoot;
 
         private enum State {
             Initialize,
@@ -36,7 +37,11 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            switch (_generatorState) {
+            switch (_currentState) {
+                case State.Initialize:
+                    SpawnMapRoot(ref state);
+                    _currentState = State.Idle;
+                    break;
                 case State.Idle:
                     if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
                     StartGeneration(ref state);
@@ -59,6 +64,13 @@ namespace Foxglove.Maps {
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private void SpawnMapRoot(ref SystemState state) {
+            _mapRoot = state.EntityManager.CreateEntity();
+            state.EntityManager.SetName(_mapRoot, "Map Root");
+            state.EntityManager.AddComponent<Map>(_mapRoot);
+            state.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
 
         [BurstCompile]
