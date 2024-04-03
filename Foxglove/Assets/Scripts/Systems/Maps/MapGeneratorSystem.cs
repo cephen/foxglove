@@ -25,12 +25,15 @@ namespace Foxglove.Maps {
         private enum State {
             Initialize,
             Idle,
-            Generating,
+            PlaceRooms,
+            Triangulate,
+            CreateHallways,
+            OptimizeHallways,
             Spawning,
 #if UNITY_EDITOR
             DrawDebug,
 #endif
-            Dispose,
+            Cleanup,
         }
 
         [BurstCompile]
@@ -43,33 +46,77 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
+
             switch (_currentState) {
                 case State.Initialize:
                     LoadArchetypes(ref state);
                     SpawnMapRoot(ref state);
+
                     _currentState = State.Idle;
                     break;
                 case State.Idle:
                     if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
-                    StartGeneration(ref state);
-                    _currentState = State.Generating;
+
+                    Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
+
+                    // Initialize buffers
+                    _cellTypes = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.Persistent);
+                    _rooms = new NativeList<Room>(config.RoomsToGenerate, Allocator.Persistent);
+                    _edges = new NativeList<Edge>(Allocator.Persistent);
+
+                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
+                    _currentState = State.PlaceRooms;
                     return;
-                case State.Generating:
+                case State.PlaceRooms:
+                    Log.Debug("[MapGenerator] Placing rooms");
+                    state.Dependency = new PlaceRoomsJob {
+                        Config = config,
+                        Rooms = _rooms,
+                        Cells = _cellTypes,
+                    }.Schedule(state.Dependency);
+
+                    _currentState = State.Triangulate;
+                    return;
+                case State.Triangulate:
                     if (!state.Dependency.IsCompleted) return;
 
-                    Log.Debug("[MapGeneratorSystem] Map generation complete");
+                    Log.Debug("[MapGenerator] Triangulating map");
+                    state.Dependency = new TriangulateMapJob {
+                        Rooms = _rooms,
+                        Edges = _edges,
+                    }.Schedule(state.Dependency);
+
+                    _currentState = State.CreateHallways;
+                    return;
+                case State.CreateHallways:
+                    if (!state.Dependency.IsCompleted) return;
+
+                    Log.Debug("[MapGenerator] Creating hallways");
+                    // Schedule job to create hallways
+
+                    _currentState = State.OptimizeHallways;
+                    return;
+                case State.OptimizeHallways:
+                    if (!state.Dependency.IsCompleted) return;
+
+                    Log.Debug("[MapGenerator] Optimizing hallways");
+                    // Schedule job to optimize hallways
+
                     _currentState = State.Spawning;
                     return;
                 case State.Spawning:
-                    Log.Debug("[MapGeneratorSystem] Spawning map");
+
+                    Log.Debug("[MapGenerator] Spawning map");
                     SpawnMap(ref state);
+
                     _currentState = State.DrawDebug;
                     return;
 #if UNITY_EDITOR
                 case State.DrawDebug:
                     if (!state.Dependency.IsCompleted) return;
 
-                    Log.Debug("[MapGeneratorSystem] Drawing debug lines");
+                    Log.Debug("[MapGenerator] Drawing debug lines");
 
                     state.Dependency = new DrawRoomDebugLinesJob {
                         DeltaTime = 1f,
@@ -83,11 +130,12 @@ namespace Foxglove.Maps {
                         Edges = _edges.AsArray().AsReadOnly(),
                     }.Schedule(_edges.Length, state.Dependency);
 
-                    _currentState = State.Dispose;
+                    _currentState = State.Cleanup;
                     return;
 #endif
-                case State.Dispose:
+                case State.Cleanup:
                     if (!state.Dependency.IsCompleted) return;
+                    Log.Debug("[MapGenerator] Cleaning up");
                     _rooms.Dispose();
                     _edges.Dispose();
                     _cellTypes.Dispose(state.Dependency);
@@ -115,41 +163,6 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state) { }
-
-        [BurstCompile]
-        private void StartGeneration(ref SystemState state) {
-            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
-
-            Log.Debug(
-                "[MapGeneratorSystem] Generating map with diameter {diameter} and seed {seed}",
-                config.Diameter,
-                config.Seed
-            );
-
-            _cellTypes = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.TempJob);
-            _rooms = new NativeList<Room>(config.RoomsToGenerate, Allocator.TempJob);
-            _edges = new NativeList<Edge>(Allocator.TempJob);
-
-            // Configure Jobs
-            PlaceRoomsJob placeRooms = new() {
-                Config = config,
-                Rooms = _rooms,
-                Cells = _cellTypes,
-            };
-
-            TriangulateMapJob triangulate = new() {
-                Rooms = _rooms,
-                Edges = _edges,
-            };
-
-            // Schedule jobs
-            state.Dependency = placeRooms.Schedule(state.Dependency);
-            state.Dependency = triangulate.Schedule(state.Dependency);
-            // Create Hallways
-            // Set up flow fields
-
-            SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
-        }
 
         [BurstCompile]
         private void SpawnMap(ref SystemState state) {
