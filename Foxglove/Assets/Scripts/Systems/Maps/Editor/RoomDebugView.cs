@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.State.Editor {
+namespace Foxglove.Maps.Editor {
     [BurstCompile]
     public partial struct RoomDebugPainterSystem : ISystem {
         public void OnCreate(ref SystemState state) {
