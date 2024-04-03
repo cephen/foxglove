@@ -22,6 +22,7 @@ namespace Foxglove.State {
             state.EntityManager.AddComponent<ChangedStateAt>(state.SystemHandle);
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state) {
             CheckTransitions(ref state);
             RunStateUpdate(ref state);
@@ -29,6 +30,7 @@ namespace Foxglove.State {
 
         public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
         private void CheckTransitions(ref SystemState state) {
             // If no transition is queued, do nothing.
             if (!SystemAPI.HasComponent<NextState<GameState>>(state.SystemHandle)
@@ -38,6 +40,7 @@ namespace Foxglove.State {
             SetCurrentState(ref state, next);
         }
 
+        [BurstCompile]
         private void RunStateUpdate(ref SystemState state) {
             if (!SystemAPI.HasComponent<CurrentState<GameState>>(state.SystemHandle)) return;
 
@@ -75,6 +78,7 @@ namespace Foxglove.State {
             }
         }
 
+        [BurstCompile]
         private void SetCurrentState(ref SystemState state, GameState current) {
             Log.Debug("[GameStateSystem] Setting current state to {0} State", current);
             if (!SystemAPI.HasComponent<CurrentState<GameState>>(state.SystemHandle))
@@ -87,6 +91,7 @@ namespace Foxglove.State {
             SystemAPI.SetComponent<ChangedStateAt>(state.SystemHandle, tick);
         }
 
+        [BurstCompile]
         private void SetNextState(ref SystemState state, GameState next) {
             if (!SystemAPI.HasComponent<NextState<GameState>>(state.SystemHandle))
                 state.EntityManager.AddComponent<NextState<GameState>>(state.SystemHandle);
