@@ -72,6 +72,8 @@ namespace Foxglove.Maps {
                 case State.Initialize:
                     Log.Debug("[MapGenerator] Initializing");
 
+                    DespawnRooms(ref state);
+
                     _edges.Clear();
                     _rooms.Resize(config.RoomsToGenerate, NativeArrayOptions.ClearMemory);
                     _cells.Resize(config.Diameter * config.Diameter, NativeArrayOptions.ClearMemory);
@@ -147,7 +149,6 @@ namespace Foxglove.Maps {
                     if (!state.Dependency.IsCompleted) return;
 
                     Log.Debug("[MapGenerator] Cleaning up");
-                    // DespawnRooms(ref state);
                     SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
 
                     _currentState = State.Idle;
