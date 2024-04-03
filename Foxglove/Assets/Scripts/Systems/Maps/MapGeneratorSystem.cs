@@ -144,11 +144,11 @@ namespace Foxglove.Maps {
 #endif
                 case State.Cleanup:
                     if (!state.Dependency.IsCompleted) return;
+
                     Log.Debug("[MapGenerator] Cleaning up");
-                    _rooms.Dispose();
-                    _edges.Dispose();
-                    _cellTypes.Dispose(state.Dependency);
-                    DespawnRooms(ref state);
+                    // DespawnRooms(ref state);
+                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
+
                     _currentState = State.Idle;
                     return;
                 default:
