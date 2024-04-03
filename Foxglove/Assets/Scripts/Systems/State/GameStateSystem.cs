@@ -13,7 +13,7 @@ namespace Foxglove.State {
     public enum GameState : byte { Initialize, Generate, Play }
 
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct GameStateSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Tick>();
