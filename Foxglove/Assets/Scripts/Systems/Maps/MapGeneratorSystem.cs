@@ -75,8 +75,9 @@ namespace Foxglove.Maps {
                     DespawnRooms(ref state);
 
                     _edges.Clear();
-                    _rooms.Resize(config.RoomsToGenerate, NativeArrayOptions.ClearMemory);
-                    _cells.Resize(config.Diameter * config.Diameter, NativeArrayOptions.ClearMemory);
+                    _rooms.Clear();
+                    for (var i = 0; i < _cells.Length; i++)
+                        _cells[i] = CellType.None;
 
                     _currentState = State.PlaceRooms;
                     return;
