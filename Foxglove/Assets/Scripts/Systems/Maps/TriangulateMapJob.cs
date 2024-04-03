@@ -1,4 +1,4 @@
-﻿using Foxglove.Maps.Delaunay;
+using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Graphs;
 using Unity.Burst;
 using Unity.Collections;
@@ -14,15 +14,13 @@ namespace Foxglove.Maps {
         public void Execute() {
             NativeList<float2> vertices = ExtractVerticesFromRooms();
             NativeList<Triangle> triangles = InitializeTriangles(vertices);
-            NativeList<Edge> polygon = new(Allocator.Temp);
 
-            ProcessVertices(vertices, triangles, polygon);
+            ProcessVertices(vertices, triangles);
             RemoveTrianglesOutsideBounds(triangles);
             ConvertTrianglesToEdges(triangles);
 
             vertices.Dispose();
             triangles.Dispose();
-            polygon.Dispose();
         }
 
         private NativeList<float2> ExtractVerticesFromRooms() {
@@ -53,26 +51,25 @@ namespace Foxglove.Maps {
             return triangles;
         }
 
-        private static void ProcessVertices(
-            NativeList<float2> vertices,
-            NativeList<Triangle> triangles,
-            NativeList<Edge> polygon
-        ) {
-            foreach (Vertex vertex in vertices) ProcessVertex(vertex, triangles, polygon);
+        private static void ProcessVertices(NativeList<float2> vertices, NativeList<Triangle> triangles) {
+            foreach (Vertex vertex in vertices) ProcessVertex(vertex, triangles);
         }
 
-        private static void ProcessVertex(Vertex vertex, NativeList<Triangle> triangles, NativeList<Edge> polygon) {
-            for (var index = 0; index < triangles.Length; index++) {
-                Triangle triangle = triangles[index];
+        private static void ProcessVertex(Vertex vertex, NativeList<Triangle> triangles) {
+            NativeList<Edge> polygon = new(Allocator.Temp);
+
+            for (var i = 0; i < triangles.Length; i++) {
+                Triangle triangle = triangles[i];
                 if (!triangle.CircumCircleContains(vertex)) continue;
                 MarkTriangleAsBadAndAddEdges(triangle, polygon);
-                triangles[index] = triangle;
+                triangles[i] = triangle;
             }
 
             RemoveBadTriangles(triangles);
             RemoveDuplicateEdges(polygon);
             AddNewTrianglesFromPolygon(polygon, vertex, triangles);
-            polygon.Clear();
+
+            polygon.Dispose();
         }
 
         private static void MarkTriangleAsBadAndAddEdges(Triangle triangle, NativeList<Edge> polygon) {
