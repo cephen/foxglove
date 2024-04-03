@@ -85,6 +85,14 @@ namespace Foxglove.Maps {
                     _currentState = State.Dispose;
                     return;
 #endif
+                case State.Dispose:
+                    if (!state.Dependency.IsCompleted) return;
+                    _rooms.Dispose();
+                    _edges.Dispose();
+                    _cellTypes.Dispose(state.Dependency);
+                    DespawnRooms(ref state);
+                    _currentState = State.Idle;
+                    return;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -162,24 +170,15 @@ namespace Foxglove.Maps {
                 cmd.AddComponent(e, LocalTransform.FromPosition(room.Position.x, 0f, room.Position.y));
                 cmd.AddComponent(e, new Parent { Value = config.MapRoot });
             }
+        }
 
-            state.Dependency.Complete();
+        [BurstCompile]
+        private void DespawnRooms(ref SystemState state) {
+            var ecbSystem = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+            EntityCommandBuffer cmd = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged);
 
-
-            state.Dependency = new DrawRoomDebugLinesJob {
-                DeltaTime = 10f,
-                Colour = Color.yellow,
-                Rooms = _rooms.AsArray(),
-            }.Schedule(_rooms.Length, state.Dependency);
-            state.Dependency = new DrawEdgeDebugLinesJob {
-                DeltaTime = 10f,
-                Colour = Color.red,
-                Edges = _edges.AsArray(),
-            }.Schedule(_edges.Length, state.Dependency);
-
-            _rooms.Dispose(state.Dependency);
-            _edges.Dispose(state.Dependency);
-            _cellTypes.Dispose(state.Dependency);
+            EntityQuery roomQuery = SystemAPI.QueryBuilder().WithAll<Room>().Build();
+            cmd.DestroyEntity(roomQuery, EntityQueryCaptureMode.AtRecord);
         }
     }
 }
