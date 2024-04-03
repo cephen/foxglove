@@ -66,6 +66,10 @@ namespace Foxglove.State {
                     break;
                 case GameState.Play:
                     // Something should definitely go here at some point
+                    uint currentTick = SystemAPI.GetSingleton<Tick>();
+                    uint changedAtTick = SystemAPI.GetComponent<ChangedStateAt>(state.SystemHandle);
+                    if (currentTick - changedAtTick > 50)
+                        SetNextState(ref state, GameState.Generate);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
