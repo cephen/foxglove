@@ -127,7 +127,7 @@ namespace Foxglove.Maps {
         }
 
         private void ConvertTrianglesToEdges(NativeList<Triangle> triangles) {
-            NativeHashSet<Edge> edgeSet = new();
+            NativeHashSet<Edge> edgeSet = new(128, Allocator.Temp);
 
             foreach (Triangle t in triangles) {
                 var ab = new Edge { A = t.A, B = t.B };
