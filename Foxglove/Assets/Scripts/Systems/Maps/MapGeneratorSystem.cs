@@ -171,9 +171,6 @@ namespace Foxglove.Maps {
         }
 
         [BurstCompile]
-        public void OnDestroy(ref SystemState state) { }
-
-        [BurstCompile]
         private void SpawnMap(ref SystemState state) {
             MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
 
