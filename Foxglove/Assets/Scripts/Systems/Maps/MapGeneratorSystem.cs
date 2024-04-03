@@ -156,6 +156,7 @@ namespace Foxglove.Maps {
             }
         }
 
+        [BurstCompile]
         private void LoadArchetypes(ref SystemState state) {
             SystemHandle archetypeManager =
                 state.WorldUnmanaged.GetExistingUnmanagedSystem<MapArchetypeInitializer>();
@@ -163,6 +164,7 @@ namespace Foxglove.Maps {
             _roomArchetype = archetypes.Room;
         }
 
+        [BurstCompile]
         private void SpawnMapRoot(ref SystemState state) {
             _mapRoot = state.EntityManager.CreateEntity();
             state.EntityManager.SetName(_mapRoot, "Map Root");
