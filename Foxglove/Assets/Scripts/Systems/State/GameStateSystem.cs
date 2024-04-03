@@ -51,7 +51,6 @@ namespace Foxglove.State {
                 case GameState.Generate:
                     MapConfig config = new() {
                         Seed = new Random((uint)DateTimeOffset.UtcNow.GetHashCode()).NextUInt(),
-                        MapRoot = state.EntityManager.CreateEntity(),
                         Radius = 50,
                         MinRoomSize = 5,
                         MaxRoomSize = 10,
