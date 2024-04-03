@@ -23,8 +23,8 @@ namespace Foxglove.Maps {
         private Entity _mapRoot;
 
         private enum State {
-            Initialize,
             Idle,
+            Initialize,
             PlaceRooms,
             Triangulate,
             CreateHallways,
@@ -38,10 +38,22 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            _currentState = State.Initialize;
+            LoadArchetypes(ref state);
+            SpawnMapRoot(ref state);
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.EntityManager.AddComponent<ShouldGenerateMap>(state.SystemHandle);
             state.EntityManager.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
+            _rooms = new NativeList<Room>(Allocator.Persistent);
+            _edges = new NativeList<Edge>(Allocator.Persistent);
+            _cells = new NativeList<CellType>(Allocator.Persistent);
+            _currentState = State.Idle;
+        }
+
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state) {
+            _rooms.Dispose(state.Dependency);
+            _edges.Dispose(state.Dependency);
+            _cells.Dispose(state.Dependency);
         }
 
         [BurstCompile]
@@ -49,23 +61,20 @@ namespace Foxglove.Maps {
             MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
 
             switch (_currentState) {
-                case State.Initialize:
-                    LoadArchetypes(ref state);
-                    SpawnMapRoot(ref state);
-
-                    _currentState = State.Idle;
-                    break;
                 case State.Idle:
                     if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
 
                     Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
 
-                    // Initialize buffers
-                    _cellTypes = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.Persistent);
-                    _rooms = new NativeList<Room>(config.RoomsToGenerate, Allocator.Persistent);
-                    _edges = new NativeList<Edge>(Allocator.Persistent);
+                    _currentState = State.Initialize;
+                    return;
+                case State.Initialize:
+                    Log.Debug("[MapGenerator] Initializing");
 
-                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
+                    _edges.Clear();
+                    _rooms.Resize(config.RoomsToGenerate, NativeArrayOptions.ClearMemory);
+                    _cells.Resize(config.Diameter * config.Diameter, NativeArrayOptions.ClearMemory);
+
                     _currentState = State.PlaceRooms;
                     return;
                 case State.PlaceRooms:
