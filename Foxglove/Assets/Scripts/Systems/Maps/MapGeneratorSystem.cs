@@ -15,9 +15,10 @@ using UnityEngine;
 namespace Foxglove.Maps {
     [BurstCompile]
     internal partial struct MapGeneratorSystem : ISystem {
+        private const int MapSize = 100;
         private NativeList<Room> _rooms;
         private NativeList<Edge> _edges;
-        private NativeList<CellType> _cells;
+        private NativeArray<CellType> _cells;
         private State _currentState;
         private EntityArchetype _roomArchetype;
         private Entity _mapRoot;
@@ -45,7 +46,7 @@ namespace Foxglove.Maps {
             state.EntityManager.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
             _rooms = new NativeList<Room>(Allocator.Persistent);
             _edges = new NativeList<Edge>(Allocator.Persistent);
-            _cells = new NativeList<CellType>(Allocator.Persistent);
+            _cells = new NativeArray<CellType>(MapSize * MapSize, Allocator.Persistent);
             _currentState = State.Idle;
         }
 

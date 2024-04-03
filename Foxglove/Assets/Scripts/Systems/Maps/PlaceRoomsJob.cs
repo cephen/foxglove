@@ -8,7 +8,7 @@ namespace Foxglove.Maps {
     internal struct PlaceRoomsJob : IJob {
         internal MapConfig Config;
         internal NativeList<Room> Rooms;
-        internal NativeList<CellType> Cells;
+        internal NativeArray<CellType> Cells;
 
         private Random _random;
 
