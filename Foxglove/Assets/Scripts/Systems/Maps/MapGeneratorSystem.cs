@@ -17,7 +17,7 @@ namespace Foxglove.Maps {
     internal partial struct MapGeneratorSystem : ISystem {
         private NativeList<Room> _rooms;
         private NativeList<Edge> _edges;
-        private NativeArray<CellType> _cellTypes;
+        private NativeList<CellType> _cells;
         private State _currentState;
         private EntityArchetype _roomArchetype;
         private Entity _mapRoot;
@@ -82,7 +82,7 @@ namespace Foxglove.Maps {
                     state.Dependency = new PlaceRoomsJob {
                         Config = config,
                         Rooms = _rooms,
-                        Cells = _cellTypes,
+                        Cells = _cells,
                     }.Schedule(state.Dependency);
 
                     _currentState = State.Triangulate;

@@ -1,4 +1,4 @@
-﻿using Unity.Burst;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -8,7 +8,7 @@ namespace Foxglove.Maps {
     internal struct PlaceRoomsJob : IJob {
         internal MapConfig Config;
         internal NativeList<Room> Rooms;
-        internal NativeArray<CellType> Cells;
+        internal NativeList<CellType> Cells;
 
         private Random _random;
 
