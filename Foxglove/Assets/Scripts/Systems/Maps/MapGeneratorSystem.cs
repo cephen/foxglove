@@ -158,12 +158,14 @@ namespace Foxglove.Maps {
             switch (StateMachine.GetState<GeneratorState>(ref state).Current) {
                 case GeneratorState.Idle:
                     // If rooms exist, draw debug lines for them
-                    if (SystemAPI.GetBuffer<Room>(_mapRoot).Length != 0)
+                    DynamicBuffer<Room> roomBuffer = SystemAPI.GetBuffer<Room>(_mapRoot);
+                    if (roomBuffer.Length != 0)
                         state.Dependency = new DrawRoomDebugLinesJob {
                             DeltaTime = SystemAPI.Time.DeltaTime,
                             Colour = Color.yellow,
-                            Rooms = _rooms.AsArray().AsReadOnly(),
-                        }.Schedule(_rooms.Length, state.Dependency);
+                            Rooms = roomBuffer.ToNativeArray(Allocator.TempJob).AsReadOnly(),
+                        }.Schedule(roomBuffer.Length, state.Dependency);
+
                     if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
 
                     Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
