@@ -153,19 +153,15 @@ namespace Foxglove.Maps {
                     // If rooms exist and this is an editor build
                     // Draw debug lines for map components
 
-                    DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(_mapRoot);
                     JobHandle drawRooms = new DrawRoomDebugLinesJob {
-                        DeltaTime = SystemAPI.Time.DeltaTime,
-                        Colour = Color.yellow,
-                        Rooms = rooms.ToNativeArray(Allocator.TempJob).AsReadOnly(),
-                    }.Schedule(rooms.Length, ecs.Dependency);
+                        DrawTime = SystemAPI.Time.DeltaTime,
+                        Color = Color.yellow,
+                    }.Schedule(ecs.Dependency);
 
-                    DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
                     JobHandle drawEdges = new DrawEdgeDebugLinesJob {
                         DeltaTime = SystemAPI.Time.DeltaTime,
                         Colour = Color.red,
-                        Edges = edges.ToNativeArray(Allocator.TempJob).AsReadOnly(),
-                    }.Schedule(edges.Length, drawRooms);
+                    }.Schedule(drawRooms);
 
                     ecs.Dependency = JobHandle.CombineDependencies(drawRooms, drawEdges);
 #endif

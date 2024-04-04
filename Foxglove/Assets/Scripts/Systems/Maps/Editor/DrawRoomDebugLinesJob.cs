@@ -1,29 +1,29 @@
-﻿using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
+﻿#if UNITY_EDITOR
+using Unity.Burst;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace Foxglove.Maps.Editor {
     [BurstCompile]
-    internal struct DrawRoomDebugLinesJob : IJobFor {
-        public float DeltaTime;
-        public Color Colour;
-        public NativeArray<Room>.ReadOnly Rooms;
+    internal partial struct DrawRoomDebugLinesJob : IJobEntity {
+        internal float DrawTime;
+        internal Color Color;
 
         [BurstCompile]
-        public readonly void Execute(int i) {
-            Room room = Rooms[i];
+        private readonly void Execute(in DynamicBuffer<Room> rooms) {
+            foreach (Room room in rooms) {
+                var southWestCorner = new float3(room.Position.x, 0, room.Position.y);
+                var southEastCorner = new float3(room.Position.x + room.Size.x, 0, room.Position.y);
+                var northWestCorner = new float3(room.Position.x, 0, room.Position.y + room.Size.y);
+                var northEastCorner = new float3(room.Position.x + room.Size.x, 0, room.Position.y + room.Size.y);
 
-            var southWestCorner = new float3(room.Position.x, 0, room.Position.y);
-            var southEastCorner = new float3(room.Position.x + room.Size.x, 0, room.Position.y);
-            var northWestCorner = new float3(room.Position.x, 0, room.Position.y + room.Size.y);
-            var northEastCorner = new float3(room.Position.x + room.Size.x, 0, room.Position.y + room.Size.y);
-
-            Debug.DrawLine(southWestCorner, southEastCorner, Colour, DeltaTime);
-            Debug.DrawLine(southEastCorner, northEastCorner, Colour, DeltaTime);
-            Debug.DrawLine(northEastCorner, northWestCorner, Colour, DeltaTime);
-            Debug.DrawLine(northWestCorner, southWestCorner, Colour, DeltaTime);
+                Debug.DrawLine(southWestCorner, southEastCorner, Color, DrawTime);
+                Debug.DrawLine(southEastCorner, northEastCorner, Color, DrawTime);
+                Debug.DrawLine(northEastCorner, northWestCorner, Color, DrawTime);
+                Debug.DrawLine(northWestCorner, southWestCorner, Color, DrawTime);
+            }
         }
     }
 }
+#endif
