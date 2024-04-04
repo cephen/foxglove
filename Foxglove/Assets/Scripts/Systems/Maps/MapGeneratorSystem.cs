@@ -220,6 +220,7 @@ namespace Foxglove.Maps {
             _mapRoot = state.EntityManager.CreateEntity();
             state.EntityManager.SetName(_mapRoot, "Map Root");
             state.EntityManager.AddBuffer<Room>(_mapRoot);
+            state.EntityManager.AddBuffer<Edge>(_mapRoot);
             state.EntityManager.AddComponent<Map>(_mapRoot);
             state.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }

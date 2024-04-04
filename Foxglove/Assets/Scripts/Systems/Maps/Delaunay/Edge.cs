@@ -1,9 +1,10 @@
 ﻿using System;
 using Foxglove.Maps.Graphs;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Foxglove.Maps.Delaunay {
-    internal struct Edge : IEquatable<Edge> {
+    internal struct Edge : IBufferElementData, IEquatable<Edge> {
         public Vertex A;
         public Vertex B;
         public bool IsBad;
