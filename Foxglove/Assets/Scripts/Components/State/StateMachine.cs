@@ -3,11 +3,12 @@ using Unity.Entities;
 
 namespace Foxglove.State {
     public static class StateMachine {
-        public static void Init<T>(ref SystemState state)
+        public static void Init<T>(ref SystemState state, T initialState)
             where T : unmanaged, Enum {
             state.EntityManager.AddComponent<State<T>>(state.SystemHandle);
             state.EntityManager.AddComponent<NextState<T>>(state.SystemHandle);
-            state.EntityManager.SetComponentEnabled<NextState<T>>(state.SystemHandle, false);
+            state.EntityManager.GetComponentDataRW<NextState<T>>(state.SystemHandle).ValueRW.Value = initialState;
+            state.EntityManager.SetComponentEnabled<NextState<T>>(state.SystemHandle, true);
         }
 
         public static bool IsTransitionQueued<T>(ref SystemState state)
