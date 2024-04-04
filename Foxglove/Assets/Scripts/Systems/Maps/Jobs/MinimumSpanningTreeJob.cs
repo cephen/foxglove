@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Foxglove.Maps.Generation {
+namespace Foxglove.Maps.Jobs {
     /// <summary>
     /// Job that calculates a minimum spanning tree for a set of edges
     /// </summary>

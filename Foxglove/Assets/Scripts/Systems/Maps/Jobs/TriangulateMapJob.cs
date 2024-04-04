@@ -6,7 +6,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Foxglove.Maps {
+namespace Foxglove.Maps.Jobs {
     [BurstCompile]
     internal struct TriangulateMapJob : IJob {
         internal NativeArray<Room>.ReadOnly Rooms;
