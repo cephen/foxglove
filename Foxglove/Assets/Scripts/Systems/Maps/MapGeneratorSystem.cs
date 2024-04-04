@@ -72,13 +72,13 @@ namespace Foxglove.Maps {
             switch (systemState.Current) {
                 case GeneratorState.Idle:
                     Log.Debug("[MapGenerator] Idle");
-                    break;
+                    return;
                 case GeneratorState.Initialize:
                     Log.Debug("[MapGenerator] Initializing");
                     StateMachine.SetNextState(ref ecs, GeneratorState.PlaceRooms);
                     break;
                 case GeneratorState.PlaceRooms:
-                    Log.Debug("[MapGenerator] Starting room placement");
+                    Log.Debug("[MapGenerator] Placing Rooms");
 
                     ecs.Dependency = new PlaceRoomsJob {
                         Config = config,
@@ -88,7 +88,8 @@ namespace Foxglove.Maps {
 
                     break;
                 case GeneratorState.Triangulate:
-                    Log.Debug("[MapGenerator] Starting map triangulation");
+                    Log.Debug("[MapGenerator] Building room graph");
+
                     DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(_mapRoot);
 
                     ecs.Dependency = new TriangulateMapJob {
@@ -116,14 +117,14 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.OptimizeHallways:
                     Log.Debug("[MapGenerator] Starting hallway optimization");
-                    break;
+                    return;
                 case GeneratorState.Spawning:
                     Log.Debug("[MapGenerator] Spawning map objects");
-                    break;
+                    return;
                 case GeneratorState.Cleanup:
                     Log.Debug("[MapGenerator] Cleaning up");
                     StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
-                    break;
+                    return;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -186,9 +187,8 @@ namespace Foxglove.Maps {
                     StateMachine.SetNextState(ref ecs, GeneratorState.Initialize);
 
                     return;
-                case GeneratorState.Initialize:
-                    // Initialize is a one-shot state and all it's behaviour happens in OnEnter
-                    return;
+                // Initialize is a one-shot state and all it's behaviour happens in OnEnter
+                case GeneratorState.Initialize: return;
                 case GeneratorState.PlaceRooms:
                     if (!ecs.Dependency.IsCompleted) return; // wait for jobs to complete
 
