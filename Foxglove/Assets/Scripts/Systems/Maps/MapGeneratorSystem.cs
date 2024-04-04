@@ -57,11 +57,14 @@ namespace Foxglove.Maps {
         public void OnDestroy(ref SystemState state) { }
 
         public void Transition(ref SystemState ecs) {
+            GeneratorState current = StateMachine.GetState<GeneratorState>(ref ecs).Current;
+            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ref ecs).Value;
+
             SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecs.SystemHandle, false);
 
-            OnExit(ref ecs, StateMachine.GetState<GeneratorState>(ref ecs));
-            StateMachine.SetState(ref ecs, StateMachine.GetNextState<GeneratorState>(ref ecs).Value);
-            OnEnter(ref ecs, StateMachine.GetState<GeneratorState>(ref ecs));
+            OnExit(ref ecs, current);
+            OnEnter(ref ecs, next);
+            StateMachine.SetState(ref ecs, next);
         }
 
         public void OnEnter(ref SystemState ecs, State<GeneratorState> systemState) {
