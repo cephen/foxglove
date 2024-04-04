@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace Foxglove.Maps {
     [BurstCompile]
     internal struct TriangulateMapJob : IJob {
-        [ReadOnly] internal NativeList<Room> Rooms;
+        internal NativeArray<Room>.ReadOnly Rooms;
         internal NativeList<Edge> Edges;
 
         public void Execute() {

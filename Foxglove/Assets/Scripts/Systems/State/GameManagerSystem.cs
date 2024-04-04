@@ -29,19 +29,19 @@ namespace Foxglove.State {
 
         public void OnDestroy(ref SystemState state) { }
 
-        public void Transition(ref SystemState state) {
-            SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, false);
+        public void Transition(ref SystemState ecs) {
+            SystemAPI.SetComponentEnabled<NextState<GameState>>(ecs.SystemHandle, false);
 
-            OnExit(ref state, StateMachine.GetState<GameState>(ref state));
-            StateMachine.SetState(ref state, StateMachine.GetNextState<GameState>(ref state).Value);
-            OnEnter(ref state, StateMachine.GetState<GameState>(ref state));
+            OnExit(ref ecs, StateMachine.GetState<GameState>(ref ecs));
+            StateMachine.SetState(ref ecs, StateMachine.GetNextState<GameState>(ref ecs).Value);
+            OnEnter(ref ecs, StateMachine.GetState<GameState>(ref ecs));
         }
 
-        public void OnEnter(ref SystemState ecsState, State<GameState> state) {
+        public void OnEnter(ref SystemState ecs, State<GameState> state) {
             switch (state.Current) {
                 case GameState.Initialize:
                     Log.Debug("[GameManager] Initializing Foxglove");
-                    StateMachine.SetNextState(ref ecsState, GameState.Generate);
+                    StateMachine.SetNextState(ref ecs, GameState.Generate);
                     break;
                 case GameState.Generate:
                     Log.Debug("[GameManager] Starting Map generation");
@@ -55,11 +55,11 @@ namespace Foxglove.State {
                     };
 
                     SystemHandle mapGenSystem =
-                        ecsState.WorldUnmanaged.GetExistingUnmanagedSystem<MapGeneratorSystem>();
+                        ecs.WorldUnmanaged.GetExistingUnmanagedSystem<MapGeneratorSystem>();
                     SystemAPI.SetComponent<ShouldGenerateMap>(mapGenSystem, config);
                     SystemAPI.SetComponentEnabled<ShouldGenerateMap>(mapGenSystem, true);
 
-                    StateMachine.SetNextState(ref ecsState, GameState.Play);
+                    StateMachine.SetNextState(ref ecs, GameState.Play);
                     break;
                 case GameState.Play:
                     Log.Debug("[GameManager] Starting gameplay");
@@ -69,7 +69,7 @@ namespace Foxglove.State {
             }
         }
 
-        public void OnExit(ref SystemState ecsState, State<GameState> state) {
+        public void OnExit(ref SystemState ecs, State<GameState> state) {
             switch (state.Current) {
                 case GameState.Initialize:
                     Log.Debug("[GameManager] Initialization complete");

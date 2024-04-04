@@ -49,24 +49,23 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            if (StateMachine.IsTransitionQueued<GeneratorState>(ref state))
-                Transition(ref state);
+            if (StateMachine.IsTransitionQueued<GeneratorState>(ref state)) Transition(ref state);
             HandleStateUpdate(ref state);
         }
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state) { }
 
-        public void Transition(ref SystemState state) {
-            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(state.SystemHandle, false);
+        public void Transition(ref SystemState ecs) {
+            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecs.SystemHandle, false);
 
-            OnExit(ref state, StateMachine.GetState<GeneratorState>(ref state));
-            StateMachine.SetState(ref state, StateMachine.GetNextState<GeneratorState>(ref state).Value);
-            OnEnter(ref state, StateMachine.GetState<GeneratorState>(ref state));
+            OnExit(ref ecs, StateMachine.GetState<GeneratorState>(ref ecs));
+            StateMachine.SetState(ref ecs, StateMachine.GetNextState<GeneratorState>(ref ecs).Value);
+            OnEnter(ref ecs, StateMachine.GetState<GeneratorState>(ref ecs));
         }
 
-        public void OnEnter(ref SystemState ecsState, State<GeneratorState> systemState) {
-            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecsState.SystemHandle).Config;
+        public void OnEnter(ref SystemState ecs, State<GeneratorState> systemState) {
+            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecs.SystemHandle).Config;
             switch (systemState.Current) {
                 case GeneratorState.Idle:
                     Log.Debug("[MapGenerator] Idle");
@@ -80,25 +79,26 @@ namespace Foxglove.Maps {
                     _rooms = new NativeList<Room>(Allocator.TempJob);
                     _edges = new NativeList<Edge>(Allocator.TempJob);
 
-                    StateMachine.SetNextState(ref ecsState, GeneratorState.PlaceRooms);
+                    StateMachine.SetNextState(ref ecs, GeneratorState.PlaceRooms);
                     break;
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Starting room placement");
 
-                    ecsState.Dependency = new PlaceRoomsJob {
+                    ecs.Dependency = new PlaceRoomsJob {
                         Config = config,
                         Rooms = _rooms,
                         Cells = _cells,
-                    }.Schedule(ecsState.Dependency);
+                    }.Schedule(ecs.Dependency);
 
                     break;
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Starting map triangulation");
+                    DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(_mapRoot);
 
-                    ecsState.Dependency = new TriangulateMapJob {
-                        Rooms = _rooms,
+                    ecs.Dependency = new TriangulateMapJob {
+                        Rooms = rooms.AsNativeArray().AsReadOnly(),
                         Edges = _edges,
-                    }.Schedule(ecsState.Dependency);
+                    }.Schedule(ecs.Dependency);
 
                     break;
                 case GeneratorState.CreateHallways:
@@ -112,10 +112,7 @@ namespace Foxglove.Maps {
                     break;
                 case GeneratorState.Cleanup:
                     Log.Debug("[MapGenerator] Cleaning up");
-                    _rooms.Dispose(ecsState.Dependency);
-                    _edges.Dispose(ecsState.Dependency);
-                    _cells.Dispose(ecsState.Dependency);
-                    StateMachine.SetNextState(ref ecsState, GeneratorState.Idle);
+                    StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -131,9 +128,12 @@ namespace Foxglove.Maps {
                     break;
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Done placing rooms");
+                    _rooms.Dispose(ecs.Dependency);
                     break;
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Done triangulating map");
+                    _edges.Dispose(ecs.Dependency);
+                    _cells.Dispose(ecs.Dependency);
                     break;
                 case GeneratorState.CreateHallways:
                     Log.Debug("[MapGenerator] Done creating hallways");
