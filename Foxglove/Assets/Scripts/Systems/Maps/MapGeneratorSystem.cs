@@ -160,58 +160,70 @@ namespace Foxglove.Maps {
             switch (StateMachine.GetState<GeneratorState>(ref ecs).Current) {
                 case GeneratorState.Idle:
 #if UNITY_EDITOR
-                    // If rooms exist, draw debug lines for them
-                    DynamicBuffer<Room> roomBuffer = SystemAPI.GetBuffer<Room>(_mapRoot);
-                    if (roomBuffer.Length != 0)
-                        state.Dependency = new DrawRoomDebugLinesJob {
-                            DeltaTime = SystemAPI.Time.DeltaTime,
-                            Colour = Color.yellow,
-                            Rooms = roomBuffer.ToNativeArray(Allocator.TempJob).AsReadOnly(),
-                        }.Schedule(roomBuffer.Length, state.Dependency);
+                    // If rooms exist and this is an editor build
+                    // Draw debug lines for map components
 
-                    if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
+                    DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(_mapRoot);
+                    JobHandle drawRooms = new DrawRoomDebugLinesJob {
+                        DeltaTime = SystemAPI.Time.DeltaTime,
+                        Colour = Color.yellow,
+                        Rooms = rooms.ToNativeArray(Allocator.TempJob).AsReadOnly(),
+                    }.Schedule(rooms.Length, ecs.Dependency);
 
+                    DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
+                    JobHandle drawEdges = new DrawEdgeDebugLinesJob {
+                        DeltaTime = SystemAPI.Time.DeltaTime,
+                        Colour = Color.red,
+                        Edges = edges.ToNativeArray(Allocator.TempJob).AsReadOnly(),
+                    }.Schedule(edges.Length, drawRooms);
+
+                    ecs.Dependency = JobHandle.CombineDependencies(drawRooms, drawEdges);
+#endif
+                    if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(ecs.SystemHandle)) return;
+
+                    // If the component is activated, a map
+                    MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecs.SystemHandle).Config;
                     Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
-                    StateMachine.SetNextState(ref state, GeneratorState.Initialize);
+                    StateMachine.SetNextState(ref ecs, GeneratorState.Initialize);
 
                     return;
                 case GeneratorState.Initialize:
-                    // Initialize is a oneshot state and all it's behaviour happens in OnEnter
+                    // Initialize is a one-shot state and all it's behaviour happens in OnEnter
                     return;
                 case GeneratorState.PlaceRooms:
-                    if (!state.Dependency.IsCompleted) return; // wait for job to complete
-
-                    AddRoomsToMap(ref state);
-                    StateMachine.SetNextState(ref state, GeneratorState.Triangulate);
+                    if (!ecs.Dependency.IsCompleted) return; // wait for jobs to complete
+                    AddRoomsToMap(ref ecs);
+                    StateMachine.SetNextState(ref ecs, GeneratorState.Triangulate);
 
                     return;
-                case GeneratorState.Triangulate:
-                    if (!state.Dependency.IsCompleted) return;
 
-                    StateMachine.SetNextState(ref state, GeneratorState.CreateHallways);
+                case GeneratorState.Triangulate:
+                    if (ecs.Dependency.IsCompleted)
+                        StateMachine.SetNextState(ref ecs, GeneratorState.CreateHallways);
+
                     return;
                 case GeneratorState.CreateHallways:
-                    if (!state.Dependency.IsCompleted) return;
+                    if (!ecs.Dependency.IsCompleted)
+                        StateMachine.SetNextState(ref ecs, GeneratorState.OptimizeHallways);
 
-                    StateMachine.SetNextState(ref state, GeneratorState.OptimizeHallways);
                     return;
                 case GeneratorState.OptimizeHallways:
-                    if (!state.Dependency.IsCompleted) return;
+                    if (!ecs.Dependency.IsCompleted)
+                        StateMachine.SetNextState(ref ecs, GeneratorState.Spawning);
 
-                    StateMachine.SetNextState(ref state, GeneratorState.Spawning);
                     return;
                 case GeneratorState.Spawning:
-                    if (!state.Dependency.IsCompleted) return;
+                    if (!ecs.Dependency.IsCompleted)
+                        StateMachine.SetNextState(ref ecs, GeneratorState.Cleanup);
 
-                    StateMachine.SetNextState(ref state, GeneratorState.Cleanup);
                     return;
                 case GeneratorState.Cleanup:
-                    if (!state.Dependency.IsCompleted) return;
+                    if (!ecs.Dependency.IsCompleted) return;
 
                     Log.Debug("[MapGenerator] Cleaning up");
-                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
+                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(ecs.SystemHandle, false);
 
-                    StateMachine.SetNextState(ref state, GeneratorState.Idle);
+                    StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();

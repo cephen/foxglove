@@ -12,12 +12,19 @@ using Random = Unity.Mathematics.Random;
 namespace Foxglove.State {
     public enum GameState : byte { Initialize, Generate, Play }
 
+    /// <summary>
+    /// This system manages the core game loop
+    /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))] // Updates 50 times per second
     internal partial struct GameManagerSystem : ISystem, IStateMachineSystem<GameState> {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<Tick>();
+            state.RequireForUpdate<Tick>(); // How many ticks since the game started
+
+            // Add state machine components
+            // State<GameState> is the current state
+            // NextState<GameState> is an toggleable component that can be used to attempt a transition
             StateMachine.Init(ref state, GameState.Initialize);
         }
 
@@ -48,10 +55,10 @@ namespace Foxglove.State {
 
                     MapConfig config = new() {
                         Seed = new Random((uint)DateTimeOffset.UtcNow.GetHashCode()).NextUInt(),
-                        Radius = 50,
+                        Radius = 64,
                         MinRoomSize = 5,
                         MaxRoomSize = 10,
-                        RoomsToGenerate = 30,
+                        RoomsToGenerate = 40,
                     };
 
                     SystemHandle mapGenSystem =
