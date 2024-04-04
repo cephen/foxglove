@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Foxglove.Maps {
+namespace Foxglove.Maps.Jobs {
     [BurstCompile]
     internal struct PlaceRoomsJob : IJob {
         internal MapConfig Config;

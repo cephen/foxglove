@@ -1,5 +1,6 @@
 using System;
 using Foxglove.Maps.Delaunay;
+using Foxglove.Maps.Jobs;
 using Foxglove.State;
 using Unity.Burst;
 using Unity.Collections;
@@ -155,11 +156,10 @@ namespace Foxglove.Maps {
         }
 
 
-        private void HandleStateUpdate(ref SystemState state) {
-            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle).Config;
-
-            switch (StateMachine.GetState<GeneratorState>(ref state).Current) {
+        private void HandleStateUpdate(ref SystemState ecs) {
+            switch (StateMachine.GetState<GeneratorState>(ref ecs).Current) {
                 case GeneratorState.Idle:
+#if UNITY_EDITOR
                     // If rooms exist, draw debug lines for them
                     DynamicBuffer<Room> roomBuffer = SystemAPI.GetBuffer<Room>(_mapRoot);
                     if (roomBuffer.Length != 0)
