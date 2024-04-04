@@ -1,5 +1,5 @@
 using Unity.Burst;
-using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -7,8 +7,8 @@ namespace Foxglove.Maps.Jobs {
     [BurstCompile]
     internal struct PlaceRoomsJob : IJob {
         internal MapConfig Config;
-        internal NativeList<Room> Rooms;
-        internal NativeArray<CellType> Cells;
+        internal DynamicBuffer<Room> Rooms;
+        internal DynamicBuffer<MapCell> Cells;
 
         private Random _random;
 
@@ -58,7 +58,7 @@ namespace Foxglove.Maps.Jobs {
             for (int x = position.x; x < position.x + room.Size.x; x++) {
                 for (int y = position.y; y < position.y + room.Size.y; y++) {
                     int i = y + x * Config.Diameter;
-                    Cells[i] = CellType.Room;
+                    Cells[i] = new MapCell { Type = CellType.Room };
                 }
             }
         }
