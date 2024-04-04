@@ -28,17 +28,12 @@ namespace Foxglove.Maps {
 
     [BurstCompile]
     internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
-        private NativeArray<CellType> _cells;
-        private NativeList<Edge> _edges;
         private Entity _mapRoot;
-        private EntityArchetype _roomArchetype;
-        private NativeList<Room> _rooms;
-
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            state.RequireForUpdate<Tick>();
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<Tick>(); // How many ticks since the game started
+            state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
             state.EntityManager.AddComponent<ShouldGenerateMap>(state.SystemHandle);
             state.EntityManager.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
@@ -69,20 +64,18 @@ namespace Foxglove.Maps {
         }
 
         public void OnEnter(ref SystemState ecs, State<GeneratorState> systemState) {
+            EntityCommandBuffer commands = SystemAPI
+                .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(ecs.WorldUnmanaged);
+
             MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecs.SystemHandle).Config;
+
             switch (systemState.Current) {
                 case GeneratorState.Idle:
                     Log.Debug("[MapGenerator] Idle");
                     break;
                 case GeneratorState.Initialize:
                     Log.Debug("[MapGenerator] Initializing");
-
-                    SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
-
-                    _cells = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.TempJob);
-                    _rooms = new NativeList<Room>(Allocator.TempJob);
-                    _edges = new NativeList<Edge>(Allocator.TempJob);
-
                     StateMachine.SetNextState(ref ecs, GeneratorState.PlaceRooms);
                     break;
                 case GeneratorState.PlaceRooms:
@@ -90,8 +83,8 @@ namespace Foxglove.Maps {
 
                     ecs.Dependency = new PlaceRoomsJob {
                         Config = config,
-                        Rooms = _rooms,
-                        Cells = _cells,
+                        Rooms = commands.SetBuffer<Room>(_mapRoot),
+                        Cells = commands.SetBuffer<MapCell>(_mapRoot),
                     }.Schedule(ecs.Dependency);
 
                     break;
@@ -101,7 +94,7 @@ namespace Foxglove.Maps {
 
                     ecs.Dependency = new TriangulateMapJob {
                         Rooms = rooms.AsNativeArray().AsReadOnly(),
-                        Edges = _edges,
+                        Edges = commands.SetBuffer<Edge>(_mapRoot),
                     }.Schedule(ecs.Dependency);
 
                     break;
@@ -132,12 +125,9 @@ namespace Foxglove.Maps {
                     break;
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Done placing rooms");
-                    _rooms.Dispose(ecs.Dependency);
                     break;
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Done triangulating map");
-                    _edges.Dispose(ecs.Dependency);
-                    _cells.Dispose(ecs.Dependency);
                     break;
                 case GeneratorState.CreateHallways:
                     Log.Debug("[MapGenerator] Done creating hallways");
@@ -192,11 +182,10 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.PlaceRooms:
                     if (!ecs.Dependency.IsCompleted) return; // wait for jobs to complete
-                    AddRoomsToMap(ref ecs);
+
                     StateMachine.SetNextState(ref ecs, GeneratorState.Triangulate);
 
                     return;
-
                 case GeneratorState.Triangulate:
                     if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ref ecs, GeneratorState.CreateHallways);
@@ -241,16 +230,6 @@ namespace Foxglove.Maps {
 
             state.EntityManager.AddComponent<Map>(_mapRoot);
             state.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
-        }
-
-        [BurstCompile]
-        private void AddRoomsToMap(ref SystemState state) {
-            EntityCommandBuffer commands = SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
-            DynamicBuffer<Room> roomBuffer = commands.SetBuffer<Room>(_mapRoot);
-            foreach (Room room in _rooms) roomBuffer.Add(room);
         }
     }
 }
