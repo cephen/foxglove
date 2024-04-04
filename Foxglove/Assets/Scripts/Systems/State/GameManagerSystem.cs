@@ -18,7 +18,7 @@ namespace Foxglove.State {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Tick>();
-            StateMachine.Init<GameState>(ref state);
+            StateMachine.Init(ref state, GameState.Initialize);
         }
 
         [BurstCompile]
