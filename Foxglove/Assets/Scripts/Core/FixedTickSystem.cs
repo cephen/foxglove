@@ -20,5 +20,6 @@ namespace Foxglove {
     public struct Tick : IComponentData {
         public uint Value;
         public static implicit operator uint(Tick t) => t.Value;
+        public static implicit operator Tick(uint t) => new() { Value = t };
     }
 }
