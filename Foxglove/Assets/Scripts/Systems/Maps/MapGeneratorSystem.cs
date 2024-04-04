@@ -1,5 +1,6 @@
 using System;
 using Foxglove.Maps.Delaunay;
+using Foxglove.State;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -13,146 +14,199 @@ using UnityEngine;
 #endif
 
 namespace Foxglove.Maps {
-    [BurstCompile]
-    internal partial struct MapGeneratorSystem : ISystem {
-        private const int MapSize = 100;
-        private NativeList<Room> _rooms;
-        private NativeList<Edge> _edges;
-        private NativeArray<CellType> _cells;
-        private State _currentState;
-        private EntityArchetype _roomArchetype;
-        private Entity _mapRoot;
+    internal enum GeneratorState {
+        Idle,
+        Initialize,
+        PlaceRooms,
+        Triangulate,
+        CreateHallways,
+        OptimizeHallways,
+        Spawning,
+        Cleanup,
+    }
 
-        private enum State {
-            Idle,
-            Initialize,
-            PlaceRooms,
-            Triangulate,
-            CreateHallways,
-            OptimizeHallways,
-            Spawning,
-#if UNITY_EDITOR
-            DrawDebug,
-#endif
-            Cleanup,
-        }
+    [BurstCompile]
+    internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
+        private NativeArray<CellType> _cells;
+        private NativeList<Edge> _edges;
+        private Entity _mapRoot;
+        private EntityArchetype _roomArchetype;
+        private NativeList<Room> _rooms;
+
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
-            LoadArchetypes(ref state);
-            SpawnMapRoot(ref state);
+            state.RequireForUpdate<Tick>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+
             state.EntityManager.AddComponent<ShouldGenerateMap>(state.SystemHandle);
             state.EntityManager.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
-            _rooms = new NativeList<Room>(Allocator.Persistent);
-            _edges = new NativeList<Edge>(Allocator.Persistent);
-            _cells = new NativeArray<CellType>(MapSize * MapSize, Allocator.Persistent);
-            _currentState = State.Idle;
-        }
 
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state) {
-            _rooms.Dispose(state.Dependency);
-            _edges.Dispose(state.Dependency);
-            _cells.Dispose(state.Dependency);
+            StateMachine.Init(ref state, GeneratorState.Idle);
+
+            SpawnMapRoot(ref state);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle);
+            if (StateMachine.IsTransitionQueued<GeneratorState>(ref state))
+                Transition(ref state);
+            HandleStateUpdate(ref state);
+        }
 
-            switch (_currentState) {
-                case State.Idle:
-                    if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state) { }
 
-                    Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
+        public void Transition(ref SystemState state) {
+            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(state.SystemHandle, false);
 
-                    _currentState = State.Initialize;
-                    return;
-                case State.Initialize:
+            OnExit(ref state, StateMachine.GetState<GeneratorState>(ref state));
+            StateMachine.SetState(ref state, StateMachine.GetNextState<GeneratorState>(ref state).Value);
+            OnEnter(ref state, StateMachine.GetState<GeneratorState>(ref state));
+        }
+
+        public void OnEnter(ref SystemState ecsState, State<GeneratorState> systemState) {
+            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecsState.SystemHandle).Config;
+            switch (systemState.Current) {
+                case GeneratorState.Idle:
+                    Log.Debug("[MapGenerator] Idle");
+                    break;
+                case GeneratorState.Initialize:
                     Log.Debug("[MapGenerator] Initializing");
 
-                    DespawnRooms(ref state);
+                    SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
 
-                    _edges.Clear();
-                    _rooms.Clear();
-                    for (var i = 0; i < _cells.Length; i++)
-                        _cells[i] = CellType.None;
+                    _cells = new NativeArray<CellType>(config.Diameter * config.Diameter, Allocator.TempJob);
+                    _rooms = new NativeList<Room>(Allocator.TempJob);
+                    _edges = new NativeList<Edge>(Allocator.TempJob);
 
-                    _currentState = State.PlaceRooms;
-                    return;
-                case State.PlaceRooms:
-                    Log.Debug("[MapGenerator] Placing rooms");
-                    state.Dependency = new PlaceRoomsJob {
+                    StateMachine.SetNextState(ref ecsState, GeneratorState.PlaceRooms);
+                    break;
+                case GeneratorState.PlaceRooms:
+                    Log.Debug("[MapGenerator] Starting room placement");
+
+                    ecsState.Dependency = new PlaceRoomsJob {
                         Config = config,
                         Rooms = _rooms,
                         Cells = _cells,
-                    }.Schedule(state.Dependency);
+                    }.Schedule(ecsState.Dependency);
 
-                    _currentState = State.Triangulate;
-                    return;
-                case State.Triangulate:
-                    if (!state.Dependency.IsCompleted) return;
+                    break;
+                case GeneratorState.Triangulate:
+                    Log.Debug("[MapGenerator] Starting map triangulation");
 
-                    Log.Debug("[MapGenerator] Triangulating map");
-                    state.Dependency = new TriangulateMapJob {
+                    ecsState.Dependency = new TriangulateMapJob {
                         Rooms = _rooms,
                         Edges = _edges,
-                    }.Schedule(state.Dependency);
+                    }.Schedule(ecsState.Dependency);
 
-                    _currentState = State.CreateHallways;
+                    break;
+                case GeneratorState.CreateHallways:
+                    Log.Debug("[MapGenerator] Starting hallway generation");
+                    break;
+                case GeneratorState.OptimizeHallways:
+                    Log.Debug("[MapGenerator] Starting hallway optimization");
+                    break;
+                case GeneratorState.Spawning:
+                    Log.Debug("[MapGenerator] Spawning map objects");
+                    break;
+                case GeneratorState.Cleanup:
+                    Log.Debug("[MapGenerator] Cleaning up");
+                    _rooms.Dispose(ecsState.Dependency);
+                    _edges.Dispose(ecsState.Dependency);
+                    _cells.Dispose(ecsState.Dependency);
+                    StateMachine.SetNextState(ref ecsState, GeneratorState.Idle);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public void OnExit(ref SystemState ecs, State<GeneratorState> state) {
+            switch (state.Current) {
+                case GeneratorState.Idle:
+                    break;
+                case GeneratorState.Initialize:
+                    Log.Debug("[MapGenerator] Done initializing");
+                    break;
+                case GeneratorState.PlaceRooms:
+                    Log.Debug("[MapGenerator] Done placing rooms");
+                    break;
+                case GeneratorState.Triangulate:
+                    Log.Debug("[MapGenerator] Done triangulating map");
+                    break;
+                case GeneratorState.CreateHallways:
+                    Log.Debug("[MapGenerator] Done creating hallways");
+                    break;
+                case GeneratorState.OptimizeHallways:
+                    Log.Debug("[MapGenerator] Done optimizing hallways");
+                    break;
+                case GeneratorState.Spawning:
+                    Log.Debug("[MapGenerator] Done spawning map objects");
+                    break;
+                case GeneratorState.Cleanup:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+
+        private void HandleStateUpdate(ref SystemState state) {
+            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(state.SystemHandle).Config;
+
+            switch (StateMachine.GetState<GeneratorState>(ref state).Current) {
+                case GeneratorState.Idle:
+                    // If rooms exist, draw debug lines for them
+                    if (SystemAPI.GetBuffer<Room>(_mapRoot).Length != 0)
+                        state.Dependency = new DrawRoomDebugLinesJob {
+                            DeltaTime = SystemAPI.Time.DeltaTime,
+                            Colour = Color.yellow,
+                            Rooms = _rooms.AsArray().AsReadOnly(),
+                        }.Schedule(_rooms.Length, state.Dependency);
+                    if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(state.SystemHandle)) return;
+
+                    Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
+                    StateMachine.SetNextState(ref state, GeneratorState.Initialize);
+
                     return;
-                case State.CreateHallways:
+                case GeneratorState.Initialize:
+                    // Initialize is a oneshot state and all it's behaviour happens in OnEnter
+                    return;
+                case GeneratorState.PlaceRooms:
+                    if (!state.Dependency.IsCompleted) return; // wait for job to complete
+
+                    AddRoomsToMap(ref state);
+                    StateMachine.SetNextState(ref state, GeneratorState.Triangulate);
+
+                    return;
+                case GeneratorState.Triangulate:
                     if (!state.Dependency.IsCompleted) return;
 
-                    Log.Debug("[MapGenerator] Creating hallways");
-                    // Schedule job to create hallways
-
-                    _currentState = State.OptimizeHallways;
+                    StateMachine.SetNextState(ref state, GeneratorState.CreateHallways);
                     return;
-                case State.OptimizeHallways:
+                case GeneratorState.CreateHallways:
                     if (!state.Dependency.IsCompleted) return;
 
-                    Log.Debug("[MapGenerator] Optimizing hallways");
-                    // Schedule job to optimize hallways
-
-                    _currentState = State.Spawning;
+                    StateMachine.SetNextState(ref state, GeneratorState.OptimizeHallways);
                     return;
-                case State.Spawning:
-
-                    Log.Debug("[MapGenerator] Spawning map");
-                    SpawnMap(ref state);
-
-                    _currentState = State.DrawDebug;
-                    return;
-#if UNITY_EDITOR
-                case State.DrawDebug:
+                case GeneratorState.OptimizeHallways:
                     if (!state.Dependency.IsCompleted) return;
 
-                    Log.Debug("[MapGenerator] Drawing debug lines");
-
-                    state.Dependency = new DrawRoomDebugLinesJob {
-                        DeltaTime = 1f,
-                        Colour = Color.yellow,
-                        Rooms = _rooms.AsArray().AsReadOnly(),
-                    }.Schedule(_rooms.Length, state.Dependency);
-
-                    state.Dependency = new DrawEdgeDebugLinesJob {
-                        DeltaTime = 1f,
-                        Colour = Color.red,
-                        Edges = _edges.AsArray().AsReadOnly(),
-                    }.Schedule(_edges.Length, state.Dependency);
-
-                    _currentState = State.Cleanup;
+                    StateMachine.SetNextState(ref state, GeneratorState.Spawning);
                     return;
-#endif
-                case State.Cleanup:
+                case GeneratorState.Spawning:
+                    if (!state.Dependency.IsCompleted) return;
+
+                    StateMachine.SetNextState(ref state, GeneratorState.Cleanup);
+                    return;
+                case GeneratorState.Cleanup:
                     if (!state.Dependency.IsCompleted) return;
 
                     Log.Debug("[MapGenerator] Cleaning up");
                     SystemAPI.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
 
-                    _currentState = State.Idle;
+                    StateMachine.SetNextState(ref state, GeneratorState.Idle);
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -163,31 +217,19 @@ namespace Foxglove.Maps {
         private void SpawnMapRoot(ref SystemState state) {
             _mapRoot = state.EntityManager.CreateEntity();
             state.EntityManager.SetName(_mapRoot, "Map Root");
+            state.EntityManager.AddBuffer<Room>(_mapRoot);
             state.EntityManager.AddComponent<Map>(_mapRoot);
             state.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
 
         [BurstCompile]
-        private void SpawnMap(ref SystemState state) {
-            EntityCommandBuffer cmd = SystemAPI
+        private void AddRoomsToMap(ref SystemState state) {
+            EntityCommandBuffer commands = SystemAPI
                 .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (Room room in _rooms) {
-                Entity e = cmd.CreateEntity(_roomArchetype);
-                cmd.SetComponent(e, room);
-                cmd.SetComponent(e, LocalTransform.FromPosition(room.Position.x, 0f, room.Position.y));
-                cmd.SetComponent(e, new Parent { Value = _mapRoot });
-            }
-        }
-
-        [BurstCompile]
-        private void DespawnRooms(ref SystemState state) {
-            EntityCommandBuffer cmd = SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
-            cmd.DestroyEntity(SystemAPI.QueryBuilder().WithAll<Room>().Build(), EntityQueryCaptureMode.AtRecord);
+            DynamicBuffer<Room> roomBuffer = commands.SetBuffer<Room>(_mapRoot);
+            foreach (Room room in _rooms) roomBuffer.Add(room);
         }
     }
 }
