@@ -63,8 +63,8 @@ namespace Foxglove.State {
 
                     SystemHandle mapGenSystem =
                         ecs.WorldUnmanaged.GetExistingUnmanagedSystem<MapGeneratorSystem>();
-                    SystemAPI.SetComponent<ShouldGenerateMap>(mapGenSystem, config);
-                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(mapGenSystem, true);
+                    SystemAPI.SetComponent<GenerateMapRequest>(mapGenSystem, config);
+                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(mapGenSystem, true);
 
                     StateMachine.SetNextState(ref ecs, GameState.Play);
                     break;

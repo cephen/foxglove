@@ -34,8 +34,8 @@ namespace Foxglove.Maps {
             state.RequireForUpdate<Tick>(); // How many ticks since the game started
             state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
-            state.EntityManager.AddComponent<ShouldGenerateMap>(state.SystemHandle);
-            state.EntityManager.SetComponentEnabled<ShouldGenerateMap>(state.SystemHandle, false);
+            state.EntityManager.AddComponent<GenerateMapRequest>(state.SystemHandle);
+            state.EntityManager.SetComponentEnabled<GenerateMapRequest>(state.SystemHandle, false);
 
             StateMachine.Init(ref state, GeneratorState.Idle);
 
@@ -67,7 +67,7 @@ namespace Foxglove.Maps {
                 .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(ecs.WorldUnmanaged);
 
-            MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecs.SystemHandle).Config;
+            var request = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle);
 
             switch (systemState.Current) {
                 case GeneratorState.Idle:
@@ -81,7 +81,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Placing Rooms");
 
                     ecs.Dependency = new PlaceRoomsJob {
-                        Config = config,
+                        Config = request.Config,
                         Rooms = commands.SetBuffer<Room>(_mapRoot),
                         Cells = commands.SetBuffer<MapCell>(_mapRoot),
                     }.Schedule(ecs.Dependency);
@@ -179,10 +179,10 @@ namespace Foxglove.Maps {
 
                     ecs.Dependency = JobHandle.CombineDependencies(drawRooms, drawEdges);
 #endif
-                    if (!SystemAPI.IsComponentEnabled<ShouldGenerateMap>(ecs.SystemHandle)) return;
+                    if (!SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecs.SystemHandle)) return;
 
                     // If the component is activated, a map
-                    MapConfig config = SystemAPI.GetComponent<ShouldGenerateMap>(ecs.SystemHandle).Config;
+                    MapConfig config = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle).Config;
                     Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
                     StateMachine.SetNextState(ref ecs, GeneratorState.Initialize);
 
@@ -219,7 +219,7 @@ namespace Foxglove.Maps {
                     if (!ecs.Dependency.IsCompleted) return;
 
                     Log.Debug("[MapGenerator] Cleaning up");
-                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(ecs.SystemHandle, false);
+                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecs.SystemHandle, false);
 
                     StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
                     return;
