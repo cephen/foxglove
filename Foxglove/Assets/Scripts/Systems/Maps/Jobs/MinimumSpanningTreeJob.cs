@@ -1,6 +1,7 @@
 using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Graphs;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -9,27 +10,21 @@ namespace Foxglove.Maps.Jobs {
     /// Job that calculates a minimum spanning tree for a set of edges
     /// </summary>
     internal struct MinimumSpanningTreeJob : IJob {
-        private NativeArray<Edge>.ReadOnly _edges;
-        private readonly Vertex _start;
+        [ReadOnly] internal Vertex Start;
+        [ReadOnly] internal DynamicBuffer<Edge> Edges;
 
-        internal NativeList<Edge> Results;
-
-        public MinimumSpanningTreeJob(Vertex start, NativeArray<Edge>.ReadOnly edges) {
-            _start = start;
-            _edges = edges;
-            Results = new NativeList<Edge>(Allocator.Temp);
-        }
+        internal DynamicBuffer<Edge> MinimizedEdges;
 
         public void Execute() {
             var openSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
             var closedSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
 
-            foreach (Edge edge in _edges) {
+            foreach (Edge edge in Edges) {
                 openSet.Add(edge.A);
                 openSet.Add(edge.B);
             }
 
-            closedSet.Add(_start);
+            closedSet.Add(Start);
 
 
             while (openSet.Count > 0) {
@@ -37,12 +32,12 @@ namespace Foxglove.Maps.Jobs {
                 Edge chosenEdge = default;
                 float minWeight = float.PositiveInfinity;
 
-                foreach (Edge edge in _edges) {
+                foreach (Edge edge in Edges) {
                     // look for an edge that is only half closed
                     if (!closedSet.Contains(edge.A) ^ !closedSet.Contains(edge.B)) continue;
 
 
-                    float distance = math.distance(edge.A.Position, _start.Position);
+                    float distance = math.distance(edge.A.Position, Start.Position);
                     if (distance < minWeight) {
                         chosen = true;
                         chosenEdge = edge;
@@ -56,7 +51,7 @@ namespace Foxglove.Maps.Jobs {
                     closedSet.Add(chosenEdge.A);
                     closedSet.Add(chosenEdge.B);
 
-                    Results.Add(chosenEdge);
+                    MinimizedEdges.Add(chosenEdge);
                 }
             }
         }

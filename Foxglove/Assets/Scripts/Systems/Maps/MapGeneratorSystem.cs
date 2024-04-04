@@ -3,7 +3,6 @@ using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Jobs;
 using Foxglove.State;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Logging;
@@ -99,8 +98,22 @@ namespace Foxglove.Maps {
 
                     break;
                 case GeneratorState.CreateHallways:
-                    Log.Debug("[MapGenerator] Starting hallway generation");
-                    break;
+                    Log.Debug("[MapGenerator] Creating Hallways");
+                    DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
+                    if (edges.Length == 0) {
+                        Log.Error("[MapGenerator] No edges found, map generation failed");
+                        StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
+                        return;
+                    }
+
+                    JobHandle treeJob = new MinimumSpanningTreeJob {
+                        Start = edges[0].A,
+                        Edges = edges,
+                        MinimizedEdges = commands.SetBuffer<Edge>(_mapRoot),
+                    }.Schedule(ecs.Dependency);
+
+
+                    return;
                 case GeneratorState.OptimizeHallways:
                     Log.Debug("[MapGenerator] Starting hallway optimization");
                     break;
