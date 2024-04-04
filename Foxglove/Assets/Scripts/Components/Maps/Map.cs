@@ -8,6 +8,7 @@ namespace Foxglove.Maps {
     public readonly partial struct MapAspect : IAspect {
         public readonly Entity Entity;
         public readonly RefRW<Map> Map;
+        public readonly DynamicBuffer<Room> Rooms;
         public readonly DynamicBuffer<MapCell> Cells;
     }
 }

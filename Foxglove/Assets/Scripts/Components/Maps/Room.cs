@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 
 namespace Foxglove.Maps {
-    public struct Room : IComponentData {
+    public struct Room : IBufferElementData {
         public int2 Position;
         public int2 Size;
 
