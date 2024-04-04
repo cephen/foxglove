@@ -14,7 +14,7 @@ namespace Foxglove.State {
 
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    public partial struct GameManagerSystem : ISystem, IStateMachineSystem<GameState> {
+    internal partial struct GameManagerSystem : ISystem, IStateMachineSystem<GameState> {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Tick>();
