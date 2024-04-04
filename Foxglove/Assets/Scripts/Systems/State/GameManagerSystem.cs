@@ -30,11 +30,11 @@ namespace Foxglove.State {
         public void OnDestroy(ref SystemState state) { }
 
         public void Transition(ref SystemState state) {
-            OnExit(ref state, StateMachine.GetState<GameState>(ref state));
-            StateMachine.SetState<GameState>(ref state, StateMachine.GetNextState<GameState>(ref state));
-            OnEnter(ref state, StateMachine.GetState<GameState>(ref state));
-
             SystemAPI.SetComponentEnabled<NextState<GameState>>(state.SystemHandle, false);
+
+            OnExit(ref state, StateMachine.GetState<GameState>(ref state));
+            StateMachine.SetState(ref state, StateMachine.GetNextState<GameState>(ref state).Value);
+            OnEnter(ref state, StateMachine.GetState<GameState>(ref state));
         }
 
         public void OnEnter(ref SystemState ecsState, State<GameState> state) {
@@ -45,6 +45,7 @@ namespace Foxglove.State {
                     break;
                 case GameState.Generate:
                     Log.Debug("[GameManager] Starting Map generation");
+
                     MapConfig config = new() {
                         Seed = new Random((uint)DateTimeOffset.UtcNow.GetHashCode()).NextUInt(),
                         Radius = 50,
@@ -56,7 +57,6 @@ namespace Foxglove.State {
                     SystemHandle mapGenSystem =
                         ecsState.WorldUnmanaged.GetExistingUnmanagedSystem<MapGeneratorSystem>();
                     SystemAPI.SetComponent<ShouldGenerateMap>(mapGenSystem, config);
-                    SystemAPI.SetComponentEnabled<ShouldGenerateMap>(mapGenSystem, true);
 
                     StateMachine.SetNextState(ref ecsState, GameState.Play);
                     break;
