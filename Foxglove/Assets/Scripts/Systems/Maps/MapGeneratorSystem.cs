@@ -24,6 +24,7 @@ namespace Foxglove.Maps {
     }
 
     [BurstCompile]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
 
