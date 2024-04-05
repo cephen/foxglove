@@ -120,6 +120,12 @@ namespace Foxglove.Maps {
                         Results = selectedEdges,
                     }.Schedule(ecs.Dependency);
 
+                    ecs.Dependency = new AddHallwaysJob {
+                        Config = request.Config,
+                        SelectedEdges = selectedEdges,
+                    }.Schedule(mstJob);
+
+
                     return;
                 case GeneratorState.PathfindHallways:
                     Log.Debug("[MapGenerator] Starting hallway optimization");
