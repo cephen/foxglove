@@ -3,6 +3,7 @@ using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Jobs;
 using Foxglove.State;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Logging;
@@ -82,10 +83,11 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Placing Rooms");
 
+                    // This job has no dependencies
+                    // but should only run after this systems other dependencies are satisfied
                     ecs.Dependency = new GenerateRoomsJob {
                         Config = request.Config,
                         Rooms = commands.SetBuffer<Room>(_mapRoot),
-                        Cells = commands.SetBuffer<MapCell>(_mapRoot),
                     }.Schedule(ecs.Dependency);
 
                     break;
@@ -124,6 +126,7 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.Spawning:
                     Log.Debug("[MapGenerator] Spawning map objects");
+
                     return;
                 case GeneratorState.Cleanup:
                     Log.Debug("[MapGenerator] Cleaning up");
@@ -143,6 +146,7 @@ namespace Foxglove.Maps {
                     break;
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Done placing rooms");
+
                     break;
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Done triangulating map");
@@ -165,6 +169,8 @@ namespace Foxglove.Maps {
 
 
         private void HandleStateUpdate(ref SystemState ecs) {
+            var request = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle);
+
             switch (StateMachine.GetState<GeneratorState>(ecs).Current) {
                 case GeneratorState.Idle:
 #if UNITY_EDITOR
@@ -186,8 +192,7 @@ namespace Foxglove.Maps {
                     if (!SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecs.SystemHandle)) return;
 
                     // If the component is activated, a map
-                    MapConfig config = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle).Config;
-                    Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
+                    Log.Debug("[MapGenerator] Starting map generator with seed {seed}", request.Config.Seed);
                     StateMachine.SetNextState(ecs, GeneratorState.Initialize);
 
                     return;
@@ -195,8 +200,15 @@ namespace Foxglove.Maps {
                 case GeneratorState.Initialize: return;
                 case GeneratorState.PlaceRooms:
                     // wait for jobs to complete
-                    if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ecs, GeneratorState.Triangulate);
+                    if (!ecs.Dependency.IsCompleted) return;
+
+                    // This job depends on the DynamicBuffer<Room> component on _mapRoot being filled by the GenerateRoomsJob
+                    ecs.Dependency = new SetRoomCellsJob {
+                        Config = request.Config,
+                    }.Schedule(ecs.Dependency);
+
+                    StateMachine.SetNextState(ecs, GeneratorState.Triangulate);
+
                     return;
                 case GeneratorState.Triangulate:
                     if (ecs.Dependency.IsCompleted)

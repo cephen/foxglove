@@ -8,7 +8,6 @@ namespace Foxglove.Maps.Jobs {
     internal struct GenerateRoomsJob : IJob {
         internal MapConfig Config;
         internal DynamicBuffer<Room> Rooms;
-        internal DynamicBuffer<MapCell> Cells;
 
         private Random _random;
 
@@ -46,20 +45,6 @@ namespace Foxglove.Maps.Jobs {
 
                 // Add to room buffer
                 Rooms.Add(proposed);
-
-                // Set grid cells
-                SetRoomCells(proposed);
-            }
-        }
-
-        private void SetRoomCells(Room room) {
-            // Shift position northeast by one quadrant
-            int2 position = room.Position + Config.Radius;
-            for (int x = position.x; x < position.x + room.Size.x; x++) {
-                for (int y = position.y; y < position.y + room.Size.y; y++) {
-                    int i = y + x * Config.Diameter;
-                    Cells[i] = new MapCell { Type = CellType.Room };
-                }
             }
         }
 
