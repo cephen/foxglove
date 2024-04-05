@@ -175,26 +175,27 @@ namespace Foxglove.Maps {
 
 
         private void HandleStateUpdate(ref SystemState ecs) {
+#if UNITY_EDITOR
+            // If rooms exist and this is an editor build
+            // Draw debug lines for map components
+
+            JobHandle drawRooms = new DrawRoomDebugLinesJob {
+                DrawTime = SystemAPI.Time.DeltaTime,
+                Color = Color.yellow,
+            }.Schedule(ecs.Dependency);
+
+            JobHandle drawEdges = new DrawEdgeDebugLinesJob {
+                DeltaTime = SystemAPI.Time.DeltaTime,
+                Colour = Color.red,
+            }.Schedule(drawRooms);
+
+            ecs.Dependency = JobHandle.CombineDependencies(drawRooms, drawEdges);
+#endif
+
             var request = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle);
 
             switch (StateMachine.GetState<GeneratorState>(ecs).Current) {
                 case GeneratorState.Idle:
-#if UNITY_EDITOR
-                    // If rooms exist and this is an editor build
-                    // Draw debug lines for map components
-
-                    JobHandle drawRooms = new DrawRoomDebugLinesJob {
-                        DrawTime = SystemAPI.Time.DeltaTime,
-                        Color = Color.yellow,
-                    }.Schedule(ecs.Dependency);
-
-                    JobHandle drawEdges = new DrawEdgeDebugLinesJob {
-                        DeltaTime = SystemAPI.Time.DeltaTime,
-                        Colour = Color.red,
-                    }.Schedule(drawRooms);
-
-                    ecs.Dependency = JobHandle.CombineDependencies(drawRooms, drawEdges);
-#endif
                     if (!SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecs.SystemHandle)) return;
 
                     // If the component is activated, a map
