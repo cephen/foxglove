@@ -217,21 +217,17 @@ namespace Foxglove.Maps {
                     StateMachine.SetNextState(ecs, GeneratorState.Triangulate);
 
                     return;
-                case GeneratorState.Triangulate:
-                    if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ecs, GeneratorState.FilterEdges);
-                    return;
-                case GeneratorState.FilterEdges:
-                    if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ecs, GeneratorState.PathfindHallways);
-                    return;
-                case GeneratorState.PathfindHallways:
-                    if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ecs, GeneratorState.Spawning);
-                    return;
-                case GeneratorState.Spawning:
-                    if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ecs, GeneratorState.Cleanup);
+                case GeneratorState.Triangulate: // None of these states really have anything to do each frame
+                case GeneratorState.FilterEdges: // So in order to reduce the visual noise for any readers
+                case GeneratorState.PathfindHallways: // All of these states have the same handler
+                case GeneratorState.Spawning: // That does the following things:
+                    // Wait for any running jobs to complete
+                    if (!ecs.Dependency.IsCompleted) return;
+
+                    // When completed, move to next state in the chain
+                    GeneratorState next = state.Current + 1;
+                    StateMachine.SetNextState(ecs, next);
+
                     return;
                 case GeneratorState.Cleanup:
                     if (!ecs.Dependency.IsCompleted) return;
