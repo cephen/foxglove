@@ -13,11 +13,12 @@ namespace Foxglove.Maps.Jobs {
         [ReadOnly] internal Vertex Start;
         [ReadOnly] internal DynamicBuffer<Edge> Edges;
 
-        internal DynamicBuffer<Edge> MinimizedEdges;
+        internal NativeList<Edge> Results;
 
         public void Execute() {
             var openSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
             var closedSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
+            var chosenEdges = new NativeHashSet<Edge>(128, Allocator.Temp);
 
             foreach (Edge edge in Edges) {
                 openSet.Add(edge.A);
@@ -51,9 +52,11 @@ namespace Foxglove.Maps.Jobs {
                     closedSet.Add(chosenEdge.A);
                     closedSet.Add(chosenEdge.B);
 
-                    MinimizedEdges.Add(chosenEdge);
+                    chosenEdges.Add(chosenEdge);
                 }
             }
+
+            foreach (Edge edge in chosenEdges) Results.Add(edge);
         }
     }
 }
