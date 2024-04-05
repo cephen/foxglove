@@ -25,12 +25,12 @@ namespace Foxglove.State {
             // Add state machine components
             // State<GameState> is the current state
             // NextState<GameState> is an toggleable component that can be used to attempt a transition
-            StateMachine.Init(ref state, GameState.Initialize);
+            StateMachine.Init(state, GameState.Initialize);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            if (StateMachine.IsTransitionQueued<GameState>(ref state)) Transition(ref state);
+            if (StateMachine.IsTransitionQueued<GameState>(state)) Transition(ref state);
             RunStateUpdate(ref state);
         }
 
@@ -39,16 +39,16 @@ namespace Foxglove.State {
         public void Transition(ref SystemState ecs) {
             SystemAPI.SetComponentEnabled<NextState<GameState>>(ecs.SystemHandle, false);
 
-            OnExit(ref ecs, StateMachine.GetState<GameState>(ref ecs));
-            StateMachine.SetState(ref ecs, StateMachine.GetNextState<GameState>(ref ecs).Value);
-            OnEnter(ref ecs, StateMachine.GetState<GameState>(ref ecs));
+            OnExit(ref ecs, StateMachine.GetState<GameState>(ecs));
+            StateMachine.SetState(ecs, StateMachine.GetNextState<GameState>(ecs).Value);
+            OnEnter(ref ecs, StateMachine.GetState<GameState>(ecs));
         }
 
         public void OnEnter(ref SystemState ecs, State<GameState> state) {
             switch (state.Current) {
                 case GameState.Initialize:
                     Log.Debug("[GameManager] Initializing Foxglove");
-                    StateMachine.SetNextState(ref ecs, GameState.Generate);
+                    StateMachine.SetNextState(ecs, GameState.Generate);
                     break;
                 case GameState.Generate:
                     Log.Debug("[GameManager] Starting Map generation");
@@ -101,15 +101,15 @@ namespace Foxglove.State {
                 case GameState.Generate:
                     // Monitor generator system and transition to Play state when it's complete
                     SystemState generatorEcsState = state.WorldUnmanaged.GetExistingSystemState<MapGeneratorSystem>();
-                    State<GeneratorState> generatorState = StateMachine.GetState<GeneratorState>(ref generatorEcsState);
+                    State<GeneratorState> generatorState = StateMachine.GetState<GeneratorState>(generatorEcsState);
                     if (generatorState.Current is GeneratorState.Idle
                         && generatorState.Previous is GeneratorState.Cleanup)
-                        StateMachine.SetNextState(ref state, GameState.Play);
+                        StateMachine.SetNextState(state, GameState.Play);
                     return;
                 case GameState.Play:
                     uint currentTick = SystemAPI.GetSingleton<Tick>();
                     if (currentTick - currentState.ChangedAt > 50)
-                        StateMachine.SetNextState(ref state, GameState.Generate);
+                        StateMachine.SetNextState(state, GameState.Generate);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -37,14 +37,14 @@ namespace Foxglove.Maps {
             state.EntityManager.AddComponent<GenerateMapRequest>(state.SystemHandle);
             state.EntityManager.SetComponentEnabled<GenerateMapRequest>(state.SystemHandle, false);
 
-            StateMachine.Init(ref state, GeneratorState.Idle);
+            StateMachine.Init(state, GeneratorState.Idle);
 
             SpawnMapRoot(ref state);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            if (StateMachine.IsTransitionQueued<GeneratorState>(ref state)) Transition(ref state);
+            if (StateMachine.IsTransitionQueued<GeneratorState>(state)) Transition(ref state);
             HandleStateUpdate(ref state);
         }
 
@@ -52,14 +52,14 @@ namespace Foxglove.Maps {
         public void OnDestroy(ref SystemState state) { }
 
         public void Transition(ref SystemState ecs) {
-            GeneratorState current = StateMachine.GetState<GeneratorState>(ref ecs).Current;
-            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ref ecs).Value;
+            GeneratorState current = StateMachine.GetState<GeneratorState>(ecs).Current;
+            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ecs).Value;
 
             SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecs.SystemHandle, false);
 
             OnExit(ref ecs, current);
             OnEnter(ref ecs, next);
-            StateMachine.SetState(ref ecs, next);
+            StateMachine.SetState(ecs, next);
         }
 
         public void OnEnter(ref SystemState ecs, State<GeneratorState> systemState) {
@@ -75,7 +75,9 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.Initialize:
                     Log.Debug("[MapGenerator] Initializing");
-                    StateMachine.SetNextState(ref ecs, GeneratorState.PlaceRooms);
+
+                    StateMachine.SetNextState(ecs, GeneratorState.PlaceRooms);
+
                     break;
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Placing Rooms");
@@ -103,7 +105,7 @@ namespace Foxglove.Maps {
                     DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
                     if (edges.Length == 0) {
                         Log.Error("[MapGenerator] No edges found, map generation failed");
-                        StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
+                        StateMachine.SetNextState(ecs, GeneratorState.Idle);
                         return;
                     }
 
@@ -122,7 +124,7 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.Cleanup:
                     Log.Debug("[MapGenerator] Cleaning up");
-                    StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
+                    StateMachine.SetNextState(ecs, GeneratorState.Idle);
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -160,7 +162,7 @@ namespace Foxglove.Maps {
 
 
         private void HandleStateUpdate(ref SystemState ecs) {
-            switch (StateMachine.GetState<GeneratorState>(ref ecs).Current) {
+            switch (StateMachine.GetState<GeneratorState>(ecs).Current) {
                 case GeneratorState.Idle:
 #if UNITY_EDITOR
                     // If rooms exist and this is an editor build
@@ -183,7 +185,7 @@ namespace Foxglove.Maps {
                     // If the component is activated, a map
                     MapConfig config = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle).Config;
                     Log.Debug("[MapGenerator] Starting map generator with seed {seed}", config.Seed);
-                    StateMachine.SetNextState(ref ecs, GeneratorState.Initialize);
+                    StateMachine.SetNextState(ecs, GeneratorState.Initialize);
 
                     return;
                 // Initialize is a one-shot state and all it's behaviour happens in OnEnter
@@ -191,23 +193,23 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     // wait for jobs to complete
                     if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ref ecs, GeneratorState.Triangulate);
+                        StateMachine.SetNextState(ecs, GeneratorState.Triangulate);
                     return;
                 case GeneratorState.Triangulate:
                     if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ref ecs, GeneratorState.CreateHallways);
+                        StateMachine.SetNextState(ecs, GeneratorState.FilterEdges);
                     return;
                 case GeneratorState.CreateHallways:
                     if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ref ecs, GeneratorState.OptimizeHallways);
+                        StateMachine.SetNextState(ecs, GeneratorState.PathfindHallways);
                     return;
                 case GeneratorState.OptimizeHallways:
                     if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ref ecs, GeneratorState.Spawning);
+                        StateMachine.SetNextState(ecs, GeneratorState.Spawning);
                     return;
                 case GeneratorState.Spawning:
                     if (ecs.Dependency.IsCompleted)
-                        StateMachine.SetNextState(ref ecs, GeneratorState.Cleanup);
+                        StateMachine.SetNextState(ecs, GeneratorState.Cleanup);
                     return;
                 case GeneratorState.Cleanup:
                     if (!ecs.Dependency.IsCompleted) return;
@@ -215,7 +217,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Cleaning up");
                     SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecs.SystemHandle, false);
 
-                    StateMachine.SetNextState(ref ecs, GeneratorState.Idle);
+                    StateMachine.SetNextState(ecs, GeneratorState.Idle);
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
