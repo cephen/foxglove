@@ -80,7 +80,7 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Placing Rooms");
 
-                    ecs.Dependency = new PlaceRoomsJob {
+                    ecs.Dependency = new GenerateRoomsJob {
                         Config = request.Config,
                         Rooms = commands.SetBuffer<Room>(_mapRoot),
                         Cells = commands.SetBuffer<MapCell>(_mapRoot),

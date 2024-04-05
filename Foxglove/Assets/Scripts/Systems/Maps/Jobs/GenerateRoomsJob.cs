@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace Foxglove.Maps.Jobs {
     [BurstCompile]
-    internal struct PlaceRoomsJob : IJob {
+    internal struct GenerateRoomsJob : IJob {
         internal MapConfig Config;
         internal DynamicBuffer<Room> Rooms;
         internal DynamicBuffer<MapCell> Cells;
