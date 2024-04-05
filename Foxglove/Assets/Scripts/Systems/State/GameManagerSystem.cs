@@ -19,7 +19,8 @@ namespace Foxglove.State {
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     internal partial struct GameManagerSystem : ISystem, IStateMachineSystem<GameState> {
-        [BurstCompile]
+        private Random _random;
+
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Tick>(); // How many ticks since the game started
 
@@ -27,6 +28,7 @@ namespace Foxglove.State {
             // State<GameState> is the current state
             // NextState<GameState> is an toggleable component that can be used to attempt a transition
             StateMachine.Init(state, GameState.Initialize);
+            _random = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
         }
 
         [BurstCompile]
@@ -55,7 +57,7 @@ namespace Foxglove.State {
                     Log.Debug("[GameManager] Starting Map generation");
 
                     MapConfig config = new() {
-                        Seed = new Random((uint)DateTimeOffset.UtcNow.GetHashCode()).NextUInt(),
+                        Seed = _random.NextUInt(),
                         Radius = 64,
                         MinRoomSize = 5,
                         MaxRoomSize = 10,
@@ -63,11 +65,9 @@ namespace Foxglove.State {
                     };
 
                     SystemHandle mapGenSystem =
-                        ecs.WorldUnmanaged.GetExistingUnmanagedSystem<MapGeneratorSystem>();
+                        ecs.WorldUnmanaged.GetExistingSystemState<MapGeneratorSystem>().SystemHandle;
                     SystemAPI.SetComponent<GenerateMapRequest>(mapGenSystem, config);
                     SystemAPI.SetComponentEnabled<GenerateMapRequest>(mapGenSystem, true);
-
-                    StateMachine.SetNextState(ref ecs, GameState.Play);
                     break;
                 case GameState.Play:
                     Log.Debug("[GameManager] Starting gameplay");
