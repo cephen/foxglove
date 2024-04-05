@@ -14,9 +14,10 @@ namespace Foxglove.State {
 
     /// <summary>
     /// This system manages the core game loop
+    /// It runs in the fixed step simulation group, which updates 50 times per second
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))] // Updates 50 times per second
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     internal partial struct GameManagerSystem : ISystem, IStateMachineSystem<GameState> {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {

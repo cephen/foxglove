@@ -19,8 +19,8 @@ namespace Foxglove.Maps {
         Initialize,
         PlaceRooms,
         Triangulate,
-        CreateHallways,
-        OptimizeHallways,
+        FilterEdges,
+        PathfindHallways,
         Spawning,
         Cleanup,
     }
@@ -100,8 +100,9 @@ namespace Foxglove.Maps {
                     }.Schedule(ecs.Dependency);
 
                     break;
-                case GeneratorState.CreateHallways:
-                    Log.Debug("[MapGenerator] Creating Hallways");
+                case GeneratorState.FilterEdges:
+                    Log.Debug("[MapGenerator] Filtering edges");
+
                     DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
                     if (edges.Length == 0) {
                         Log.Error("[MapGenerator] No edges found, map generation failed");
@@ -109,14 +110,16 @@ namespace Foxglove.Maps {
                         return;
                     }
 
-                    JobHandle treeJob = new MinimumSpanningTreeJob {
+                    var selectedEdges = new NativeList<Edge>(Allocator.TempJob);
+
+                    JobHandle mstJob = new MinimumSpanningTreeJob {
                         Start = edges[0].A,
                         Edges = edges,
-                        MinimizedEdges = commands.SetBuffer<Edge>(_mapRoot),
+                        Results = selectedEdges,
                     }.Schedule(ecs.Dependency);
 
                     return;
-                case GeneratorState.OptimizeHallways:
+                case GeneratorState.PathfindHallways:
                     Log.Debug("[MapGenerator] Starting hallway optimization");
                     return;
                 case GeneratorState.Spawning:
@@ -144,11 +147,11 @@ namespace Foxglove.Maps {
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Done triangulating map");
                     break;
-                case GeneratorState.CreateHallways:
-                    Log.Debug("[MapGenerator] Done creating hallways");
+                case GeneratorState.FilterEdges:
+                    Log.Debug("[MapGenerator] Done filtering edges");
                     break;
-                case GeneratorState.OptimizeHallways:
-                    Log.Debug("[MapGenerator] Done optimizing hallways");
+                case GeneratorState.PathfindHallways:
+                    Log.Debug("[MapGenerator] Done pathfinding hallways");
                     break;
                 case GeneratorState.Spawning:
                     Log.Debug("[MapGenerator] Done spawning map objects");
@@ -199,11 +202,11 @@ namespace Foxglove.Maps {
                     if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ecs, GeneratorState.FilterEdges);
                     return;
-                case GeneratorState.CreateHallways:
+                case GeneratorState.FilterEdges:
                     if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ecs, GeneratorState.PathfindHallways);
                     return;
-                case GeneratorState.OptimizeHallways:
+                case GeneratorState.PathfindHallways:
                     if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ecs, GeneratorState.Spawning);
                     return;
