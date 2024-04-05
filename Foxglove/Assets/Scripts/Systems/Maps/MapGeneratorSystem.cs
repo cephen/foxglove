@@ -9,10 +9,7 @@ using Unity.Jobs;
 using Unity.Logging;
 using Unity.Mathematics;
 using Unity.Transforms;
-#if UNITY_EDITOR
-using Foxglove.Maps.Editor;
-using UnityEngine;
-#endif
+using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Maps {
     internal enum GeneratorState {
@@ -173,24 +170,8 @@ namespace Foxglove.Maps {
             }
         }
 
-
         private void HandleStateUpdate(ref SystemState ecs) {
-#if UNITY_EDITOR
-            // If rooms exist and this is an editor build
-            // Draw debug lines for map components
-
-            JobHandle drawRooms = new DrawRoomDebugLinesJob {
-                DrawTime = SystemAPI.Time.DeltaTime,
-                Color = Color.yellow,
-            }.Schedule(ecs.Dependency);
-
-            JobHandle drawEdges = new DrawEdgeDebugLinesJob {
-                DeltaTime = SystemAPI.Time.DeltaTime,
-                Colour = Color.red,
-            }.Schedule(drawRooms);
-
-            ecs.Dependency = JobHandle.CombineDependencies(drawRooms, drawEdges);
-#endif
+            State<GeneratorState> state = StateMachine.GetState<GeneratorState>(ecs);
 
             var request = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle);
 
