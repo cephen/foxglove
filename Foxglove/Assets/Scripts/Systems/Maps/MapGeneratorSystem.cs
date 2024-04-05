@@ -113,7 +113,6 @@ namespace Foxglove.Maps {
                         MinimizedEdges = commands.SetBuffer<Edge>(_mapRoot),
                     }.Schedule(ecs.Dependency);
 
-
                     return;
                 case GeneratorState.OptimizeHallways:
                     Log.Debug("[MapGenerator] Starting hallway optimization");
@@ -190,30 +189,25 @@ namespace Foxglove.Maps {
                 // Initialize is a one-shot state and all it's behaviour happens in OnEnter
                 case GeneratorState.Initialize: return;
                 case GeneratorState.PlaceRooms:
-                    if (!ecs.Dependency.IsCompleted) return; // wait for jobs to complete
-
-                    StateMachine.SetNextState(ref ecs, GeneratorState.Triangulate);
-
+                    // wait for jobs to complete
+                    if (ecs.Dependency.IsCompleted)
+                        StateMachine.SetNextState(ref ecs, GeneratorState.Triangulate);
                     return;
                 case GeneratorState.Triangulate:
                     if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ref ecs, GeneratorState.CreateHallways);
-
                     return;
                 case GeneratorState.CreateHallways:
-                    if (!ecs.Dependency.IsCompleted)
+                    if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ref ecs, GeneratorState.OptimizeHallways);
-
                     return;
                 case GeneratorState.OptimizeHallways:
-                    if (!ecs.Dependency.IsCompleted)
+                    if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ref ecs, GeneratorState.Spawning);
-
                     return;
                 case GeneratorState.Spawning:
-                    if (!ecs.Dependency.IsCompleted)
+                    if (ecs.Dependency.IsCompleted)
                         StateMachine.SetNextState(ref ecs, GeneratorState.Cleanup);
-
                     return;
                 case GeneratorState.Cleanup:
                     if (!ecs.Dependency.IsCompleted) return;
