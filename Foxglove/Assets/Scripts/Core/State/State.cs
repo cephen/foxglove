@@ -21,10 +21,23 @@ namespace Foxglove.State {
 
         public void Set(T next, Tick tick) => (Previous, Current, ChangedAt) = (Current, next, tick);
 
-        // Allow CurrentState<T> to be converted to T
+        // Allow CurrentState<T> to be converted to T without an explicit cast
         public static implicit operator T(State<T> t) => t.Current;
 
         // And T to be converted to CurrentState<T>
         public static implicit operator State<T>(T t) => new(t);
+    }
+
+    /// <summary>
+    /// When attached to a system implementing IStateSystem,
+    /// This component can be enabled to request a state transition
+    /// </summary>
+    public struct NextState<T> : IComponentData, IEnableableComponent
+        where T : Enum {
+        public T Value;
+        public NextState(T value) => Value = value;
+
+        public static implicit operator T(NextState<T> t) => t.Value;
+        public static implicit operator NextState<T>(T t) => new(t);
     }
 }
