@@ -173,8 +173,9 @@ namespace Foxglove.Maps {
                     if (requested || ticksInState > 500) StateMachine.SetNextState(ecs, GeneratorState.Initialize);
 
                     return;
-                // Initialize is a one-shot state and all it's behaviour happens in OnEnter
-                case GeneratorState.Initialize: return;
+                case GeneratorState.Initialize:
+                    // Initialize is a one-shot state and all it's behaviour happens in OnEnter
+                    return;
                 case GeneratorState.PlaceRooms:
                     if (!ecs.Dependency.IsCompleted) return; // wait for GenerateRoomsJob to complete
 
@@ -190,6 +191,8 @@ namespace Foxglove.Maps {
                     if (!ecs.Dependency.IsCompleted) return; // wait for TriangulateMapJob to complete
 
                     commands = CreateCommandBuffer(ref ecs);
+                    // this buffer will be attached to the _mapRoot entity at the end of the frame
+                    // and will replace any existing DynamicBuffer<Edge> component on that entity
                     commands.SetBuffer<Edge>(_mapRoot).CopyFrom(_triangulateMap.Edges.AsArray());
 
                     StateMachine.SetNextState(ecs, GeneratorState.FilterEdges);
