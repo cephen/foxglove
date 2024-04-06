@@ -18,7 +18,7 @@ namespace Foxglove.Maps {
         PlaceRooms,
         Triangulate,
         FilterEdges,
-        PathfindHallways,
+        PlaceHallways,
         Spawning,
         Cleanup,
     }
@@ -106,8 +106,11 @@ namespace Foxglove.Maps {
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Building room graph");
 
+                    // Get generated rooms
                     DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(_mapRoot);
 
+                    // Schedule triangulation
+                    // Edges will be extracted later and stored in the map
                     _triangulateMap = new TriangulateMapJob {
                         Rooms = rooms.AsNativeArray().AsReadOnly(),
                         Edges = new NativeList<Edge>(Allocator.TempJob),
@@ -118,8 +121,11 @@ namespace Foxglove.Maps {
                 case GeneratorState.FilterEdges:
                     Log.Debug("[MapGenerator] Filtering edges");
 
+                    // Get generated edges
                     DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
 
+                    // Schedule job to calculate minimum required edges to connect all rooms
+                    // The buffer of edges already attached to the map will be replaced with the output of this job
                     _mstJob = new MinimumSpanningTreeJob {
                         Start = edges.ElementAt(0).A,
                         Edges = edges.AsNativeArray().AsReadOnly(),
@@ -129,8 +135,9 @@ namespace Foxglove.Maps {
                     ecs.Dependency = _mstJob.Schedule(ecs.Dependency);
 
                     return;
-                case GeneratorState.PathfindHallways:
+                case GeneratorState.PlaceHallways:
                     Log.Debug("[MapGenerator] Starting hallway optimization");
+
                     return;
                 case GeneratorState.Spawning:
                     Log.Debug("[MapGenerator] Spawning map objects");
@@ -194,11 +201,11 @@ namespace Foxglove.Maps {
                     commands = CreateCommandBuffer(ref ecs);
                     commands.SetBuffer<Edge>(_mapRoot).CopyFrom(_mstJob.Results.AsArray());
 
-                    StateMachine.SetNextState(ecs, GeneratorState.PathfindHallways);
+                    StateMachine.SetNextState(ecs, GeneratorState.PlaceHallways);
 
                     return;
-                case GeneratorState.PathfindHallways:
-                    if (!ecs.Dependency.IsCompleted) return; // wait for PathfindHallwaysJob to complete
+                case GeneratorState.PlaceHallways:
+                    if (!ecs.Dependency.IsCompleted) return; // wait for PlaceHallwaysJob to complete
 
                     StateMachine.SetNextState(ecs, GeneratorState.Spawning);
 
@@ -254,7 +261,7 @@ namespace Foxglove.Maps {
                     _mstJob.Results.Dispose(ecs.Dependency);
 
                     break;
-                case GeneratorState.PathfindHallways:
+                case GeneratorState.PlaceHallways:
                     Log.Debug("[MapGenerator] Done pathfinding hallways");
                     break;
                 case GeneratorState.Spawning:
