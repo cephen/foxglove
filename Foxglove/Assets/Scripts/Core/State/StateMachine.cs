@@ -2,38 +2,43 @@
 using Unity.Entities;
 
 namespace Foxglove.State {
+    /// <summary>
+    /// A collection of helper functions used to manage state machines.
+    /// Any system can be turned into a state machine by adding the State and NextState components to it.
+    /// </summary>
     public static class StateMachine {
-        public static void Init<T>(in SystemState state, T initialState)
+        /// <summary>
+        /// Attach State and NextState components to a system
+        /// </summary>
+        /// <typeparam name="T">Any enum that can be used to represent states </typeparam>
+        public static void Init<T>(in SystemState ecs, T initialState)
             where T : unmanaged, Enum {
-            state.EntityManager.AddComponent<State<T>>(state.SystemHandle);
-            state.EntityManager.AddComponent<NextState<T>>(state.SystemHandle);
-            state.EntityManager.GetComponentDataRW<NextState<T>>(state.SystemHandle).ValueRW.Value = initialState;
-            state.EntityManager.SetComponentEnabled<NextState<T>>(state.SystemHandle, true);
+            ecs.EntityManager.AddComponent<State<T>>(ecs.SystemHandle);
+            ecs.EntityManager.AddComponent<NextState<T>>(ecs.SystemHandle);
+            ecs.EntityManager.GetComponentDataRW<NextState<T>>(ecs.SystemHandle).ValueRW.Value = initialState;
+            ecs.EntityManager.SetComponentEnabled<NextState<T>>(ecs.SystemHandle, true);
         }
 
-        public static bool IsTransitionQueued<T>(in SystemState state)
-            where T : unmanaged, Enum =>
-            state.EntityManager.IsComponentEnabled<NextState<T>>(state.SystemHandle);
+        public static bool IsTransitionQueued<T>(in SystemState ecs)
+            where T : unmanaged, Enum => ecs.EntityManager.IsComponentEnabled<NextState<T>>(ecs.SystemHandle);
 
-        public static State<T> GetState<T>(in SystemState state)
-            where T : unmanaged, Enum =>
-            state.EntityManager.GetComponentData<State<T>>(state.SystemHandle);
+        public static State<T> GetState<T>(in SystemState ecs)
+            where T : unmanaged, Enum => ecs.EntityManager.GetComponentData<State<T>>(ecs.SystemHandle);
 
-        public static NextState<T> GetNextState<T>(in SystemState state)
-            where T : unmanaged, Enum =>
-            state.EntityManager.GetComponentData<NextState<T>>(state.SystemHandle);
+        public static NextState<T> GetNextState<T>(in SystemState ecs)
+            where T : unmanaged, Enum => ecs.EntityManager.GetComponentData<NextState<T>>(ecs.SystemHandle);
 
-        public static void SetState<T>(in SystemState state, T current)
+        public static void SetState<T>(in SystemState ecs, T state)
             where T : unmanaged, Enum {
-            SystemHandle tickSystem = state.WorldUnmanaged.GetExistingUnmanagedSystem<FixedTickSystem>();
-            var tick = state.EntityManager.GetComponentData<Tick>(tickSystem);
-            state.EntityManager.GetComponentDataRW<State<T>>(state.SystemHandle).ValueRW.Set(current, tick);
+            SystemHandle tickSystem = ecs.WorldUnmanaged.GetExistingUnmanagedSystem<FixedTickSystem>();
+            var tick = ecs.EntityManager.GetComponentData<Tick>(tickSystem);
+            ecs.EntityManager.GetComponentDataRW<State<T>>(ecs.SystemHandle).ValueRW.Set(state, tick);
         }
 
-        public static void SetNextState<T>(in SystemState state, T next)
+        public static void SetNextState<T>(in SystemState ecs, T state)
             where T : unmanaged, Enum {
-            state.EntityManager.GetComponentDataRW<NextState<T>>(state.SystemHandle).ValueRW = next;
-            state.EntityManager.SetComponentEnabled<NextState<T>>(state.SystemHandle, true);
+            ecs.EntityManager.GetComponentDataRW<NextState<T>>(ecs.SystemHandle).ValueRW = state;
+            ecs.EntityManager.SetComponentEnabled<NextState<T>>(ecs.SystemHandle, true);
         }
     }
 }
