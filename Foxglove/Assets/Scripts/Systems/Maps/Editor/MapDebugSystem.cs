@@ -7,8 +7,6 @@ using UnityEngine;
 
 namespace Foxglove.Maps.Editor {
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(MapGeneratorSystem))]
     internal partial struct MapDebugSystem : ISystem {
         private EntityQuery _mapQuery;
 
