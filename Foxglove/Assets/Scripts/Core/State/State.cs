@@ -11,15 +11,15 @@ namespace Foxglove.State {
         public T Previous;
         public T Current;
 
-        public uint ChangedAt { get; private set; }
+        public Tick EnteredAt { get; private set; }
 
         public State(T current) {
             Current = current;
             Previous = current;
-            ChangedAt = 0;
+            EnteredAt = 0;
         }
 
-        public void Set(T next, Tick tick) => (Previous, Current, ChangedAt) = (Current, next, tick);
+        public void Set(T next, Tick tick) => (Previous, Current, EnteredAt) = (Current, next, tick);
 
         // Allow CurrentState<T> to be converted to T without an explicit cast
         public static implicit operator T(State<T> t) => t.Current;
