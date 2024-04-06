@@ -70,14 +70,17 @@ namespace Foxglove.Maps {
                 .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(ecs.WorldUnmanaged);
 
-            var request = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle);
-
             switch (systemState.Current) {
                 case GeneratorState.Idle:
                     Log.Debug("[MapGenerator] Idle");
                     return;
                 case GeneratorState.Initialize:
                     Log.Debug("[MapGenerator] Initializing");
+
+                    uint seed = _random.NextUInt();
+                    _mapConfig = new MapConfig(seed);
+
+                    Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
 
                     StateMachine.SetNextState(ecs, GeneratorState.PlaceRooms);
 
@@ -88,7 +91,7 @@ namespace Foxglove.Maps {
                     // This job has no dependencies
                     // but should only run after this systems other dependencies are satisfied
                     ecs.Dependency = new GenerateRoomsJob {
-                        Config = request.Config,
+                        Config = _mapConfig,
                         Rooms = commands.SetBuffer<Room>(_mapRoot),
                     }.Schedule(ecs.Dependency);
 
@@ -123,7 +126,7 @@ namespace Foxglove.Maps {
                     }.Schedule(ecs.Dependency);
 
                     ecs.Dependency = new AddHallwaysJob {
-                        Config = request.Config,
+                        Config = _mapConfig,
                         SelectedEdges = selectedEdges,
                     }.Schedule(mstJob);
 
@@ -178,15 +181,15 @@ namespace Foxglove.Maps {
         private void HandleStateUpdate(ref SystemState ecs) {
             State<GeneratorState> state = StateMachine.GetState<GeneratorState>(ecs);
 
-            var request = SystemAPI.GetComponent<GenerateMapRequest>(ecs.SystemHandle);
-
-            switch (StateMachine.GetState<GeneratorState>(ecs).Current) {
+            switch (state.Current) {
                 case GeneratorState.Idle:
-                    if (!SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecs.SystemHandle)) return;
+                    var now = SystemAPI.GetSingleton<Tick>();
+                    Tick enteredAt = state.EnteredAt;
 
-                    // If the component is activated, a map
-                    Log.Debug("[MapGenerator] Starting map generator with seed {seed}", request.Config.Seed);
-                    StateMachine.SetNextState(ecs, GeneratorState.Initialize);
+                    bool requested = SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecs.SystemHandle);
+
+                    // If map generation specifically requested or if Idle for 10 seconds
+                    if (requested || now - enteredAt > 500) StateMachine.SetNextState(ecs, GeneratorState.Initialize);
 
                     return;
                 // Initialize is a one-shot state and all it's behaviour happens in OnEnter
@@ -197,7 +200,7 @@ namespace Foxglove.Maps {
 
                     // This job depends on the DynamicBuffer<Room> component on _mapRoot being filled by the GenerateRoomsJob
                     ecs.Dependency = new SetRoomCellsJob {
-                        Config = request.Config,
+                        Config = _mapConfig,
                     }.Schedule(ecs.Dependency);
 
                     StateMachine.SetNextState(ecs, GeneratorState.Triangulate);
