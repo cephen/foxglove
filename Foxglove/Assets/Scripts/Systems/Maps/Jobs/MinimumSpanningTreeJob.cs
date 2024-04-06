@@ -33,10 +33,11 @@ namespace Foxglove.Maps.Jobs {
 
                 foreach (Edge edge in Edges) {
                     // look for an edge that is only half closed
-                    if (!closedSet.Contains(edge.A) ^ !closedSet.Contains(edge.B)) continue;
+                    bool hasA = closedSet.Contains(edge.A);
+                    bool hasB = closedSet.Contains(edge.B);
+                    if (!(hasA ^ hasB)) continue;
 
-
-                    float distance = math.distance(edge.A.Position, Start.Position);
+                    float distance = math.distance(edge.A.Position, edge.B.Position);
                     if (distance < minWeight) {
                         chosen = true;
                         chosenEdge = edge;
