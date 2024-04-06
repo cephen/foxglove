@@ -54,7 +54,9 @@ namespace Foxglove.Maps {
             HandleStateUpdate(ref state);
         }
 
-        [BurstCompile]
+        /// <summary>
+        /// Implementation required by ISystem, but there's nothing to do for this system.
+        /// </summary>
         public void OnDestroy(ref SystemState state) { }
 
         public void Transition(ref SystemState ecs) {
@@ -68,6 +70,10 @@ namespace Foxglove.Maps {
             StateMachine.SetState(ecs, next);
         }
 
+        /// <summary>
+        /// Called when transitioning into a state
+        /// Used to set up temporary buffers and schedule jobs
+        /// </summary>
         public void OnEnter(ref SystemState ecs, State<GeneratorState> systemState) {
             switch (systemState.Current) {
                 case GeneratorState.Idle:

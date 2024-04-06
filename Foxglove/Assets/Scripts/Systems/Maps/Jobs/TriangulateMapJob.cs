@@ -23,6 +23,10 @@ namespace Foxglove.Maps.Jobs {
             triangles.Dispose();
         }
 
+        /// <summary>
+        /// Convert each room to a graph vertex.
+        /// Each vertex is placed at the center of it's room
+        /// </summary>
         private NativeList<float2> ExtractVerticesFromRooms() {
             NativeList<float2> vertices = new(Rooms.Length, Allocator.Temp);
             foreach (Room room in Rooms) vertices.Add(room.Center);
