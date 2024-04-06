@@ -8,7 +8,7 @@ namespace Foxglove.Maps.Jobs {
     /// <summary>
     /// Job that calculates a minimum spanning tree for a set of edges
     /// </summary>
-    internal struct MinimumSpanningTreeJob : IJob {
+    internal struct FilterEdgesJob : IJob {
         [ReadOnly] internal NativeArray<Edge>.ReadOnly Edges;
         [ReadOnly] internal Vertex Start;
 

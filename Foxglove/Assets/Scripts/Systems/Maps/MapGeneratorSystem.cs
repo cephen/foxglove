@@ -32,7 +32,7 @@ namespace Foxglove.Maps {
 
         private GenerateRoomsJob _generateRooms;
         private TriangulateMapJob _triangulateMap;
-        private MinimumSpanningTreeJob _mstJob;
+        private FilterEdgesJob _filterEdges;
 
         public void OnCreate(ref SystemState state) {
             _random = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
@@ -126,13 +126,13 @@ namespace Foxglove.Maps {
 
                     // Schedule job to calculate minimum required edges to connect all rooms
                     // The buffer of edges already attached to the map will be replaced with the output of this job
-                    _mstJob = new MinimumSpanningTreeJob {
+                    _filterEdges = new FilterEdgesJob {
                         Start = edges.ElementAt(0).A,
                         Edges = edges.AsNativeArray().AsReadOnly(),
                         Results = new NativeList<Edge>(Allocator.TempJob),
                     };
 
-                    ecs.Dependency = _mstJob.Schedule(ecs.Dependency);
+                    ecs.Dependency = _filterEdges.Schedule(ecs.Dependency);
 
                     return;
                 case GeneratorState.PlaceHallways:
@@ -196,10 +196,27 @@ namespace Foxglove.Maps {
 
                     return;
                 case GeneratorState.FilterEdges:
-                    if (!ecs.Dependency.IsCompleted) return; // wait for AddHallwaysJob to complete
+                    if (!ecs.Dependency.IsCompleted) return; // wait for FilterEdgesJob to complete
 
-                    commands = CreateCommandBuffer(ref ecs);
-                    commands.SetBuffer<Edge>(_mapRoot).CopyFrom(_mstJob.Results.AsArray());
+                    // Add some edges back
+                    DynamicBuffer<Edge> allEdges = SystemAPI.GetBuffer<Edge>(_mapRoot);
+                    NativeList<Edge> selectedEdges = _filterEdges.Results;
+
+                    NativeHashSet<Edge> remainingEdges = new(allEdges.Length, Allocator.Temp);
+                    foreach (Edge edge in allEdges) remainingEdges.Add(edge);
+
+                    remainingEdges.ExceptWith(selectedEdges.AsArray()); // remove selected edges
+
+                    // add 12.5% of remaining edges back
+                    foreach (Edge edge in remainingEdges) {
+                        if (_random.NextDouble() < 0.125)
+                            selectedEdges.Add(edge);
+                    }
+
+
+                    allEdges.Clear();
+                    allEdges.CopyFrom(selectedEdges.AsArray());
+                    remainingEdges.Dispose();
 
                     StateMachine.SetNextState(ecs, GeneratorState.PlaceHallways);
 
@@ -258,7 +275,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Done filtering edges");
 
                     // Clean up temporary data
-                    _mstJob.Results.Dispose(ecs.Dependency);
+                    _filterEdges.Results.Dispose(ecs.Dependency);
 
                     break;
                 case GeneratorState.PlaceHallways:
