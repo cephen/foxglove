@@ -16,7 +16,7 @@ namespace Foxglove.Maps.Jobs {
             NativeList<Triangle> triangles = InitializeTriangles(vertices);
 
             ProcessVertices(vertices, triangles);
-            RemoveTrianglesOutsideBounds(triangles);
+            RemoveFirstTriangle(triangles);
             ConvertTrianglesToEdges(triangles);
 
             vertices.Dispose();
@@ -113,16 +113,14 @@ namespace Foxglove.Maps.Jobs {
             foreach (Edge edge in polygon) triangles.Add(new Triangle(edge.A, edge.B, vertex));
         }
 
-        private static void RemoveTrianglesOutsideBounds(NativeList<Triangle> triangles) {
-            Vertex v1 = new float2(-1, -1);
-            Vertex v2 = new float2(-1, 1);
-            Vertex v3 = new float2(1, -1);
+        private static void RemoveFirstTriangle(NativeList<Triangle> triangles) {
+            Triangle firstTri = triangles[0];
 
             for (int i = triangles.Length - 1; i >= 0; i--) {
                 Triangle t = triangles[i];
-                if (t.ContainsVertex(v1)
-                    || t.ContainsVertex(v2)
-                    || t.ContainsVertex(v3)) triangles.RemoveAtSwapBack(i);
+                if (t.ContainsVertex(firstTri.A)
+                    || t.ContainsVertex(firstTri.B)
+                    || t.ContainsVertex(firstTri.C)) triangles.RemoveAt(i);
             }
         }
 
