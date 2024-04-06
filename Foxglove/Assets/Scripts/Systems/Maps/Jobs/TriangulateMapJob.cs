@@ -60,7 +60,7 @@ namespace Foxglove.Maps.Jobs {
 
             for (var i = 0; i < triangles.Length; i++) {
                 Triangle triangle = triangles[i];
-                if (!triangle.CircumCircleContains(vertex)) continue;
+                if (!triangle.CircumCircleContains(vertex.Position)) continue;
                 MarkTriangleAsBadAndAddEdges(triangle, polygon);
                 triangles[i] = triangle;
             }
@@ -82,7 +82,7 @@ namespace Foxglove.Maps.Jobs {
         private static void RemoveBadTriangles(NativeList<Triangle> triangles) {
             for (int i = triangles.Length - 1; i >= 0; i--) {
                 if (triangles[i].IsBad)
-                    triangles.RemoveAtSwapBack(i);
+                    triangles.RemoveAt(i);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Foxglove.Maps.Jobs {
 
             for (int i = polygon.Length - 1; i >= 0; i--) {
                 if (polygon[i].IsBad)
-                    polygon.RemoveAtSwapBack(i);
+                    polygon.RemoveAt(i);
             }
         }
 
