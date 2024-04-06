@@ -24,7 +24,7 @@ namespace Foxglove.Maps {
     }
 
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
     internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
         private MapConfig _mapConfig;
@@ -37,8 +37,8 @@ namespace Foxglove.Maps {
         public void OnCreate(ref SystemState state) {
             _random = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
 
-            state.RequireForUpdate<Tick>(); // How many ticks since the game started
-            state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<Tick>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
 
             state.EntityManager.AddComponent<GenerateMapRequest>(state.SystemHandle);
             state.EntityManager.SetComponentEnabled<GenerateMapRequest>(state.SystemHandle, true);
