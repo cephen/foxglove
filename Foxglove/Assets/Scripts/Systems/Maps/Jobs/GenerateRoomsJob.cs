@@ -1,13 +1,13 @@
 using Unity.Burst;
-using Unity.Entities;
+using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace Foxglove.Maps.Jobs {
     [BurstCompile]
     internal struct GenerateRoomsJob : IJob {
-        internal MapConfig Config;
-        internal DynamicBuffer<Room> Rooms;
+        [ReadOnly] internal MapConfig Config;
+        internal NativeList<Room> Rooms;
 
         private Random _random;
 

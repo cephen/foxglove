@@ -2,7 +2,6 @@ using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Graphs;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -10,7 +9,7 @@ namespace Foxglove.Maps.Jobs {
     [BurstCompile]
     internal struct TriangulateMapJob : IJob {
         internal NativeArray<Room>.ReadOnly Rooms;
-        internal DynamicBuffer<Edge> Edges;
+        internal NativeList<Edge> Edges;
 
         public void Execute() {
             NativeList<float2> vertices = ExtractVerticesFromRooms();
