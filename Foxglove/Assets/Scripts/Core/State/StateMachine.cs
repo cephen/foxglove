@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 
-namespace Foxglove.State {
+namespace Foxglove.Core.State {
     /// <summary>
     /// A collection of helper functions used to manage state machines.
     /// Any system can be turned into a state machine by adding the State and NextState components to it.

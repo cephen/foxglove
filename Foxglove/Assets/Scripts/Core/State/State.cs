@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 
-namespace Foxglove.State {
+namespace Foxglove.Core.State {
     /// <summary>
     /// Wraps an enum that represents one of the codebases states
     /// Represents the current state of some subset of systems

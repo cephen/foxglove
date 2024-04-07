@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using Foxglove.Core.State;
 using Foxglove.Maps;
-using Foxglove.State;
 using Unity.Entities;
 
 [assembly: InternalsVisibleTo("Foxglove.State")]
