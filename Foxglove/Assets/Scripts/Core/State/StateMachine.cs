@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Entities;
 
 namespace Foxglove.Core.State {
@@ -22,6 +22,18 @@ namespace Foxglove.Core.State {
         public static bool IsTransitionQueued<T>(in SystemState ecs)
             where T : unmanaged, Enum => ecs.EntityManager.IsComponentEnabled<NextState<T>>(ecs.SystemHandle);
 
+        public static void Transition<TSystem, TState>(this TSystem system, ref SystemState ecs)
+            where TState : unmanaged, Enum
+            where TSystem : unmanaged, IStateMachineSystem<TState> {
+            TState current = GetState<TState>(ecs).Current;
+            TState next = GetNextState<TState>(ecs).Value;
+
+            ecs.EntityManager.SetComponentEnabled<NextState<TState>>(ecs.SystemHandle, false);
+
+            system.OnExit(ref ecs, current);
+            system.OnEnter(ref ecs, next);
+            SetState(ecs, next);
+        }
         public static State<T> GetState<T>(in SystemState ecs)
             where T : unmanaged, Enum => ecs.EntityManager.GetComponentData<State<T>>(ecs.SystemHandle);
 

@@ -10,6 +10,5 @@ namespace Foxglove.Core.State {
         where T : unmanaged, Enum {
         void OnEnter(ref SystemState ecsState, State<T> fsmState);
         void OnExit(ref SystemState ecsState, State<T> fsmState);
-        void Transition(ref SystemState ecsState);
     }
 }
