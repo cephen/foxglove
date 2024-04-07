@@ -87,6 +87,10 @@ namespace Foxglove.Maps {
 
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
 
+                    SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
+                    SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
+                    SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
+
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
 
                     break;
@@ -157,8 +161,6 @@ namespace Foxglove.Maps {
         /// and stores it in the map
         /// </summary>
         private void HandleStateUpdate(ref SystemState ecsState) {
-            EntityCommandBuffer commands;
-
             State<GeneratorState> state = StateMachine.GetState<GeneratorState>(ecsState);
 
             switch (state.Current) {
@@ -179,10 +181,9 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for GenerateRoomsJob to complete
 
-                    commands = CreateCommandBuffer(ref ecsState);
-                    // this buffer will be attached to the _mapRoot entity at the end of the frame
-                    // and will replace any existing DynamicBuffer<Room> component on that entity
-                    commands.SetBuffer<Room>(_mapRoot).CopyFrom(_generateRooms.Rooms.AsArray());
+                    // The buffer stored in the job needs to be deallocated
+                    // So copy the rooms into a persistent buffer stored on the map entity
+                    SystemAPI.GetBuffer<Room>(_mapRoot).CopyFrom(_generateRooms.Rooms.AsArray());
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Triangulate);
 
@@ -190,10 +191,8 @@ namespace Foxglove.Maps {
                 case GeneratorState.Triangulate:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for TriangulateMapJob to complete
 
-                    commands = CreateCommandBuffer(ref ecsState);
-                    // this buffer will be attached to the _mapRoot entity at the end of the frame
-                    // and will replace any existing DynamicBuffer<Edge> component on that entity
-                    commands.SetBuffer<Edge>(_mapRoot).CopyFrom(_triangulateMap.Edges.AsArray());
+                    // Copy generated edges into persistent map buffer
+                    SystemAPI.GetBuffer<Edge>(_mapRoot).CopyFrom(_triangulateMap.Edges.AsArray());
 
                     StateMachine.SetNextState(ecsState, GeneratorState.FilterEdges);
 
@@ -306,10 +305,5 @@ namespace Foxglove.Maps {
             ecsState.EntityManager.AddComponent<Map>(_mapRoot);
             ecsState.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
-
-        private EntityCommandBuffer CreateCommandBuffer(ref SystemState ecsState) =>
-            SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(ecsState.WorldUnmanaged);
     }
 }
