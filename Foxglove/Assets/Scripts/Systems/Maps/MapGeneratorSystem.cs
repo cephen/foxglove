@@ -23,6 +23,21 @@ namespace Foxglove.Maps {
         Cleanup,
     }
 
+    /// <summary>
+    /// This system generates maps using an algorithm similar to the one used in TinyKeep.
+    /// The algorithm is described here: https://www.reddit.com/r/gamedev/comments/1dlwc4
+    /// ---
+    /// I've made several modifications to this algorithm:
+    /// - I'm generating far fewer rooms per map
+    /// - I use the Uniform distribution instead of the Park-Miller normal distribution
+    /// ---
+    /// The system is implemented as a state machine, with a circular state flowchart.
+    /// States are modeled with the GeneratorState enum, and the system flows through states in the order they are defined.
+    /// Once generation is complete, and the system has finished cleaning up, it returns to the Idle state
+    /// and waits for a new map generation request.
+    /// ---
+    /// For debugging purposes it also starts a new generation cycle after idling for 10 seconds.
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
@@ -30,15 +45,21 @@ namespace Foxglove.Maps {
         private MapConfig _mapConfig;
         private Random _random;
 
+        // These jobs are used to incrementally build the map over several frames.
+        // Each state in the state machine will be responsible for one of these jobs
+        // (not all states are implemented yet though)
         private GenerateRoomsJob _generateRooms;
         private TriangulateMapJob _triangulateMap;
         private FilterEdgesJob _filterEdges;
 
+        /// <summary>
+        /// Called by the ECS framework when the system is created.
+        /// Used to define data dependencies, and to add components to the system.
+        /// </summary>
         public void OnCreate(ref SystemState ecsState) {
             _random = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
 
             ecsState.RequireForUpdate<Tick>();
-            ecsState.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
 
             ecsState.EntityManager.AddComponent<GenerateMapRequest>(ecsState.SystemHandle);
             ecsState.EntityManager.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, true);
@@ -48,7 +69,11 @@ namespace Foxglove.Maps {
             SpawnMapRoot(ref ecsState);
         }
 
-        [BurstCompile]
+        /// <summary>
+        /// Called once per frame by the ECS framework.
+        /// Checks for state transitions, and calls the state update function
+        /// </summary>
+        /// <param name="ecsState"></param>
         public void OnUpdate(ref SystemState ecsState) {
             if (StateMachine.IsTransitionQueued<GeneratorState>(ecsState))
                 this.Transition<MapGeneratorSystem, GeneratorState>(ref ecsState);
@@ -64,6 +89,7 @@ namespace Foxglove.Maps {
         /// Called when transitioning into a state
         /// Used to set up temporary buffers and schedule jobs
         /// </summary>
+        [BurstCompile]
         public void OnEnter(ref SystemState ecsState, State<GeneratorState> fsmState) {
             switch (fsmState.Current) {
                 case GeneratorState.Idle:
@@ -150,6 +176,7 @@ namespace Foxglove.Maps {
         /// When a state's given jobs are complete, this function extracts job output
         /// and stores it in the map
         /// </summary>
+        [BurstCompile]
         private void HandleStateUpdate(ref SystemState ecsState) {
             State<GeneratorState> state = StateMachine.GetState<GeneratorState>(ecsState);
 
@@ -242,6 +269,7 @@ namespace Foxglove.Maps {
         /// Called when transitioning out of a state
         /// Used to deallocate temporary buffers
         /// </summary>
+        [BurstCompile]
         public void OnExit(ref SystemState ecsState, State<GeneratorState> fsmState) {
             switch (fsmState.Current) {
                 case GeneratorState.Idle:
