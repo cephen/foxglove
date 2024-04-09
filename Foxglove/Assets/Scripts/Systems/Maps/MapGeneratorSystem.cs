@@ -42,7 +42,6 @@ namespace Foxglove.Maps {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
-        private MapConfig _mapConfig;
         private Random _random;
 
         // These jobs are used to incrementally build the map over several frames.
@@ -101,7 +100,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Initializing");
 
                     uint seed = _random.NextUInt();
-                    _mapConfig = new MapConfig(seed);
+                    ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
 
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
 
@@ -117,7 +116,7 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Configuring GenerateRoomsJob");
                     _generateRooms = new GenerateRoomsJob {
-                        Config = _mapConfig,
+                        Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
                         Rooms = new NativeList<Room>(Allocator.TempJob),
                     };
 
@@ -328,6 +327,7 @@ namespace Foxglove.Maps {
             ecsState.EntityManager.AddBuffer<MapCell>(_mapRoot);
 
             ecsState.EntityManager.AddComponent<Map>(_mapRoot);
+            ecsState.EntityManager.AddComponent<MapConfig>(_mapRoot);
             ecsState.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
     }

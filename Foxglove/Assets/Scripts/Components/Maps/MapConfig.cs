@@ -1,5 +1,7 @@
-﻿namespace Foxglove.Maps {
-    public readonly struct MapConfig {
+﻿using Unity.Entities;
+
+namespace Foxglove.Maps {
+    public readonly struct MapConfig : IComponentData {
         public readonly uint Seed;
         public readonly int RoomsToGenerate;
         public readonly int MinRoomSize;
