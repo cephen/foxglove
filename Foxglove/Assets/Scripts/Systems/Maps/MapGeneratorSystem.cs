@@ -180,8 +180,6 @@ namespace Foxglove.Maps {
                     uint enteredAt = state.EnteredAt;
                     uint ticksInState = now - enteredAt;
 
-                    Log.Debug("[MapGenerator] Idle for {ticks} ticks", ticksInState);
-
                     bool requested = SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle);
 
                     // If map generation specifically requested or if Idle for 10 seconds
