@@ -76,8 +76,7 @@ namespace Foxglove.Maps {
         /// </summary>
         /// <param name="ecsState"></param>
         public void OnUpdate(ref SystemState ecsState) {
-            if (StateMachine.IsTransitionQueued<GeneratorState>(ecsState))
-                this.Transition<MapGeneratorSystem, GeneratorState>(ref ecsState);
+            if (StateMachine.IsTransitionQueued<GeneratorState>(ecsState)) Transition(ref ecsState);
             HandleStateUpdate(ref ecsState);
         }
 
@@ -315,6 +314,18 @@ namespace Foxglove.Maps {
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        public void Transition(ref SystemState ecsState) {
+            GeneratorState current = StateMachine.GetState<GeneratorState>(ecsState).Current;
+            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ecsState).Value;
+
+            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecsState.SystemHandle, false);
+
+            OnExit(ref ecsState, current);
+            OnEnter(ref ecsState, next);
+            StateMachine.SetState(ecsState, next);
+        }
+
 
         [BurstCompile]
         private void SpawnMapRoot(ref SystemState ecsState) {

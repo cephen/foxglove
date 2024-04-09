@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -30,41 +30,6 @@ namespace Foxglove.Core.State {
         public static bool IsTransitionQueued<T>(in SystemState ecs)
             where T : unmanaged, Enum => ecs.EntityManager.IsComponentEnabled<NextState<T>>(ecs.SystemHandle);
 
-
-        /// <summary>
-        /// Extension method implemented for all systems implementing Unity.Entities.ISystem
-        /// Transition a system from it's current state to the requested state
-        /// </summary>
-        [BurstCompile]
-        public static void Transition<TSystem, TState>(this TSystem system, ref SystemState ecs)
-            where TState : unmanaged, Enum
-            where TSystem : unmanaged, IStateMachineSystem<TState> {
-            TState current = GetState<TState>(ecs).Current;
-            TState next = GetNextState<TState>(ecs).Value;
-
-            ecs.EntityManager.SetComponentEnabled<NextState<TState>>(ecs.SystemHandle, false);
-
-            system.OnExit(ref ecs, current);
-            system.OnEnter(ref ecs, next);
-            SetState(ecs, next);
-        }
-
-        /// <summary>
-        /// Same as above but for systems that are subtypes of Unity.Entities.SystemBase
-        /// </summary>
-        [BurstCompile]
-        public static void Transition<TState>(this IStateMachineSystem<TState> system, ref SystemState ecs)
-            where TState : unmanaged, Enum {
-            TState current = GetState<TState>(ecs).Current;
-            TState next = GetNextState<TState>(ecs).Value;
-
-            ecs.EntityManager.SetComponentEnabled<NextState<TState>>(ecs.SystemHandle, false);
-
-            system.OnExit(ref ecs, current);
-            system.OnEnter(ref ecs, next);
-            SetState(ecs, next);
-        }
-
         /// <summary>
         /// Get the current State of a system.
         /// The generic parameter T must be specified
@@ -79,14 +44,14 @@ namespace Foxglove.Core.State {
         /// This method does not check if the NextState component is enabled.
         /// </summary>
         [BurstCompile]
-        private static NextState<T> GetNextState<T>(in SystemState ecs)
+        public static NextState<T> GetNextState<T>(in SystemState ecs)
             where T : unmanaged, Enum => ecs.EntityManager.GetComponentData<NextState<T>>(ecs.SystemHandle);
 
         /// <summary>
         /// Set the current state of a system
         /// </summary>
         [BurstCompile]
-        private static void SetState<T>(in SystemState ecs, in T state)
+        public static void SetState<T>(in SystemState ecs, in T state)
             where T : unmanaged, Enum {
             SystemHandle tickSystem = ecs.WorldUnmanaged.GetExistingUnmanagedSystem<FixedTickSystem>();
             var tick = ecs.EntityManager.GetComponentData<Tick>(tickSystem);

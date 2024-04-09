@@ -21,5 +21,7 @@ namespace Foxglove.Core.State {
         /// <param name="ecsState">ECS information about the system undergoing a state change</param>
         /// <param name="fsmState">The state being transitioned out of</param>
         void OnExit(ref SystemState ecsState, State<T> fsmState);
+
+        void Transition(ref SystemState ecsState);
     }
 }
