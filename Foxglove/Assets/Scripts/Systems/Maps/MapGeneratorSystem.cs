@@ -56,6 +56,7 @@ namespace Foxglove.Maps {
         /// Used to define data dependencies, and to add components to the system.
         /// </summary>
         public void OnCreate(ref SystemState ecsState) {
+            ecsState.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             var initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
             Log.Debug("[MapGenerator] Initial seed: {seed}", initialSeed);
             _random = new Random(initialSeed);
@@ -196,9 +197,10 @@ namespace Foxglove.Maps {
                     if (!ecsState.Dependency.IsCompleted) return; // wait for GenerateRoomsJob to complete
 
                     Log.Debug("[MapGenerator] GenerateRoomsJob finished, extracting rooms");
-                    // The buffer stored in the job needs to be deallocated
-                    // So copy the rooms into a persistent buffer stored on the map entity
-                    SystemAPI.GetBuffer<Room>(_mapRoot).CopyFrom(_generateRooms.Rooms.AsArray());
+                    ecsState.Dependency.Complete();
+                    CreateCommandBuffer(ref ecsState)
+                        .SetBuffer<Room>(_mapRoot)
+                        .CopyFrom(_generateRooms.Rooms.AsArray());
 
                     Log.Debug("[MapGenerator] Transitioning to Triangulate State");
                     StateMachine.SetNextState(ecsState, GeneratorState.Triangulate);
@@ -209,7 +211,9 @@ namespace Foxglove.Maps {
 
                     Log.Debug("[MapGenerator] TriangulateMapJob finished, extracting edges");
                     // Copy generated edges into persistent map buffer
-                    SystemAPI.GetBuffer<Edge>(_mapRoot).CopyFrom(_triangulateMap.Edges.AsArray());
+                    CreateCommandBuffer(ref ecsState)
+                        .SetBuffer<Edge>(_mapRoot)
+                        .CopyFrom(_triangulateMap.Edges.AsArray());
 
                     Log.Debug("[MapGenerator] Transitioning to FilterEdges State");
                     StateMachine.SetNextState(ecsState, GeneratorState.FilterEdges);
@@ -339,5 +343,10 @@ namespace Foxglove.Maps {
             ecsState.EntityManager.AddComponent<MapConfig>(_mapRoot);
             ecsState.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
+
+        private EntityCommandBuffer CreateCommandBuffer(ref SystemState ecsState) =>
+            SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(ecsState.WorldUnmanaged);
     }
 }
