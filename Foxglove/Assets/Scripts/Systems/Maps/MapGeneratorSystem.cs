@@ -57,7 +57,9 @@ namespace Foxglove.Maps {
         /// Used to define data dependencies, and to add components to the system.
         /// </summary>
         public void OnCreate(ref SystemState ecsState) {
-            _random = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
+            var initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
+            Log.Debug("[MapGenerator] Initial seed: {seed}", initialSeed);
+            _random = new Random(initialSeed);
 
             ecsState.RequireForUpdate<Tick>();
 
@@ -103,55 +105,49 @@ namespace Foxglove.Maps {
 
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
 
+                    Log.Debug("[MapGenerator] Clearing map buffers");
                     SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
                     SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
                     SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
 
+                    Log.Debug("[MapGenerator] Transitioning to PlaceRooms State");
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
 
                     break;
                 case GeneratorState.PlaceRooms:
-                    Log.Debug("[MapGenerator] Placing Rooms");
-
-                    // Schedule room generation
-                    // Rooms will be extracted later and stored in the map
+                    Log.Debug("[MapGenerator] Configuring GenerateRoomsJob");
                     _generateRooms = new GenerateRoomsJob {
                         Config = _mapConfig,
                         Rooms = new NativeList<Room>(Allocator.TempJob),
                     };
 
+                    Log.Debug("[MapGenerator] Scheduling GenerateRoomsJob");
                     ecsState.Dependency = _generateRooms.Schedule(ecsState.Dependency);
 
                     break;
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Building room graph");
 
-                    // Get generated rooms
-                    DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(_mapRoot);
-
-                    // Schedule triangulation
-                    // Edges will be extracted later and stored in the map
+                    Log.Debug("[MapGenerator] Configuring TriangulateMapJob");
                     _triangulateMap = new TriangulateMapJob {
-                        Rooms = rooms.AsNativeArray().AsReadOnly(),
+                        Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
                         Edges = new NativeList<Edge>(Allocator.TempJob),
                     };
+
+                    Log.Debug("[MapGenerator] Scheduling TriangulateMapJob");
                     ecsState.Dependency = _triangulateMap.Schedule(ecsState.Dependency);
 
                     break;
                 case GeneratorState.FilterEdges:
-                    Log.Debug("[MapGenerator] Filtering edges");
-
-                    // Get generated edges
+                    Log.Debug("[MapGenerator] Configuring FilterEdgesJob");
                     DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
-
-                    // Schedule job to calculate minimum required edges to connect all rooms
-                    // The buffer of edges already attached to the map will be replaced with the output of this job
                     _filterEdges = new FilterEdgesJob {
                         Start = edges.ElementAt(0).A,
                         Edges = edges.AsNativeArray().AsReadOnly(),
                         Results = new NativeList<Edge>(Allocator.TempJob),
                     };
 
+                    Log.Debug("[MapGenerator] Scheduling FilterEdgesJob");
                     ecsState.Dependency = _filterEdges.Schedule(ecsState.Dependency);
 
                     return;
@@ -186,10 +182,15 @@ namespace Foxglove.Maps {
                     uint enteredAt = state.EnteredAt;
                     uint ticksInState = now - enteredAt;
 
+                    Log.Debug("[MapGenerator] Idle for {ticks} ticks", ticksInState);
+
                     bool requested = SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle);
 
                     // If map generation specifically requested or if Idle for 10 seconds
-                    if (requested || ticksInState > 500) StateMachine.SetNextState(ecsState, GeneratorState.Initialize);
+                    if (requested || ticksInState > 500) {
+                        Log.Debug("[MapGenerator] Scheduling map generation");
+                        StateMachine.SetNextState(ecsState, GeneratorState.Initialize);
+                    }
 
                     return;
                 case GeneratorState.Initialize:
@@ -198,45 +199,50 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for GenerateRoomsJob to complete
 
+                    Log.Debug("[MapGenerator] GenerateRoomsJob finished, extracting rooms");
                     // The buffer stored in the job needs to be deallocated
                     // So copy the rooms into a persistent buffer stored on the map entity
                     SystemAPI.GetBuffer<Room>(_mapRoot).CopyFrom(_generateRooms.Rooms.AsArray());
 
+                    Log.Debug("[MapGenerator] Transitioning to Triangulate State");
                     StateMachine.SetNextState(ecsState, GeneratorState.Triangulate);
 
                     return;
                 case GeneratorState.Triangulate:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for TriangulateMapJob to complete
 
+                    Log.Debug("[MapGenerator] TriangulateMapJob finished, extracting edges");
                     // Copy generated edges into persistent map buffer
                     SystemAPI.GetBuffer<Edge>(_mapRoot).CopyFrom(_triangulateMap.Edges.AsArray());
 
+                    Log.Debug("[MapGenerator] Transitioning to FilterEdges State");
                     StateMachine.SetNextState(ecsState, GeneratorState.FilterEdges);
 
                     return;
                 case GeneratorState.FilterEdges:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for FilterEdgesJob to complete
 
-                    // Add some edges back
+                    Log.Debug("[MapGenerator] FilterEdgesJob finished, extracting edges");
                     DynamicBuffer<Edge> allEdges = SystemAPI.GetBuffer<Edge>(_mapRoot);
                     NativeList<Edge> selectedEdges = _filterEdges.Results;
 
                     NativeHashSet<Edge> remainingEdges = new(allEdges.Length, Allocator.Temp);
                     foreach (Edge edge in allEdges) remainingEdges.Add(edge);
 
+                    Log.Debug("[MapGenerator] Add additional connections");
                     remainingEdges.ExceptWith(selectedEdges.AsArray()); // remove selected edges
-
                     // add 12.5% of remaining edges back
                     foreach (Edge edge in remainingEdges) {
                         if (_random.NextDouble() < 0.125)
                             selectedEdges.Add(edge);
                     }
 
-
+                    Log.Debug("[MapGenerator] Storing Edges in map buffer");
                     allEdges.Clear();
                     allEdges.CopyFrom(selectedEdges.AsArray());
                     remainingEdges.Dispose();
 
+                    Log.Debug("[MapGenerator] Transitioning to PlaceHallways State");
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceHallways);
 
                     return;
@@ -280,21 +286,21 @@ namespace Foxglove.Maps {
                 case GeneratorState.PlaceRooms:
                     Log.Debug("[MapGenerator] Done placing rooms");
 
-                    // Clean up temporary data
+                    Log.Debug("[MapGenerator] Disposing GenerateRoomsJob buffers");
                     _generateRooms.Rooms.Dispose(ecsState.Dependency);
 
                     break;
                 case GeneratorState.Triangulate:
                     Log.Debug("[MapGenerator] Done building room graph");
 
-                    // Clean up temporary data
+                    Log.Debug("[MapGenerator] Disposing TriangulateMapJob buffers");
                     _triangulateMap.Edges.Dispose(ecsState.Dependency);
 
                     return;
                 case GeneratorState.FilterEdges:
                     Log.Debug("[MapGenerator] Done filtering edges");
 
-                    // Clean up temporary data
+                    Log.Debug("[MapGenerator] Disposing FilterEdgesJob buffers");
                     _filterEdges.Results.Dispose(ecsState.Dependency);
 
                     break;
@@ -313,6 +319,7 @@ namespace Foxglove.Maps {
 
         [BurstCompile]
         private void SpawnMapRoot(ref SystemState ecsState) {
+            Log.Debug("[MapGenerator] Creating Map Root");
             _mapRoot = ecsState.EntityManager.CreateEntity();
             ecsState.EntityManager.SetName(_mapRoot, "Map Root");
 
