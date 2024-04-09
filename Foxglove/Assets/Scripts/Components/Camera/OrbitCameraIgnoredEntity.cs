@@ -9,7 +9,7 @@ namespace Foxglove.Camera {
     /// that the camera's collision detection should ignore
     /// </summary>
     [Serializable]
-    public struct OrbitCameraIgnoredEntityBufferElement : IBufferElementData {
+    public struct OrbitCameraIgnoredEntity : IBufferElementData {
         public Entity Entity;
     }
 }

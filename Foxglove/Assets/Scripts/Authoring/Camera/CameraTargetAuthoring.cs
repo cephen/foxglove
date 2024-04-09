@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Foxglove.Authoring.Camera {
     /// <summary>
-    /// Added to the a child of the player character prefab around which the camera orbits,
+    /// Added to a child of the player character prefab around which the camera should orbit,
     /// when instantiated this component is converted to a <see cref="CameraTarget" />
     /// </summary>
     [DisallowMultipleComponent]

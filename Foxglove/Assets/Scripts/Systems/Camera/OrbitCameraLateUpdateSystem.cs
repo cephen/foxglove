@@ -63,7 +63,7 @@ namespace Foxglove.Camera {
                 Entity entity,
                 ref OrbitCamera orbitCamera,
                 in OrbitCameraControl cameraControl,
-                in DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer
+                in DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntitiesBuffer
             ) {
                 // Early exit if required components can't be found
                 if (!OrbitCameraUtilities.TryGetCameraTargetInterpolatedWorldTransform(
@@ -165,7 +165,7 @@ namespace Foxglove.Camera {
             private float FindClosestObstructionDistance(
                 OrbitCamera orbitCamera,
                 OrbitCameraControl cameraControl,
-                DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer,
+                DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntitiesBuffer,
                 float obstructionCheckDistance,
                 ref CameraObstructionHitsCollector collector,
                 float3 cameraForward,

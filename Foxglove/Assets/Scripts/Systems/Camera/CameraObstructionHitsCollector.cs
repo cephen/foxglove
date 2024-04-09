@@ -17,11 +17,11 @@ namespace Foxglove.Camera {
         private float _closestHitFraction;
         private readonly float3 _cameraDirection;
         private readonly Entity _followedCharacter;
-        private DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> _ignoredEntitiesBuffer;
+        private DynamicBuffer<OrbitCameraIgnoredEntity> _ignoredEntitiesBuffer;
 
         public CameraObstructionHitsCollector(
             Entity followedCharacter,
-            DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer,
+            DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntitiesBuffer,
             float3 cameraDirection
         ) {
             NumHits = 0;

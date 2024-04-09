@@ -68,12 +68,12 @@ namespace Foxglove.Authoring.Camera {
                     }
                 );
 
-                DynamicBuffer<OrbitCameraIgnoredEntityBufferElement> ignoredEntitiesBuffer =
-                    AddBuffer<OrbitCameraIgnoredEntityBufferElement>(entity);
+                DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntitiesBuffer =
+                    AddBuffer<OrbitCameraIgnoredEntity>(entity);
 
                 for (var i = 0; i < authoring.IgnoredEntities.Count; i++) {
                     ignoredEntitiesBuffer.Add(
-                        new OrbitCameraIgnoredEntityBufferElement {
+                        new OrbitCameraIgnoredEntity {
                             Entity = GetEntity(authoring.IgnoredEntities[i], TransformUsageFlags.None),
                         }
                     );
