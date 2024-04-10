@@ -1,4 +1,5 @@
 using Foxglove.Character;
+using Foxglove.Combat;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;

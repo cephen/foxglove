@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace Foxglove.Character {
+namespace Foxglove.Combat {
     public struct Health : IComponentData {
         public float Current;
         public float Max;
@@ -9,5 +9,9 @@ namespace Foxglove.Character {
             Max = max;
             Current = max;
         }
+    }
+
+    public struct HealthRegen : IComponentData, IEnableableComponent {
+        public float Rate;
     }
 }
