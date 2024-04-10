@@ -3,6 +3,6 @@ using Foxglove.Core.State;
 using Foxglove.Maps;
 using Unity.Entities;
 
-[assembly: InternalsVisibleTo("Foxglove.State")]
+[assembly: InternalsVisibleTo("Foxglove.Editor")]
 [assembly: RegisterGenericComponentType(typeof(State<GeneratorState>))]
 [assembly: RegisterGenericComponentType(typeof(NextState<GeneratorState>))]
