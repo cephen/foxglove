@@ -1,5 +1,6 @@
 using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Graphs;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -8,6 +9,7 @@ namespace Foxglove.Maps.Jobs {
     /// <summary>
     /// Job that calculates a minimum spanning tree for a set of edges
     /// </summary>
+    [BurstCompile]
     internal struct FilterEdgesJob : IJob {
         [ReadOnly] internal NativeArray<Edge>.ReadOnly Edges;
         [ReadOnly] internal Vertex Start;
