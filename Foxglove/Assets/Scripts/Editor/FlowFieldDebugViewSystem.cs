@@ -5,6 +5,12 @@ using Unity.Mathematics;
 using UnityEngine;
 
 namespace Foxglove.Editor {
+    /// <summary>
+    /// This system paints debug lines for the flow field.
+    /// A green box is drawn for the borders of the field,
+    /// magenta lines for flow directions at each cell,
+    /// and cyan lines to mark the center of each cell.
+    /// </summary>
     [BurstCompile]
     internal partial struct FlowFieldDebugViewSystem : ISystem {
         public void OnCreate(ref SystemState state) {
@@ -16,13 +22,15 @@ namespace Foxglove.Editor {
             state.Dependency = new PaintDebugLinesJob().ScheduleParallel(state.Dependency);
         }
 
+        public void OnDestroy(ref SystemState state) { }
+
         [BurstCompile]
         [WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
         private partial struct PaintDebugLinesJob : IJobEntity {
             public float DeltaTime;
 
             [BurstCompile]
-            public readonly void Execute(FlowFieldAspect aspect) {
+            private readonly void Execute(FlowFieldAspect aspect) {
                 FlowField field = aspect.FlowField.ValueRO;
                 int2 southWestCoords = field.SouthWestCorner;
                 int2 northEastCoords = field.NorthEastCorner;

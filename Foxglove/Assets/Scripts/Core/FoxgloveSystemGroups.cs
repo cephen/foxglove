@@ -1,18 +1,27 @@
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace Foxglove {
+namespace Foxglove.Core {
 #region Variable Update Rate
 
+    /// <summary>
+    /// Group for systems that manage player input that should be read every frame (e.g. camera controls)
+    /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
     public sealed partial class PlayerVariableStepSystemGroup : ComponentSystemGroup { }
 
+    /// <summary>
+    /// Group for character systems that should update every frame
+    /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(PlayerVariableStepSystemGroup))]
     [UpdateBefore(typeof(TransformSystemGroup))]
     public sealed partial class CharacterSystemGroup : ComponentSystemGroup { }
 
+    /// <summary>
+    /// Group for all camera related systems.
+    /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(CharacterSystemGroup))]
     [UpdateBefore(typeof(TransformSystemGroup))]

@@ -1,3 +1,4 @@
+using Foxglove.Core;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -24,7 +25,7 @@ namespace Foxglove.Agent {
                 Commands = commands.AsParallelWriter(),
                 PlayerPosition = SystemAPI.GetSingleton<Blackboard>().PlayerPosition,
                 Tick = SystemAPI.GetSingleton<Tick>().Value,
-                Rng = SystemAPI.GetSingleton<RandomNumberGenerators>().Base,
+                Rng = SystemAPI.GetSingleton<RandomNumberGenerators>().Random,
             }.ScheduleParallel(state.Dependency);
         }
     }

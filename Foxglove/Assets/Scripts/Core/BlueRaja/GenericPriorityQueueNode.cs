@@ -1,4 +1,4 @@
-﻿namespace BlueRaja {
+﻿namespace Foxglove.Core.BlueRaja {
     public class GenericPriorityQueueNode<TPriority> {
         /// <summary>
         /// The Priority to insert this node at.  Must be set BEFORE adding a node to the queue (ideally just once, in the node's

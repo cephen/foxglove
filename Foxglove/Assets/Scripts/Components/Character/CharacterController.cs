@@ -4,8 +4,9 @@ using Unity.Mathematics;
 
 namespace Foxglove.Character {
     /// <summary>
-    /// Contains movement input for a character.
-    /// This component is used for both Agent characters and the Player character.
+    /// Character Systems use this component to drive character movement.
+    /// For the player, fields in this component are set using player input,
+    /// and for Agents, this component is set in agent control systems.
     /// </summary>
     [Serializable]
     public struct CharacterController : IComponentData, IEnableableComponent {

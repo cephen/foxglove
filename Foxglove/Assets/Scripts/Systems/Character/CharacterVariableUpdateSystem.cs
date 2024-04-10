@@ -1,3 +1,4 @@
+using Foxglove.Core;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.CharacterController;

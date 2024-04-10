@@ -18,11 +18,15 @@ namespace Foxglove.Maps.Jobs {
         internal NativeList<Edge> Results;
 
         public void Execute() {
-            FilterEdges();
+            BuildMinSpanningTree();
             RestoreSomeEdges();
         }
 
-        private void FilterEdges() {
+        /// <summary>
+        /// Calculate the minimum spanning tree for a given graph.
+        /// The minimum spanning tree is the smallest number of edges required to ensure every node in the graph is reachable.
+        /// </summary>
+        private void BuildMinSpanningTree() {
             var openSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
             var closedSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
             var chosenEdges = new NativeHashSet<Edge>(128, Allocator.Temp);
@@ -70,6 +74,10 @@ namespace Foxglove.Maps.Jobs {
             chosenEdges.Dispose();
         }
 
+        /// <summary>
+        /// Restore 1/8 of edges not in the MST.
+        /// Done to add more ways to traverse the map.
+        /// </summary>
         private void RestoreSomeEdges() {
             NativeHashSet<Edge> remainingEdges = new(Results.Length, Allocator.Temp);
             foreach (Edge edge in Edges) remainingEdges.Add(edge);

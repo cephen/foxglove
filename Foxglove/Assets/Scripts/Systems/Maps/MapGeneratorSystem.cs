@@ -1,4 +1,5 @@
 using System;
+using Foxglove.Core;
 using Foxglove.Core.State;
 using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Jobs;
@@ -85,6 +86,17 @@ namespace Foxglove.Maps {
         /// Implementation required by ISystem, but there's nothing to do for this system.
         /// </summary>
         public void OnDestroy(ref SystemState state) { }
+
+        public void Transition(ref SystemState ecsState) {
+            GeneratorState current = StateMachine.GetState<GeneratorState>(ecsState).Current;
+            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ecsState).Value;
+
+            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecsState.SystemHandle, false);
+
+            OnExit(ref ecsState, current);
+            OnEnter(ref ecsState, next);
+            StateMachine.SetState(ecsState, next);
+        }
 
         /// <summary>
         /// Called when transitioning into a state
@@ -301,17 +313,6 @@ namespace Foxglove.Maps {
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public void Transition(ref SystemState ecsState) {
-            GeneratorState current = StateMachine.GetState<GeneratorState>(ecsState).Current;
-            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ecsState).Value;
-
-            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecsState.SystemHandle, false);
-
-            OnExit(ref ecsState, current);
-            OnEnter(ref ecsState, next);
-            StateMachine.SetState(ecsState, next);
         }
 
 

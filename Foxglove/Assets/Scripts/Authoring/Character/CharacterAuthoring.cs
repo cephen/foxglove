@@ -41,11 +41,11 @@ namespace Foxglove.Authoring.Character {
                     new CharacterSettings {
                         RotationSharpness = authoring.RotationSharpness,
                         GroundMaxSpeed = authoring.GroundMaxSpeed,
-                        GroundedMovementSharpness = authoring.GroundedMovementSharpness,
+                        GroundedAcceleration = authoring.GroundedMovementSharpness,
                         AirAcceleration = authoring.AirAcceleration,
                         AirMaxSpeed = authoring.AirMaxSpeed,
                         AirDrag = authoring.AirDrag,
-                        JumpSpeed = authoring.JumpSpeed,
+                        JumpForce = authoring.JumpSpeed,
                         Gravity = authoring.Gravity,
                         PreventAirAccelerationAgainstUngroundedHits =
                             authoring.PreventAirAccelerationAgainstUngroundedHits,

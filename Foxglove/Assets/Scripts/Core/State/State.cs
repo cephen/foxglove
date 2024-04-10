@@ -19,6 +19,11 @@ namespace Foxglove.Core.State {
             EnteredAt = 0;
         }
 
+        /// <summary>
+        /// Set Previous to Current
+        /// Set Current to Next
+        /// Set EnteredAt to current tick
+        /// </summary>
         public void Set(T next, Tick tick) => (Previous, Current, EnteredAt) = (Current, next, tick);
 
         // Allow CurrentState<T> to be converted to T without an explicit cast

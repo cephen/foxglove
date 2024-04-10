@@ -162,7 +162,7 @@ namespace Foxglove.Character {
             CharacterControlUtilities.StandardGroundMove_Interpolated(
                 ref characterBody.RelativeVelocity,
                 targetVelocity,
-                characterSettings.GroundedMovementSharpness,
+                characterSettings.GroundedAcceleration,
                 deltaTime,
                 characterBody.GroundingUp,
                 characterBody.GroundHit.Normal
@@ -172,7 +172,7 @@ namespace Foxglove.Character {
             if (characterController.Jump)
                 CharacterControlUtilities.StandardJump(
                     ref characterBody,
-                    characterBody.GroundingUp * characterSettings.JumpSpeed, // jump velocity
+                    characterBody.GroundingUp * characterSettings.JumpForce, // jump velocity
                     true, // reset velocity before jump?
                     characterBody.GroundingUp // if resetting velocity,  provide up direction
                 );

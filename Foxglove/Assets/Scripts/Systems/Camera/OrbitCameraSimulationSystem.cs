@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using Foxglove.Core;
+using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Collections;
 using Unity.Entities;

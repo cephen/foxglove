@@ -1,5 +1,6 @@
 using Foxglove.Camera;
 using Foxglove.Character;
+using Foxglove.Core;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.CharacterController;

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace BlueRaja {
+namespace Foxglove.Core.BlueRaja {
     /// <summary>
     /// A copy of FastPriorityQueue which is also stable - that is, when two nodes are enqueued with the same priority, they
     /// are always dequeued in the same order.

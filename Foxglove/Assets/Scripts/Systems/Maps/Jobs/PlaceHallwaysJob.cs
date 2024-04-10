@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using BlueRaja;
+using Foxglove.Core.BlueRaja;
 using Foxglove.Maps.Delaunay;
 using Unity.Collections;
 using Unity.Jobs;
@@ -19,6 +19,9 @@ namespace Foxglove.Maps.Jobs {
         internal float Cost;
     }
 
+    /// <summary>
+    /// Incomplete job that will eventually be used to set hallway cells on the map.
+    /// </summary>
     internal struct PlaceHallwaysJob : IJob {
         internal NativeArray<Edge>.ReadOnly Edges;
         internal NativeArray<Room>.ReadOnly Rooms;

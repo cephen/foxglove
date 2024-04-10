@@ -1,4 +1,4 @@
-﻿namespace BlueRaja {
+﻿namespace Foxglove.Core.BlueRaja {
     public class StablePriorityQueueNode : FastPriorityQueueNode {
         /// <summary>
         /// Represents the order the node was inserted in

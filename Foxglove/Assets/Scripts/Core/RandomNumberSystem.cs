@@ -3,14 +3,14 @@ using Unity.Burst;
 using Unity.Entities;
 using Random = Unity.Mathematics.Random;
 
-namespace Foxglove {
+namespace Foxglove.Core {
     public struct RandomNumberGenerators : IComponentData {
         public readonly uint Seed;
-        public Random Base;
+        public Random Random;
 
         public RandomNumberGenerators(uint seed) {
             Seed = seed;
-            Base = new Random(Seed);
+            Random = new Random(Seed);
         }
     }
 

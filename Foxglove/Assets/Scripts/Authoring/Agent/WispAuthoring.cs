@@ -13,7 +13,7 @@ namespace Foxglove.Authoring.Agent {
         public uint MaxAttackCooldown = 50 * 10; // 10 seconds
 
         /// <summary>
-        /// When a GameObject is instantiated, any monobehaviours attached to it that have a baker
+        /// When a GameObject is instantiated, any MonoBehaviours attached to it that have a baker
         /// will be converted into an Entity. This baker handles the conversion of the Wisp prefab into a Wisp Entity.
         /// </summary>
         private sealed class Baker : Baker<WispAuthoring> {

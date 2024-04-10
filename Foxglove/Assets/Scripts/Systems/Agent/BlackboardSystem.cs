@@ -1,3 +1,4 @@
+using Foxglove.Core;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Entities;
@@ -19,11 +20,15 @@ namespace Foxglove.Agent {
         public void OnUpdate(ref SystemState state) {
             ref Blackboard blackboard = ref SystemAPI.GetComponentRW<Blackboard>(state.SystemHandle).ValueRW;
 
-            if (!SystemAPI.TryGetSingletonEntity<PlayerCharacterTag>(out Entity player)) return;
-            blackboard.PlayerEntity = player;
+            // If there is exactly one player in the world
+            if (SystemAPI.TryGetSingletonEntity<PlayerCharacterTag>(out Entity player)
+                // And the currently tracked player is not that player
+                && !SystemAPI.Exists(blackboard.PlayerEntity))
+                // Track that player
+                blackboard.PlayerEntity = player;
 
-            if (SystemAPI.HasComponent<LocalToWorld>(player))
-                blackboard.PlayerPosition = SystemAPI.GetComponent<LocalToWorld>(player).Position;
+            if (SystemAPI.HasComponent<LocalToWorld>(blackboard.PlayerEntity))
+                blackboard.PlayerPosition = SystemAPI.GetComponent<LocalToWorld>(blackboard.PlayerEntity).Position;
         }
     }
 }

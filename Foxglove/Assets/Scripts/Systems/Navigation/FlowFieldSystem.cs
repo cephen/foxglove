@@ -1,4 +1,5 @@
 using Foxglove.Agent;
+using Foxglove.Core;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;

@@ -1,7 +1,7 @@
 using Unity.Burst;
 using Unity.Entities;
 
-namespace Foxglove {
+namespace Foxglove.Core {
     /// <summary>
     /// This system tracks how many fixed updates have happened since the start of the game
     /// </summary>

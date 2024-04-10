@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace BlueRaja {
+namespace Foxglove.Core.BlueRaja {
     /// <summary>
     /// A copy of StablePriorityQueue which also has generic priority-type
     /// </summary>
