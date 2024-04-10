@@ -143,6 +143,7 @@ namespace Foxglove.Maps {
                     _filterEdges = new FilterEdgesJob {
                         Start = edges.ElementAt(0).A,
                         Edges = edges.AsNativeArray().AsReadOnly(),
+                        Random = new Random(_random.NextUInt()),
                         Results = new NativeList<Edge>(Allocator.TempJob),
                     };
 
@@ -223,24 +224,9 @@ namespace Foxglove.Maps {
                     if (!ecsState.Dependency.IsCompleted) return; // wait for FilterEdgesJob to complete
 
                     Log.Debug("[MapGenerator] FilterEdgesJob finished, extracting edges");
-                    DynamicBuffer<Edge> allEdges = SystemAPI.GetBuffer<Edge>(_mapRoot);
-                    NativeList<Edge> selectedEdges = _filterEdges.Results;
-
-                    NativeHashSet<Edge> remainingEdges = new(allEdges.Length, Allocator.Temp);
-                    foreach (Edge edge in allEdges) remainingEdges.Add(edge);
-
-                    Log.Debug("[MapGenerator] Add additional connections");
-                    remainingEdges.ExceptWith(selectedEdges.AsArray()); // remove selected edges
-                    // add 12.5% of remaining edges back
-                    foreach (Edge edge in remainingEdges) {
-                        if (_random.NextDouble() < 0.125)
-                            selectedEdges.Add(edge);
-                    }
-
-                    Log.Debug("[MapGenerator] Storing Edges in map buffer");
-                    allEdges.Clear();
-                    allEdges.CopyFrom(selectedEdges.AsArray());
-                    remainingEdges.Dispose();
+                    CreateCommandBuffer(ref ecsState)
+                        .SetBuffer<Edge>(_mapRoot)
+                        .CopyFrom(_filterEdges.Results.AsArray());
 
                     Log.Debug("[MapGenerator] Transitioning to PlaceHallways State");
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceHallways);

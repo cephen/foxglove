@@ -11,10 +11,16 @@ namespace Foxglove.Maps.Jobs {
     internal struct FilterEdgesJob : IJob {
         [ReadOnly] internal NativeArray<Edge>.ReadOnly Edges;
         [ReadOnly] internal Vertex Start;
+        internal Random Random;
 
         internal NativeList<Edge> Results;
 
         public void Execute() {
+            FilterEdges();
+            RestoreSomeEdges();
+        }
+
+        private void FilterEdges() {
             var openSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
             var closedSet = new NativeHashSet<Vertex>(128, Allocator.Temp);
             var chosenEdges = new NativeHashSet<Edge>(128, Allocator.Temp);
@@ -60,6 +66,20 @@ namespace Foxglove.Maps.Jobs {
             openSet.Dispose();
             closedSet.Dispose();
             chosenEdges.Dispose();
+        }
+
+        private void RestoreSomeEdges() {
+            NativeHashSet<Edge> remainingEdges = new(Results.Length, Allocator.Temp);
+            foreach (Edge edge in Edges) remainingEdges.Add(edge);
+
+            remainingEdges.ExceptWith(Results.AsArray());
+
+            foreach (Edge edge in remainingEdges) {
+                if (Random.NextDouble() < 0.125)
+                    Results.Add(edge);
+            }
+
+            remainingEdges.Dispose();
         }
     }
 }
