@@ -55,6 +55,7 @@ namespace Foxglove.Core {
     /// Checkpoints are updated once per second
     /// This group is also used to update the flow field that wisps use to navigate towards the player
     /// </summary>
+    [UpdateInGroup(typeof(LateSimulationSystemGroup), OrderLast = true)]
     public sealed partial class CheckpointUpdateGroup : ComponentSystemGroup {
         public const int UPDATE_RATE = 1000;
         public CheckpointUpdateGroup() => RateManager = new RateUtils.VariableRateManager(UPDATE_RATE, false);
