@@ -1,10 +1,11 @@
 ﻿#if UNITY_EDITOR
+using Foxglove.Maps;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Maps.Editor {
+namespace Foxglove.Editor.Maps {
     [BurstCompile]
     internal partial struct DrawRoomDebugLinesJob : IJobEntity {
         internal float DrawTime;

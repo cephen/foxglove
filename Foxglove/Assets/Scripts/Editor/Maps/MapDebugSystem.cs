@@ -1,11 +1,12 @@
 ﻿#if UNITY_EDITOR
+using Foxglove.Maps;
 using Foxglove.Maps.Delaunay;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
 
-namespace Foxglove.Maps.Editor {
+namespace Foxglove.Editor.Maps {
     [BurstCompile]
     internal partial struct MapDebugSystem : ISystem {
         private EntityQuery _mapQuery;

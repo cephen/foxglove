@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Mathematics;
 
-namespace Foxglove.Maps.Graphs {
+namespace Foxglove.Maps.Delaunay {
     public struct Vertex : IEquatable<Vertex> {
         public float2 Position;
 

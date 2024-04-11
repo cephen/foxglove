@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Maps.Editor {
+namespace Foxglove.Editor.Maps {
     [BurstCompile]
     internal partial struct DrawEdgeDebugLinesJob : IJobEntity {
         public float DeltaTime;

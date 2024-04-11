@@ -1,5 +1,4 @@
 ﻿using System;
-using Foxglove.Maps.Graphs;
 using Unity.Mathematics;
 
 namespace Foxglove.Maps.Delaunay {

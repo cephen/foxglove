@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Foxglove.Editor {
+namespace Foxglove.Editor.Navigation {
     /// <summary>
     /// This system paints debug lines for the flow field.
     /// A green box is drawn for the borders of the field,
