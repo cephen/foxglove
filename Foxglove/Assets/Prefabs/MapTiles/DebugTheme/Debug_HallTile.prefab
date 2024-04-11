@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8520021735439466511}
   - component: {fileID: 4841883934272582333}
   m_Layer: 0
-  m_Name: Room
+  m_Name: Debug_HallTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -115,7 +115,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: aeda0bba7598d224fb3fc97db8fa3e35, type: 2}
+  - {fileID: 2100000, guid: ec4e7a6270d9b6a408cf58b6172ab78e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
