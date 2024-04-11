@@ -300,24 +300,20 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Done initializing");
                     break;
                 case GeneratorState.PlaceRooms:
-                    Log.Debug("[MapGenerator] Done placing rooms");
-
-                    Log.Debug("[MapGenerator] Disposing GenerateRoomsJob buffers");
+                    Log.Debug("[MapGenerator] Done placing rooms disposing GenerateRoomsJob buffers");
                     _generateRooms.Rooms.Dispose(ecsState.Dependency);
 
                     break;
                 case GeneratorState.Triangulate:
-                    Log.Debug("[MapGenerator] Done building room graph");
-
-                    Log.Debug("[MapGenerator] Disposing TriangulateMapJob buffers");
+                    Log.Debug("[MapGenerator] Done triangulating map, disposing TriangulateMapJob buffers");
                     _triangulateMap.Edges.Dispose(ecsState.Dependency);
 
                     return;
                 case GeneratorState.FilterEdges:
-                    Log.Debug("[MapGenerator] Done filtering edges");
-
-                    Log.Debug("[MapGenerator] Disposing FilterEdgesJob buffers");
+                    Log.Debug("[MapGenerator] Done filtering edges disposing FilterEdgesJob buffers");
                     _filterEdges.Results.Dispose(ecsState.Dependency);
+
+                    Log.Debug("[MapGenerator] Done building map graph");
 
                     break;
                 case GeneratorState.SetMapCells:
