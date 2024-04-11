@@ -22,10 +22,19 @@ namespace Foxglove.Maps.Jobs {
 
         public void Execute(int i) {
             int2 cellCoord = IndexToCoord(i);
+            var cellType = CellType.None;
+
             foreach (Edge edge in Hallways) {
                 if (!EdgeIntersectsCell(edge, cellCoord)) continue;
-                Results[i] = CellType.Hallway;
+                cellType = CellType.Hallway;
             }
+
+            foreach (Room room in Rooms) {
+                if (!CellIsInRoom(room, cellCoord)) continue;
+                cellType = CellType.Room;
+            }
+
+            Results[i] = cellType;
         }
 
         private readonly int2 IndexToCoord(in int i) => new(i % Config.Diameter, i / Config.Diameter);
@@ -62,6 +71,14 @@ namespace Foxglove.Maps.Jobs {
 
             return borders;
         }
+
+        private bool CellIsInRoom(in Room room, in int2 cellCoordinate) {
+            int2 southWest = room.Position;
+            int2 northEast = room.Position + room.Size;
+            bool xInRange = cellCoordinate.x >= southWest.x && cellCoordinate.x <= northEast.x;
+            bool yInRange = cellCoordinate.y >= southWest.y && cellCoordinate.y <= northEast.y;
+            return xInRange && yInRange;
+        }
     }
 
     internal readonly struct LineSegment {
@@ -76,7 +93,7 @@ namespace Foxglove.Maps.Jobs {
         /// <summary>
         /// Source: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line
         /// </summary>
-        internal bool Intersects(LineSegment other) {
+        internal bool Intersects(in LineSegment other) {
             float x1 = _start.x;
             float y1 = _start.y;
             float x2 = _end.x;
