@@ -66,7 +66,7 @@ namespace Foxglove.Maps {
             ecsState.RequireForUpdate<Tick>();
 
             ecsState.EntityManager.AddComponent<GenerateMapRequest>(ecsState.SystemHandle);
-            ecsState.EntityManager.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, true);
+            ecsState.EntityManager.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
 
             StateMachine.Init(ecsState, GeneratorState.Idle);
 
