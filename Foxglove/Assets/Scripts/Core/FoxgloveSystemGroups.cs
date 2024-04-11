@@ -56,7 +56,8 @@ namespace Foxglove.Core {
     /// This group is also used to update the flow field that wisps use to navigate towards the player
     /// </summary>
     public sealed partial class CheckpointUpdateGroup : ComponentSystemGroup {
-        public CheckpointUpdateGroup() => RateManager = new RateUtils.VariableRateManager(1000, false);
+        public const int UPDATE_RATE = 1000;
+        public CheckpointUpdateGroup() => RateManager = new RateUtils.VariableRateManager(UPDATE_RATE, false);
     }
 
 #endregion
