@@ -19,7 +19,7 @@ namespace Foxglove.Maps {
         PlaceRooms,
         Triangulate,
         FilterEdges,
-        PlaceHallways,
+        SetMapCells,
         Spawning,
         Cleanup,
     }
@@ -51,6 +51,7 @@ namespace Foxglove.Maps {
         private GenerateRoomsJob _generateRooms;
         private TriangulateMapJob _triangulateMap;
         private FilterEdgesJob _filterEdges;
+        private SetMapCells _setMapCells;
 
         /// <summary>
         /// Called by the ECS framework when the system is created.
@@ -163,8 +164,20 @@ namespace Foxglove.Maps {
                     ecsState.Dependency = _filterEdges.Schedule(ecsState.Dependency);
 
                     return;
-                case GeneratorState.PlaceHallways:
-                    Log.Debug("[MapGenerator] Starting hallway optimization");
+                case GeneratorState.SetMapCells:
+                    Log.Debug("[MapGenerator] Configuring SetMapCellsJob");
+                    var config = SystemAPI.GetComponent<MapConfig>(_mapRoot);
+                    int cellCount = config.Diameter * config.Diameter;
+
+                    _setMapCells = new SetMapCells {
+                        Config = config,
+                        Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
+                        Hallways = SystemAPI.GetBuffer<Edge>(_mapRoot).AsNativeArray().AsReadOnly(),
+                        Results = new NativeArray<MapCell>(cellCount, Allocator.TempJob),
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling SetMapCellsJob");
+                    ecsState.Dependency = _setMapCells.Schedule(cellCount, 1024, ecsState.Dependency);
 
                     return;
                 case GeneratorState.Spawning:
@@ -241,11 +254,16 @@ namespace Foxglove.Maps {
                         .CopyFrom(_filterEdges.Results.AsArray());
 
                     Log.Debug("[MapGenerator] Transitioning to PlaceHallways State");
-                    StateMachine.SetNextState(ecsState, GeneratorState.PlaceHallways);
+                    StateMachine.SetNextState(ecsState, GeneratorState.SetMapCells);
 
                     return;
-                case GeneratorState.PlaceHallways:
+                case GeneratorState.SetMapCells:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for PlaceHallwaysJob to complete
+
+                    Log.Debug("[MapGenerator] SetMapCellsJob finished, extracting cells");
+                    CreateCommandBuffer(ref ecsState)
+                        .SetBuffer<MapCell>(_mapRoot)
+                        .CopyFrom(_setMapCells.Results);
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Spawning);
 
@@ -302,8 +320,10 @@ namespace Foxglove.Maps {
                     _filterEdges.Results.Dispose(ecsState.Dependency);
 
                     break;
-                case GeneratorState.PlaceHallways:
-                    Log.Debug("[MapGenerator] Done pathfinding hallways");
+                case GeneratorState.SetMapCells:
+                    Log.Debug("[MapGenerator] Done pathfinding hallways disposing SetMapCellsJob buffers");
+                    _setMapCells.Results.Dispose(ecsState.Dependency);
+
                     break;
                 case GeneratorState.Spawning:
                     Log.Debug("[MapGenerator] Done spawning map objects");
