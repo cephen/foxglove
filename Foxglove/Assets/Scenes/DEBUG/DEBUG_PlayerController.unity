@@ -171,14 +171,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7568817337597995143, guid: 492a184cc1501fe4da86d69b5eddc366, type: 3}
-      propertyPath: MaxPitchAngle
-      value: 80
-      objectReference: {fileID: 0}
-    - target: {fileID: 7568817337597995143, guid: 492a184cc1501fe4da86d69b5eddc366, type: 3}
-      propertyPath: MinPitchAngle
-      value: -30
-      objectReference: {fileID: 0}
     - target: {fileID: 7568817337597995144, guid: 492a184cc1501fe4da86d69b5eddc366, type: 3}
       propertyPath: m_Name
       value: OrbitCamera
