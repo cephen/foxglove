@@ -42,7 +42,7 @@ namespace Foxglove.Maps.Jobs {
         private readonly bool EdgeIntersectsCell(in Edge edge, in int2 cellCoordinate) {
             var hallway = new LineSegment(edge.A, edge.B);
 
-            NativeArray<LineSegment> borders = CellBorders(cellCoordinate);
+            NativeArray<LineSegment> borders = GetBorders(cellCoordinate);
             var intersects = false;
 
             foreach (LineSegment border in borders) {
@@ -56,7 +56,7 @@ namespace Foxglove.Maps.Jobs {
             return intersects;
         }
 
-        private readonly NativeArray<LineSegment> CellBorders(in int2 cellCoordinate) {
+        private readonly NativeArray<LineSegment> GetBorders(in int2 cellCoordinate) {
             var borders = new NativeArray<LineSegment>(4, Allocator.Temp);
 
             float2 southWest = cellCoordinate;
