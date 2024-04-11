@@ -1,6 +1,9 @@
-﻿using Unity.Entities;
+﻿using Unity.Burst;
+using Unity.Entities;
+using Unity.Mathematics;
 
 namespace Foxglove.Maps {
+    [BurstCompile]
     public readonly struct MapConfig : IComponentData {
         public readonly uint Seed;
         public readonly int RoomsToGenerate;
@@ -15,6 +18,19 @@ namespace Foxglove.Maps {
             MinRoomSize = minRoomSize;
             MaxRoomSize = maxRoomSize;
             Radius = radius;
+        }
+
+        [BurstCompile]
+        public float3 PositionFromIndex(in int index) {
+            int2 coords = new int2(index % Diameter, index / Diameter) - Radius;
+            var to3d = new float3(coords.x, 0f, coords.y);
+            return to3d;
+        }
+
+        [BurstCompile]
+        public int IndexFromPosition(in float3 position) {
+            int2 coords = (int2)math.floor(position.xz) + Radius;
+            return coords.x + coords.y * Diameter;
         }
     }
 }

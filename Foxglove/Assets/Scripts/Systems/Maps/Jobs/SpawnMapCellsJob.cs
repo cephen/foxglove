@@ -19,16 +19,10 @@ namespace Foxglove.Maps.Jobs {
         public void Execute(int index) {
             Entity e = Commands.CreateEntity(_threadIndex);
             LocalTransform transform = LocalTransform
-                .FromPosition(PositionFromIndex(index))
+                .FromPosition(Config.PositionFromIndex(index))
                 .WithRotation(quaternion.AxisAngle(math.right(), 90));
             Commands.AddComponent(_threadIndex, e, new Parent { Value = MapRoot });
             Commands.AddComponent(_threadIndex, e, transform);
-        }
-
-        private readonly float3 PositionFromIndex(int index) {
-            int2 coords = new int2(index % Config.Diameter, index / Config.Diameter) - Config.Radius;
-            var to3d = new float3(coords.x, 0f, coords.y);
-            return to3d;
         }
     }
 }
