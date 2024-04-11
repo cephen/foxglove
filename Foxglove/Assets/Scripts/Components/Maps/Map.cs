@@ -1,14 +1,11 @@
-﻿using Unity.Burst;
-using Unity.Entities;
+﻿using Unity.Entities;
 
 namespace Foxglove.Maps {
     public struct Map : IComponentData { }
 
-    [BurstCompile]
-    public readonly partial struct MapAspect : IAspect {
-        public readonly Entity Entity;
-        public readonly RefRW<Map> Map;
-        public readonly DynamicBuffer<Room> Rooms;
-        public readonly DynamicBuffer<MapCell> Cells;
+    public readonly struct MapTheme : IComponentData {
+        public Entity RoomTile { get; init; }
+        public Entity HallTile { get; init; }
+        public Entity WallTile { get; init; }
     }
 }
