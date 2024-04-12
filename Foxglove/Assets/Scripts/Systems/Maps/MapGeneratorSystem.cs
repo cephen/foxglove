@@ -203,17 +203,11 @@ namespace Foxglove.Maps {
 
             switch (state.Current) {
                 case GeneratorState.Idle:
-                    uint now = SystemAPI.GetSingleton<Tick>();
-                    uint enteredAt = state.EnteredAt;
-                    uint ticksInState = now - enteredAt;
-
                     bool requested = SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle);
+                    if (!requested) return;
 
-                    // If map generation specifically requested or if Idle for 10 seconds
-                    if (requested || ticksInState > 500) {
-                        Log.Debug("[MapGenerator] Scheduling map generation");
-                        StateMachine.SetNextState(ecsState, GeneratorState.Initialize);
-                    }
+                    Log.Debug("[MapGenerator] Scheduling map generation");
+                    StateMachine.SetNextState(ecsState, GeneratorState.Initialize);
 
                     return;
                 case GeneratorState.Initialize:
