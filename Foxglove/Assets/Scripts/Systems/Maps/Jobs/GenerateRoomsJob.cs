@@ -16,7 +16,7 @@ namespace Foxglove.Maps.Jobs {
             _random = new Random(Config.Seed);
 
             while (Rooms.Length < Config.RoomsToGenerate) {
-                int2 position = _random.NextInt2(-Config.Radius, Config.Radius - Config.MaxRoomSize);
+                int2 position = _random.NextInt2(-Config.Radius + 1, Config.Radius - Config.MaxRoomSize - 1);
                 int2 roomSize = _random.NextInt2(Config.MinRoomSize, Config.MaxRoomSize);
 
                 Room proposed = new() {
