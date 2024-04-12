@@ -356,6 +356,7 @@ namespace Foxglove.Maps {
 
             ecsState.EntityManager.AddComponent<Map>(_mapRoot);
             ecsState.EntityManager.AddComponent<MapConfig>(_mapRoot);
+            ecsState.EntityManager.AddComponentData(_mapRoot, LocalTransform.FromScale(1));
             ecsState.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
 
