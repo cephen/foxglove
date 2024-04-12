@@ -117,6 +117,14 @@ namespace Foxglove.Maps {
                     uint seed = _random.NextUInt();
                     ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
 
+                    if (SystemAPI.HasBuffer<Child>(_mapRoot)) {
+                        var children = SystemAPI.GetBuffer<Child>(_mapRoot).Reinterpret<Entity>().AsNativeArray();
+                        if (children.Length > 0) {
+                            Log.Debug("[MapGenerator] Despawning map cells");
+                            CreateCommandBuffer(ref ecsState).DestroyEntity(children);
+                        }
+                    }
+
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
 
