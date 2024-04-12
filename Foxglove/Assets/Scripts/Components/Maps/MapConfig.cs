@@ -21,16 +21,21 @@ namespace Foxglove.Maps {
         }
 
         [BurstCompile]
+        public int2 CoordsFromIndex(in int index) => new int2(index % Diameter, index / Diameter) - Radius;
+
+        [BurstCompile]
+        public int IndexFromCoords(in int2 coords) => coords.x + Radius + (coords.y + Radius) * Diameter;
+
+        [BurstCompile]
         public float3 PositionFromIndex(in int index) {
-            int2 coords = new int2(index % Diameter, index / Diameter) - Radius;
-            var to3d = new float3(coords.x, 0f, coords.y);
-            return to3d;
+            int2 coords = CoordsFromIndex(index);
+            return new float3(coords.x, 0, coords.y);
         }
 
         [BurstCompile]
         public int IndexFromPosition(in float3 position) {
             int2 coords = (int2)math.floor(position.xz) + Radius;
-            return coords.x + coords.y * Diameter;
+            return IndexFromCoords(coords);
         }
     }
 }

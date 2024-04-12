@@ -21,7 +21,7 @@ namespace Foxglove.Maps.Jobs {
         }
 
         public void Execute(int i) {
-            int2 cellCoord = IndexToCoord(i);
+            int2 cellCoord = Config.CoordsFromIndex(i); ;
             var cellType = CellType.None;
 
             foreach (Edge edge in Hallways) {
@@ -37,8 +37,6 @@ namespace Foxglove.Maps.Jobs {
             Results[i] = cellType;
         }
 
-        private readonly int2 IndexToCoord(in int i) => new(i % Config.Diameter, i / Config.Diameter);
-
         private readonly bool EdgeIntersectsCell(in Edge edge, in int2 cellCoordinate) {
             var hallway = new LineSegment(edge.A, edge.B);
 
@@ -46,10 +44,10 @@ namespace Foxglove.Maps.Jobs {
             var intersects = false;
 
             foreach (LineSegment border in borders) {
-                if (!hallway.Intersects(border)) continue;
-
-                intersects = true;
-                break;
+                if (hallway.Intersects(border)) {
+                    intersects = true;
+                    break;
+                }
             }
 
             borders.Dispose();
