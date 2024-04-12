@@ -8,9 +8,9 @@ namespace Foxglove.Authoring.Maps {
 
         private sealed class Baker : Baker<MapThemeAuthoring> {
             public override void Bake(MapThemeAuthoring authoring) {
-                Entity room = GetEntity(authoring.Config.RoomTile, TransformUsageFlags.None);
-                Entity hall = GetEntity(authoring.Config.HallTile, TransformUsageFlags.None);
-                Entity wall = GetEntity(authoring.Config.WallTile, TransformUsageFlags.None);
+                Entity room = GetEntity(authoring.Config.RoomTile, TransformUsageFlags.Renderable);
+                Entity hall = GetEntity(authoring.Config.HallTile, TransformUsageFlags.Renderable);
+                Entity wall = GetEntity(authoring.Config.WallTile, TransformUsageFlags.Renderable);
                 Entity store = GetEntity(TransformUsageFlags.None);
                 AddComponent(
                     store,
