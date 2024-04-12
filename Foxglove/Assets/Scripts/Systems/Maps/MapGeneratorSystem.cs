@@ -52,18 +52,20 @@ namespace Foxglove.Maps {
         private TriangulateMapJob _triangulateMap;
         private FilterEdgesJob _filterEdges;
         private SetMapCells _setMapCells;
+        private SpawnMapCellsJob _spawnMapCells;
 
         /// <summary>
         /// Called by the ECS framework when the system is created.
         /// Used to define data dependencies, and to add components to the system.
         /// </summary>
         public void OnCreate(ref SystemState ecsState) {
-            ecsState.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             var initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
             Log.Debug("[MapGenerator] Initial seed: {seed}", initialSeed);
             _random = new Random(initialSeed);
 
             ecsState.RequireForUpdate<Tick>();
+            ecsState.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            ecsState.RequireForUpdate<MapTheme>();
 
             ecsState.EntityManager.AddComponent<GenerateMapRequest>(ecsState.SystemHandle);
             ecsState.EntityManager.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
@@ -181,7 +183,20 @@ namespace Foxglove.Maps {
 
                     return;
                 case GeneratorState.Spawning:
-                    Log.Debug("[MapGenerator] Spawning map objects");
+                    Log.Debug("[MapGenerator] Configuring SpawnMapCellsJob");
+
+                    NativeArray<MapCell>.ReadOnly mapCells = SystemAPI.GetBuffer<MapCell>(_mapRoot).AsNativeArray().AsReadOnly();
+                    _spawnMapCells = new SpawnMapCellsJob {
+                        Commands = CreateCommandBuffer(ref ecsState).AsParallelWriter(),
+                        MapRoot = _mapRoot,
+                        Theme = SystemAPI.GetSingleton<MapTheme>(),
+                        Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
+                        Cells = mapCells,
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling SpawnMapCellsJob");
+                    ecsState.Dependency = _spawnMapCells.Schedule(mapCells.Length, 1024, ecsState.Dependency);
+
                     return;
                 case GeneratorState.Cleanup:
                     Log.Debug("[MapGenerator] Cleaning up");
@@ -264,6 +279,9 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.Spawning:
                     if (!ecsState.Dependency.IsCompleted) return; // wait for SpawnMapObjectsJob to complete
+
+                    Log.Debug("[MapGenerator] SpawnMapObjectsJob finished");
+                    ecsState.Dependency.Complete();
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Cleanup);
 
