@@ -84,7 +84,7 @@ namespace Foxglove.Maps.Jobs {
             remainingEdges.ExceptWith(Results.AsArray());
 
             foreach (Edge edge in remainingEdges) {
-                if (Random.NextDouble() < 0.125)
+                if (Random.NextDouble() < 1d / 16)
                     Results.Add(edge);
             }
 
