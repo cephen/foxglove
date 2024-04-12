@@ -11,11 +11,12 @@ using Unity.Transforms;
 namespace Foxglove.Maps.Jobs {
     [BurstCompile]
     public struct SpawnMapCellsJob : IJobParallelFor {
+        [ReadOnly] internal Entity MapRoot;
+        [ReadOnly] internal MapTheme Theme;
+        [ReadOnly] internal MapConfig Config;
         internal NativeArray<MapCell>.ReadOnly Cells;
+
         internal EntityCommandBuffer.ParallelWriter Commands;
-        internal Entity MapRoot;
-        internal MapConfig Config;
-        internal MapTheme Theme;
 
         [NativeSetThreadIndex] private int _threadIndex;
 

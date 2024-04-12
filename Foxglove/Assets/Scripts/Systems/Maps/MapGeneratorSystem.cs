@@ -188,11 +188,11 @@ namespace Foxglove.Maps {
 
                     NativeArray<MapCell>.ReadOnly mapCells = SystemAPI.GetBuffer<MapCell>(_mapRoot).AsNativeArray().AsReadOnly();
                     _spawnMapCells = new SpawnMapCellsJob {
-                        Commands = CreateCommandBuffer(ref ecsState).AsParallelWriter(),
                         MapRoot = _mapRoot,
                         Theme = SystemAPI.GetSingleton<MapTheme>(),
                         Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
                         Cells = mapCells,
+                        Commands = CreateCommandBuffer(ref ecsState).AsParallelWriter(),
                     };
 
                     Log.Debug("[MapGenerator] Scheduling SpawnMapCellsJob");
