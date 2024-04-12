@@ -118,13 +118,6 @@ namespace Foxglove.Maps {
                     ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
 
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
-
-                    Log.Debug("[MapGenerator] Clearing map buffers");
-                    SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
-                    SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
-                    SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
-
-                    Log.Debug("[MapGenerator] Transitioning to PlaceRooms State");
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
 
                     break;
@@ -200,6 +193,13 @@ namespace Foxglove.Maps {
                     return;
                 case GeneratorState.Cleanup:
                     Log.Debug("[MapGenerator] Cleaning up");
+
+                    Log.Debug("[MapGenerator] Clearing map buffers");
+                    SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
+                    SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
+                    SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
+                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
+
                     StateMachine.SetNextState(ecsState, GeneratorState.Idle);
                     return;
                 default:
@@ -287,12 +287,6 @@ namespace Foxglove.Maps {
 
                     return;
                 case GeneratorState.Cleanup:
-                    if (!ecsState.Dependency.IsCompleted) return;
-
-                    Log.Debug("[MapGenerator] Cleaning up");
-                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
-
-                    StateMachine.SetNextState(ecsState, GeneratorState.Idle);
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -337,6 +331,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Done spawning map objects");
                     break;
                 case GeneratorState.Cleanup:
+                    Log.Debug("[MapGenerator] Done cleaning up");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
