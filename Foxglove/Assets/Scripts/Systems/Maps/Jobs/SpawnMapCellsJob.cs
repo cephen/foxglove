@@ -1,5 +1,3 @@
-using System;
-using System.Numerics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -48,15 +46,19 @@ namespace Foxglove.Maps.Jobs {
 
                 CellType neighbourType = Cells[Config.IndexFromCoords(neighbour)].Type;
 
-                if (neighbourType is not CellType.None) {
-                    // Walls don't need to be rotated bc they're cubes
-                    LocalTransform transform = LocalTransform.FromPosition(Config.PositionFromIndex(index));
+                // Search for a Room or Hallway tile in neighbours
+                if (neighbourType is CellType.None) continue;
 
-                    Entity entity = Commands.Instantiate(_threadIndex, Theme.WallTile);
-                    Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
-                    Commands.SetComponent(_threadIndex, entity, transform);
-                    break;
-                }
+
+                // Spawn a wall prefab
+                Entity entity = Commands.Instantiate(_threadIndex, Theme.WallTile);
+                // Make the wall a child of the map root
+                Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
+
+                // Set the transform of the wall
+                LocalTransform transform = LocalTransform.FromPosition(Config.PositionFromIndex(index));
+                Commands.SetComponent(_threadIndex, entity, transform);
+                break;
             }
 
             neighbours.Dispose();
@@ -72,7 +74,6 @@ namespace Foxglove.Maps.Jobs {
             Entity entity = Commands.Instantiate(_threadIndex, prefab);
             Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
             Commands.SetComponent(_threadIndex, entity, transform);
-
         }
 
         private readonly NativeArray<int2> NeighboursOf(in int2 position) {
