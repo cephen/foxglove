@@ -65,14 +65,8 @@ namespace Foxglove.Agent {
 
 
             private readonly void Execute(ref CharacterController controller, in LocalToWorld transform) {
-                float2 sampledDirection = Samples[IndexFromPosition(transform.Position)].Direction;
-                controller.MoveVector.xz = math.normalizesafe(sampledDirection);
-            }
-
-            private readonly int IndexFromPosition(in float3 position) {
-                var worldSpaceCoord = (int2)math.floor(position.xz);
-                int2 fieldSpaceCoord = worldSpaceCoord - Config.SouthWestCorner;
-                return fieldSpaceCoord.x + fieldSpaceCoord.y * Config.FieldSize.x;
+                int i = Config.IndexFromWorldPosition(transform.Position);
+                controller.MoveVector.xz = math.normalizesafe(Samples[i].Direction);
             }
         }
     }
