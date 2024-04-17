@@ -19,6 +19,8 @@ namespace Foxglove.Core {
 
     public struct Tick : IComponentData {
         public uint Value;
+
+        // Allow Ticks to be implicitly converted to and from uint
         public static implicit operator uint(Tick t) => t.Value;
         public static implicit operator Tick(uint t) => new() { Value = t };
     }

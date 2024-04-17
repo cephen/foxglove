@@ -1,6 +1,12 @@
 using Unity.Entities;
 using Unity.Transforms;
 
+/*
+ * This file contains definitions for system groups, each of which manages the update timing for systems within it.
+ * All systems run on the main thread, and the update order is recalculated each frame
+ * based on the data requirements of systems, and based on any [UpdateBefore] or [UpdateAfter] attributes placed on systems or groups.
+ * Groups can be placed within other groups, allowing for nested update hierarchies.
+ */
 namespace Foxglove.Core {
 #region Variable Update Rate
 
@@ -54,6 +60,8 @@ namespace Foxglove.Core {
     /// <summary>
     /// Checkpoints are updated once per second
     /// This group is also used to update the flow field that wisps use to navigate towards the player
+    /// Updating this group in LateSimulationSystemGroup allows systems within the group to have access
+    /// to fully updated Transforms and Physics Bodies.
     /// </summary>
     [UpdateInGroup(typeof(LateSimulationSystemGroup), OrderLast = true)]
     public sealed partial class CheckpointUpdateGroup : ComponentSystemGroup {

@@ -7,7 +7,7 @@ namespace Foxglove.Agent {
             Spawn,
             Patrol,
             Attack,
-            Die,
+            Dying,
             Despawn,
         }
 

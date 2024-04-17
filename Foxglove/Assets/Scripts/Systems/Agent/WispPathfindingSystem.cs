@@ -4,10 +4,14 @@ using Foxglove.Navigation;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Logging;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Agent {
+    /// <summary>
+    /// This system manages the pathfinding for wisps by scheduling a <see cref="WispPathfindingJob" />
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(AgentSimulationGroup))]
     internal partial struct WispPathfindingSystem : ISystem {
@@ -35,8 +39,15 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // GetSingletonEntity requires exactly one entity matches the query
+            if (_flowFieldQuery.CalculateEntityCount() != 1) {
+                Log.Error("[WispPathfindingSystem] FlowField singleton not found, aborting");
+                return;
+            }
+
             Entity flowFieldEntity = _flowFieldQuery.GetSingletonEntity();
 
+            // Configure and schedule pathfinding job
             state.Dependency = new WispPathfindingJob {
                 Config = SystemAPI.GetComponent<FlowField>(flowFieldEntity),
                 Samples = SystemAPI.GetBuffer<FlowFieldSample>(flowFieldEntity).AsNativeArray().AsReadOnly(),

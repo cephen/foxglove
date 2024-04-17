@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Foxglove.Character;
 using Unity.Burst;
 using Unity.Collections;
@@ -35,8 +35,9 @@ namespace Foxglove.Agent {
 
             // If the wisp has less than 0 health, but is not yet marked as dying
             if (aspect.Health.ValueRO.Current <= 0
-                && aspect.State.ValueRO.Current is not WispState.State.Die)
-                aspect.State.ValueRW.TransitionTo(WispState.State.Die); // mark it as dying
+                && aspect.State.ValueRO.Current is not WispState.State.Dying)
+                // mark it as dying
+                aspect.State.ValueRW.TransitionTo(WispState.State.Dying);
 
             switch (aspect.State.ValueRO.Current) {
                 case WispState.State.Inactive:
@@ -77,7 +78,7 @@ namespace Foxglove.Agent {
                     // TODO: spawn projectile
                     aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
                     break;
-                case WispState.State.Die:
+                case WispState.State.Dying:
                     if (aspect.IsCharacterControllerEnabled.ValueRO) {
                         Log.Debug(
                             "Wisp {entity} died, disabling character controller and adding despawn timer",
