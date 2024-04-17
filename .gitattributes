@@ -24,66 +24,70 @@
 # Add diff=lfs merge=lfs to the binary files
 
 # Unity LFS
-*.cubemap            binary diff=lfs merge=lfs
-*.unitypackage       binary diff=lfs merge=lfs
+*.cubemap            binary diff=lfs merge=lfs filter=lfs
+*.unitypackage       binary diff=lfs merge=lfs filter=lfs
+
+# 3D
+*.fbx                binary diff=lfs merge=lfs filter=lfs
 
 # Audio
-*.aif                binary diff=lfs merge=lfs
-*.aiff               binary diff=lfs merge=lfs
-*.it                 binary diff=lfs merge=lfs
-*.mod                binary diff=lfs merge=lfs
-*.mp3                binary diff=lfs merge=lfs
-*.ogg                binary diff=lfs merge=lfs
-*.s3m                binary diff=lfs merge=lfs
-*.wav                binary diff=lfs merge=lfs
-*.xm                 binary diff=lfs merge=lfs
+*.aif                binary diff=lfs merge=lfs filter=lfs
+*.aiff               binary diff=lfs merge=lfs filter=lfs
+*.it                 binary diff=lfs merge=lfs filter=lfs
+*.mod                binary diff=lfs merge=lfs filter=lfs
+*.mp3                binary diff=lfs merge=lfs filter=lfs
+*.ogg                binary diff=lfs merge=lfs filter=lfs
+*.s3m                binary diff=lfs merge=lfs filter=lfs
+*.wav                binary diff=lfs merge=lfs filter=lfs
+*.xm                 binary diff=lfs merge=lfs filter=lfs
 
 # Video
-*.asf                binary diff=lfs merge=lfs
-*.avi                binary diff=lfs merge=lfs
-*.flv                binary diff=lfs merge=lfs
-*.mov                binary diff=lfs merge=lfs
-*.mp4                binary diff=lfs merge=lfs
-*.mpeg               binary diff=lfs merge=lfs
-*.mpg                binary diff=lfs merge=lfs
-*.ogv                binary diff=lfs merge=lfs
-*.wmv                binary diff=lfs merge=lfs
+*.asf                binary diff=lfs merge=lfs filter=lfs
+*.avi                binary diff=lfs merge=lfs filter=lfs
+*.flv                binary diff=lfs merge=lfs filter=lfs
+*.mov                binary diff=lfs merge=lfs filter=lfs
+*.mp4                binary diff=lfs merge=lfs filter=lfs
+*.mpeg               binary diff=lfs merge=lfs filter=lfs
+*.mpg                binary diff=lfs merge=lfs filter=lfs
+*.ogv                binary diff=lfs merge=lfs filter=lfs
+*.wmv                binary diff=lfs merge=lfs filter=lfs
  
 # Images
-*.bmp                binary diff=lfs merge=lfs
-*.exr                binary diff=lfs merge=lfs
-*.gif                binary diff=lfs merge=lfs
-*.hdr                binary diff=lfs merge=lfs
-*.iff                binary diff=lfs merge=lfs
-*.jpeg               binary diff=lfs merge=lfs
-*.jpg                binary diff=lfs merge=lfs
-*.pict               binary diff=lfs merge=lfs
-*.png                binary diff=lfs merge=lfs
-*.psd                binary diff=lfs merge=lfs
-*.tga                binary diff=lfs merge=lfs
-*.tif                binary diff=lfs merge=lfs
-*.tiff               binary diff=lfs merge=lfs
-*.webp               binary diff=lfs merge=lfs
+*.bmp                binary diff=lfs merge=lfs filter=lfs
+*.exr                binary diff=lfs merge=lfs filter=lfs
+*.gif                binary diff=lfs merge=lfs filter=lfs
+*.hdr                binary diff=lfs merge=lfs filter=lfs
+*.iff                binary diff=lfs merge=lfs filter=lfs
+*.jpeg               binary diff=lfs merge=lfs filter=lfs
+*.jpg                binary diff=lfs merge=lfs filter=lfs
+*.pict               binary diff=lfs merge=lfs filter=lfs
+*.png                binary diff=lfs merge=lfs filter=lfs
+*.psd                binary diff=lfs merge=lfs filter=lfs
+*.tga                binary diff=lfs merge=lfs filter=lfs
+*.tif                binary diff=lfs merge=lfs filter=lfs
+*.tiff               binary diff=lfs merge=lfs filter=lfs
+*.webp               binary diff=lfs merge=lfs filter=lfs
+*.aseprite           binary diff=lfs merge=lfs filter=lfs
 
 # Compressed Archive
-*.7z                binary diff=lfs merge=lfs
-*.bz2               binary diff=lfs merge=lfs
-*.gz                binary diff=lfs merge=lfs
-*.rar               binary diff=lfs merge=lfs
-*.tar               binary diff=lfs merge=lfs
-*.zip               binary diff=lfs merge=lfs
+*.7z                binary diff=lfs merge=lfs filter=lfs
+*.bz2               binary diff=lfs merge=lfs filter=lfs
+*.gz                binary diff=lfs merge=lfs filter=lfs
+*.rar               binary diff=lfs merge=lfs filter=lfs
+*.tar               binary diff=lfs merge=lfs filter=lfs
+*.zip               binary diff=lfs merge=lfs filter=lfs
 
 # Compiled Dynamic Library
-*.dll               binary diff=lfs merge=lfs
-*.pdb               binary diff=lfs merge=lfs
-*.so                binary diff=lfs merge=lfs
+*.dll               binary diff=lfs merge=lfs filter=lfs
+*.pdb               binary diff=lfs merge=lfs filter=lfs
+*.so                binary diff=lfs merge=lfs filter=lfs
 
 # Fonts
-*.otf               binary diff=lfs merge=lfs
-*.ttf               binary diff=lfs merge=lfs
+*.otf               binary diff=lfs merge=lfs filter=lfs
+*.ttf               binary diff=lfs merge=lfs filter=lfs
 
 # Executable/Installer
-*.exe               binary diff=lfs merge=lfs
+*.exe               binary diff=lfs merge=lfs filter=lfs
 
 # Collapse Unity-generated files on GitHub
 *.asset             linguist-generated

@@ -70,3 +70,7 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /Foxglove/[Aa]ssets/[Ss]treamingAssets/aa.meta
 /Foxglove/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Scene Dependency Caches
+SceneDependencyCache/
+SceneDependencyCache.meta

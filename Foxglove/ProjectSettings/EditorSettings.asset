@@ -6,7 +6,7 @@ EditorSettings:
   serializedVersion: 12
   m_SerializationMode: 2
   m_LineEndingsForNewScripts: 0
-  m_DefaultBehaviorMode: 1
+  m_DefaultBehaviorMode: 0
   m_PrefabRegularEnvironment: {fileID: 0}
   m_PrefabUIEnvironment: {fileID: 0}
   m_SpritePackerMode: 5
@@ -24,7 +24,7 @@ EditorSettings:
   m_EnableEditorAsyncCPUTextureLoading: 0
   m_AsyncShaderCompilation: 1
   m_PrefabModeAllowAutoSave: 1
-  m_EnterPlayModeOptionsEnabled: 0
+  m_EnterPlayModeOptionsEnabled: 1
   m_EnterPlayModeOptions: 3
   m_GameObjectNamingDigits: 2
   m_GameObjectNamingScheme: 1
