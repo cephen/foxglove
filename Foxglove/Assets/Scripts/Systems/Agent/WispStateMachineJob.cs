@@ -84,8 +84,7 @@ namespace Foxglove.Agent {
                         // Disable character controller
                         Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, false);
                         // Despawn in one second (50 ticks per second)
-                        Commands.SetComponentEnabled<DespawnTimer>(chunkIndex, aspect.Entity, true);
-                        Commands.SetComponent(chunkIndex, aspect.Entity, new DespawnTimer(Tick + 50));
+                        Commands.AddComponent(chunkIndex, aspect.Entity, new DespawnTimer(Tick + 50));
                     }
                     else if (aspect.DespawnTimer.ValueRO.TickToDestroy <= Tick) {
                         // Transition to Despawn after 1 second
