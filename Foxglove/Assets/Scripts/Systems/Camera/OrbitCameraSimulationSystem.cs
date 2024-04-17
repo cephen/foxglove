@@ -7,6 +7,9 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Camera {
+    /// <summary>
+    /// Simulates orbit camera motion
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CameraSystemGroup))]
     internal partial struct OrbitCameraSimulationSystem : ISystem {
@@ -40,14 +43,10 @@ namespace Foxglove.Camera {
             [ReadOnly] public ComponentLookup<CameraTarget> CameraTargetLookup;
             [ReadOnly] public ComponentLookup<KinematicCharacterBody> KinematicCharacterBodyLookup;
 
-            private void Execute(
-                Entity entity,
-                ref OrbitCamera orbitCamera,
-                in OrbitCameraControl cameraControl
-            ) {
+            private void Execute(Entity entity, ref OrbitCamera camera, in OrbitCameraControl control) {
                 // Early exit if required components can't be found
                 if (!OrbitCameraUtilities.TryGetCameraTargetSimulationWorldTransform(
-                        cameraControl.FollowedCharacterEntity,
+                        control.FollowedCharacterEntity,
                         ref LocalTransformLookup,
                         ref ParentLookup,
                         ref PostTransformMatrixLookup,
@@ -59,19 +58,20 @@ namespace Foxglove.Camera {
                 float3 targetUp = targetWorldTransform.Up();
                 float3 targetPosition = targetWorldTransform.Translation();
 
-                // Update planar forward based on target up direction and rotation from parent
+                // Update planar (horizontal) forward based on target up direction and rotation from camera's parent
                 // use a temporary scope to keep intellisense clear :D
                 {
                     quaternion tmpPlanarRotation =
-                        MathUtilities.CreateRotationWithUpPriority(targetUp, orbitCamera.PlanarForward);
+                        MathUtilities.CreateRotationWithUpPriority(targetUp, camera.PlanarForward);
 
-                    // If this camera should rotate with the character it's following
-                    if (orbitCamera.RotateWithCharacterParent
+                    // If this camera should rotate with the parent of the character it's following
+                    if (camera.RotateWithCharacterParent
                         // and the followed character has a KinematicCharacterBody
                         && KinematicCharacterBodyLookup.TryGetComponent(
-                            cameraControl.FollowedCharacterEntity,
+                            control.FollowedCharacterEntity,
                             out KinematicCharacterBody characterBody
-                        )) {
+                        )
+                    ) {
                         // Only consider rotation around the character up, since the camera is already adjusting itself to character up
                         quaternion planarRotationFromParent = characterBody.RotationFromParent;
                         KinematicCharacterUtilities.AddVariableRateRotationFromFixedRateRotation(
@@ -82,44 +82,29 @@ namespace Foxglove.Camera {
                         );
                     }
 
-                    orbitCamera.PlanarForward = MathUtilities.GetForwardFromRotation(tmpPlanarRotation);
+                    camera.PlanarForward = MathUtilities.GetForwardFromRotation(tmpPlanarRotation);
                 }
 
                 // Yaw
-                float yawAngleChange = cameraControl.LookDegreesDelta.x * orbitCamera.RotationSpeed;
+                float yawAngleChange = control.LookDegreesDelta.x * camera.RotationSpeed;
                 quaternion yawRotation = quaternion.Euler(targetUp * math.radians(yawAngleChange));
-                orbitCamera.PlanarForward = math.rotate(yawRotation, orbitCamera.PlanarForward);
+                camera.PlanarForward = math.rotate(yawRotation, camera.PlanarForward);
 
-                // Pitch
-                orbitCamera.PitchAngle += -cameraControl.LookDegreesDelta.y * orbitCamera.RotationSpeed;
-                orbitCamera.PitchAngle = math.clamp(
-                    orbitCamera.PitchAngle,
-                    orbitCamera.MinPitchAngle,
-                    orbitCamera.MaxPitchAngle
+                // Pitch (inverted)
+                camera.PitchAngle += -control.LookDegreesDelta.y * camera.RotationSpeed;
+                camera.PitchAngle = math.clamp(
+                    camera.PitchAngle,
+                    camera.MinPitchAngle,
+                    camera.MaxPitchAngle
                 );
 
                 // Calculate final rotation
-                quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
-                    targetUp,
-                    orbitCamera.PlanarForward,
-                    orbitCamera.PitchAngle
-                );
-
-                // Distance input
-                // float desiredDistanceMovementFromInput =
-                //     cameraControl.ZoomDelta * orbitCamera.DistanceMovementSpeed;
-                orbitCamera.TargetDistance = math.clamp(
-                    orbitCamera.TargetDistance,
-                    orbitCamera.MinDistance,
-                    orbitCamera.MaxDistance
-                );
+                quaternion cameraRotation =
+                    OrbitCameraUtilities.CalculateCameraRotation(targetUp, camera.PlanarForward, camera.PitchAngle);
 
                 // Calculate camera position (no smoothing or obstructions yet; these are done in the camera late update)
-                float3 cameraPosition = OrbitCameraUtilities.CalculateCameraPosition(
-                    targetPosition,
-                    cameraRotation,
-                    orbitCamera.TargetDistance
-                );
+                float3 cameraPosition =
+                    OrbitCameraUtilities.CalculateCameraPosition(targetPosition, cameraRotation, camera.TargetDistance);
 
                 // Write back to component
                 LocalTransformLookup[entity] = LocalTransform.FromPositionRotation(cameraPosition, cameraRotation);
