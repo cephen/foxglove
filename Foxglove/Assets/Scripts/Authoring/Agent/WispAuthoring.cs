@@ -1,6 +1,4 @@
 using Foxglove.Agent;
-using Foxglove.Character;
-using Foxglove.Combat;
 using Unity.Entities;
 using UnityEngine;
 
@@ -29,15 +27,6 @@ namespace Foxglove.Authoring.Agent {
                     }
                 );
                 AddComponent(wisp, WispState.Default());
-                AddComponent(
-                    wisp,
-                    new Health {
-                        Max = authoring.MaxHealth,
-                        Current = authoring.MaxHealth,
-                    }
-                );
-                AddComponent<DespawnTimer>(wisp);
-                SetComponentEnabled<DespawnTimer>(wisp, false);
             }
         }
     }
