@@ -47,10 +47,7 @@ namespace Foxglove.Agent {
                     break;
                 case WispState.State.Spawn:
                     Log.Debug("Spawning Wisp {entity}", wispDebugName);
-                    // Set default stats
-                    aspect.Health.ValueRW.Max = 100;
-                    aspect.Health.ValueRW.Current = 100;
-                    // Enable Character Controller
+                    aspect.Health.ValueRW.Reset();
                     Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, true);
                     // Transition to Patrol state
                     aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
