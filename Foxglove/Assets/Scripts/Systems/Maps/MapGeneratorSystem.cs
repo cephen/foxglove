@@ -286,11 +286,9 @@ namespace Foxglove.Maps {
 
                     return;
                 case GeneratorState.Spawning:
-                    if (!ecsState.Dependency.IsCompleted) return; // wait for SpawnMapObjectsJob to complete
-
-                    Log.Debug("[MapGenerator] SpawnMapObjectsJob finished");
                     ecsState.Dependency.Complete();
 
+                    Log.Debug("[MapGenerator] SpawnMapCellsJob finished");
                     StateMachine.SetNextState(ecsState, GeneratorState.Cleanup);
 
                     return;
