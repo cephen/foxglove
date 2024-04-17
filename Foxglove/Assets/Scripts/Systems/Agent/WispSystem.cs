@@ -1,14 +1,18 @@
+using System;
 using Foxglove.Core;
 using Unity.Burst;
 using Unity.Entities;
+using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Agent {
     [BurstCompile]
     [UpdateInGroup(typeof(AgentSimulationGroup))]
     internal partial struct WispSystem : ISystem {
+        private Random _rng;
+
         public void OnCreate(ref SystemState state) {
+            _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
             state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
-            state.RequireForUpdate<RandomNumberGenerators>();
             state.RequireForUpdate<Blackboard>();
             state.RequireForUpdate<Tick>();
         }
@@ -25,7 +29,7 @@ namespace Foxglove.Agent {
                 Commands = commands.AsParallelWriter(),
                 PlayerPosition = SystemAPI.GetSingleton<Blackboard>().PlayerPosition,
                 Tick = SystemAPI.GetSingleton<Tick>().Value,
-                Rng = SystemAPI.GetSingleton<RandomNumberGenerators>().Random,
+                Rng = new Random(_rng.NextUInt()),
             }.ScheduleParallel(state.Dependency);
         }
     }
