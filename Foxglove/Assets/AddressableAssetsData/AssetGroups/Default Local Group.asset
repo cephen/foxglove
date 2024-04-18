@@ -16,22 +16,7 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: 3c0789197d757a94a8ecb00e9d92955d
-  m_SerializeEntries:
-  - m_GUID: f8c5113ccbe790842a88594ab76df2fc
-    m_Address: Assets/Scenes/Menus/MainMenu.unity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2337d04e47389ae40a1724ce2c97885c
-    m_Address: Assets/Scenes/Managers/PersistentManagers.unity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a9997a4692ae95646a278f1822ea880a
-    m_Address: Assets/Scenes/Managers/GameplayManagers.unity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: a09bd9c47b4061a4795b7c3d30ea4a94, type: 2}
   m_SchemaSet:
