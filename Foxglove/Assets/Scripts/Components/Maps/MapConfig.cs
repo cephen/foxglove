@@ -31,5 +31,8 @@ namespace Foxglove.Maps {
             int2 coords = CoordsFromIndex(index);
             return new float3(coords.x, 0, coords.y);
         }
+
+        [BurstCompile]
+        public int2 CoordsFromPosition(in float3 position) => new((int)position.x, (int)position.z);
     }
 }
