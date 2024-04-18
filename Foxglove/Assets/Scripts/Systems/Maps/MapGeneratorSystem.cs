@@ -3,6 +3,7 @@ using Foxglove.Core;
 using Foxglove.Core.State;
 using Foxglove.Maps.Delaunay;
 using Foxglove.Maps.Jobs;
+using SideFX.Events;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -207,6 +208,8 @@ namespace Foxglove.Maps {
                     SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
                     SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
                     SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
+
+                    EventBus<MapReadyEvent>.Raise(default);
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Idle);
                     return;
