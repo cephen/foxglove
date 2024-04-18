@@ -19,7 +19,6 @@ namespace Foxglove.Gameplay {
     }
 
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
-        private bool _mapIsReady;
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
         private Random _rng;
@@ -44,14 +43,6 @@ namespace Foxglove.Gameplay {
             if (StateMachine.IsTransitionQueued<GameState>(CheckedStateRef)) Transition(ref CheckedStateRef);
 
             State<GameState> state = StateMachine.GetState<GameState>(CheckedStateRef);
-
-
-            if (state.Current is GameState.WaitForMap) {
-                if (!_mapIsReady) return;
-
-                StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
-                _mapIsReady = false;
-            }
         }
 
         private void SpawnPlayer() {
@@ -70,8 +61,9 @@ namespace Foxglove.Gameplay {
         }
 
         private void OnMapReady() {
-            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.WaitForMap)
-                StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
+            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is not GameState.WaitForMap) return;
+
+            StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
         }
 
         private void OnSceneReady(SceneReady e) {
