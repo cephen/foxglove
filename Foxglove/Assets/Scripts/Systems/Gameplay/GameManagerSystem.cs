@@ -3,12 +3,15 @@ using Foxglove.Character;
 using Foxglove.Core.State;
 using Foxglove.Maps;
 using SideFX.Events;
+using SideFX.SceneManagement;
+using SideFX.SceneManagement.Events;
 using Unity.Entities;
 using Unity.Mathematics;
 using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Gameplay {
     internal enum GameState {
+        Waiting,
         Startup,
         WaitForMap,
         MapReady,
@@ -17,18 +20,24 @@ namespace Foxglove.Gameplay {
 
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
         private bool _mapIsReady;
+        private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
         private Random _rng;
 
         protected override void OnCreate() {
-            StateMachine.Init(CheckedStateRef, GameState.Startup);
+            StateMachine.Init(CheckedStateRef, GameState.Waiting);
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
+
+            // Initialize event bindings
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
+            _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
+            EventBus<SceneReady>.Register(_sceneReadyBinding);
         }
 
         protected override void OnDestroy() {
             EventBus<MapReadyEvent>.Deregister(_mapReadyBinding);
+            EventBus<SceneReady>.Deregister(_sceneReadyBinding);
         }
 
         protected override void OnUpdate() {
@@ -63,6 +72,13 @@ namespace Foxglove.Gameplay {
         private void OnMapReady() {
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.WaitForMap)
                 StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
+        }
+
+        private void OnSceneReady(SceneReady e) {
+            if (e.Scene is not GameplayScene gameplay) return;
+
+            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Waiting)
+                StateMachine.SetNextState(CheckedStateRef, GameState.Startup);
         }
 
 #region IStateMachine Implementation
