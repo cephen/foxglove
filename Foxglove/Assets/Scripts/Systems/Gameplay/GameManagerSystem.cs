@@ -85,6 +85,12 @@ namespace Foxglove.Gameplay {
                     SpawnPlayer();
                     StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
                     return;
+                case GameState.Playing:
+                    EventBus<ToggleSpawnersEvent>.Raise(new ToggleSpawnersEvent { Enabled = true });
+                    return;
+                case GameState.Paused:
+                    EventBus<ToggleSpawnersEvent>.Raise(new ToggleSpawnersEvent { Enabled = false });
+                    return;
                 default:
                     return;
             }
