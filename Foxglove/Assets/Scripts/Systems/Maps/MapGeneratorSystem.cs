@@ -42,7 +42,7 @@ namespace Foxglove.Maps {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
+    internal sealed partial class MapGeneratorSystem : SystemBase, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
         private Random _random;
 
@@ -59,163 +59,30 @@ namespace Foxglove.Maps {
         /// Called by the ECS framework when the system is created.
         /// Used to define data dependencies, and to add components to the system.
         /// </summary>
-        public void OnCreate(ref SystemState ecsState) {
+        protected override void OnCreate() {
             var initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
             Log.Debug("[MapGenerator] Initial seed: {seed}", initialSeed);
             _random = new Random(initialSeed);
 
-            ecsState.RequireForUpdate<Tick>();
-            ecsState.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            ecsState.RequireForUpdate<MapTheme>();
+            RequireForUpdate<Tick>();
+            RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            RequireForUpdate<MapTheme>();
 
-            ecsState.EntityManager.AddComponent<GenerateMapRequest>(ecsState.SystemHandle);
-            ecsState.EntityManager.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
+            EntityManager.AddComponent<GenerateMapRequest>(SystemHandle);
+            EntityManager.SetComponentEnabled<GenerateMapRequest>(SystemHandle, false);
 
-            StateMachine.Init(ecsState, GeneratorState.Idle);
+            StateMachine.Init(CheckedStateRef, GeneratorState.Idle);
 
-            SpawnMapRoot(ref ecsState);
+            SpawnMapRoot();
         }
 
         /// <summary>
         /// Called once per frame by the ECS framework.
         /// Checks for state transitions, and calls the state update function
         /// </summary>
-        /// <param name="ecsState"></param>
-        public void OnUpdate(ref SystemState ecsState) {
-            if (StateMachine.IsTransitionQueued<GeneratorState>(ecsState)) Transition(ref ecsState);
-            HandleStateUpdate(ref ecsState);
-        }
-
-        /// <summary>
-        /// Implementation required by ISystem, but there's nothing to do for this system.
-        /// </summary>
-        public void OnDestroy(ref SystemState state) { }
-
-        public void Transition(ref SystemState ecsState) {
-            GeneratorState current = StateMachine.GetState<GeneratorState>(ecsState).Current;
-            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ecsState).Value;
-
-            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecsState.SystemHandle, false);
-
-            OnExit(ref ecsState, current);
-            OnEnter(ref ecsState, next);
-            StateMachine.SetState(ecsState, next);
-        }
-
-        /// <summary>
-        /// Called when transitioning into a state
-        /// Used to set up temporary buffers and schedule jobs
-        /// </summary>
-        [BurstCompile]
-        public void OnEnter(ref SystemState ecsState, State<GeneratorState> fsmState) {
-            switch (fsmState.Current) {
-                case GeneratorState.Idle:
-                    Log.Debug("[MapGenerator] Idle");
-                    return;
-                case GeneratorState.Initialize:
-                    Log.Debug("[MapGenerator] Initializing");
-
-                    uint seed = _random.NextUInt();
-                    ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
-
-                    if (SystemAPI.HasBuffer<Child>(_mapRoot)) {
-                        var children = SystemAPI.GetBuffer<Child>(_mapRoot).Reinterpret<Entity>().AsNativeArray();
-                        if (children.Length > 0) {
-                            Log.Debug("[MapGenerator] Despawning map cells");
-                            CreateCommandBuffer(ref ecsState).DestroyEntity(children);
-                        }
-                    }
-
-                    Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
-                    StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
-
-                    break;
-                case GeneratorState.PlaceRooms:
-                    Log.Debug("[MapGenerator] Configuring GenerateRoomsJob");
-                    _generateRooms = new GenerateRoomsJob {
-                        Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
-                        Rooms = new NativeList<Room>(Allocator.Persistent),
-                    };
-
-                    Log.Debug("[MapGenerator] Scheduling GenerateRoomsJob");
-                    ecsState.Dependency = _generateRooms.Schedule(ecsState.Dependency);
-
-                    break;
-                case GeneratorState.Triangulate:
-                    Log.Debug("[MapGenerator] Building room graph");
-
-                    Log.Debug("[MapGenerator] Configuring TriangulateMapJob");
-                    _triangulateMap = new TriangulateMapJob {
-                        Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
-                        Edges = new NativeList<Edge>(Allocator.Persistent),
-                    };
-
-                    Log.Debug("[MapGenerator] Scheduling TriangulateMapJob");
-                    ecsState.Dependency = _triangulateMap.Schedule(ecsState.Dependency);
-
-                    break;
-                case GeneratorState.FilterEdges:
-                    Log.Debug("[MapGenerator] Configuring FilterEdgesJob");
-                    DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
-                    _filterEdges = new FilterEdgesJob {
-                        Start = edges.ElementAt(0).A,
-                        Edges = edges.AsNativeArray().AsReadOnly(),
-                        Random = new Random(_random.NextUInt()),
-                        Results = new NativeList<Edge>(Allocator.Persistent),
-                    };
-
-                    Log.Debug("[MapGenerator] Scheduling FilterEdgesJob");
-                    ecsState.Dependency = _filterEdges.Schedule(ecsState.Dependency);
-
-                    return;
-                case GeneratorState.SetMapCells:
-                    Log.Debug("[MapGenerator] Configuring SetMapCellsJob");
-                    var config = SystemAPI.GetComponent<MapConfig>(_mapRoot);
-                    int cellCount = config.Diameter * config.Diameter;
-
-                    _setMapCells = new SetMapCells {
-                        Config = config,
-                        Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
-                        Hallways = SystemAPI.GetBuffer<Edge>(_mapRoot).AsNativeArray().AsReadOnly(),
-                        Results = new NativeArray<MapCell>(cellCount, Allocator.Persistent),
-                    };
-
-                    Log.Debug("[MapGenerator] Scheduling SetMapCellsJob");
-                    ecsState.Dependency = _setMapCells.Schedule(cellCount, 1024, ecsState.Dependency);
-
-                    return;
-                case GeneratorState.Spawning:
-                    Log.Debug("[MapGenerator] Configuring SpawnMapCellsJob");
-
-                    NativeArray<MapCell>.ReadOnly mapCells = SystemAPI.GetBuffer<MapCell>(_mapRoot).AsNativeArray().AsReadOnly();
-                    _spawnMapCells = new SpawnMapCellsJob {
-                        MapRoot = _mapRoot,
-                        Theme = SystemAPI.GetSingleton<MapTheme>(),
-                        Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
-                        Cells = mapCells,
-                        Commands = CreateCommandBuffer(ref ecsState).AsParallelWriter(),
-                    };
-
-                    Log.Debug("[MapGenerator] Scheduling SpawnMapCellsJob");
-                    ecsState.Dependency = _spawnMapCells.Schedule(mapCells.Length, 1024, ecsState.Dependency);
-
-                    return;
-                case GeneratorState.Cleanup:
-                    Log.Debug("[MapGenerator] Cleaning up");
-
-                    Log.Debug("[MapGenerator] Clearing map buffers");
-                    SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
-                    SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
-                    SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
-                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
-
-                    EventBus<MapReadyEvent>.Raise(default);
-
-                    StateMachine.SetNextState(ecsState, GeneratorState.Idle);
-                    return;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+        protected override void OnUpdate() {
+            if (StateMachine.IsTransitionQueued<GeneratorState>(CheckedStateRef)) Transition(ref CheckedStateRef);
+            HandleStateUpdate(ref CheckedStateRef);
         }
 
         /// <summary>
@@ -302,6 +169,158 @@ namespace Foxglove.Maps {
             }
         }
 
+        [BurstCompile]
+        private void SpawnMapRoot() {
+            Log.Debug("[MapGenerator] Creating Map Root");
+            _mapRoot = EntityManager.CreateEntity();
+            EntityManager.SetName(_mapRoot, "Map Root");
+
+            EntityManager.AddBuffer<Room>(_mapRoot);
+            EntityManager.AddBuffer<Edge>(_mapRoot);
+            EntityManager.AddBuffer<MapCell>(_mapRoot);
+
+            EntityManager.AddComponent<Map>(_mapRoot);
+            EntityManager.AddComponent<MapConfig>(_mapRoot);
+            EntityManager.AddComponentData(_mapRoot, LocalTransform.FromScale(1));
+            EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
+        }
+
+        private EntityCommandBuffer CreateCommandBuffer(ref SystemState ecsState) =>
+            SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(ecsState.WorldUnmanaged);
+
+#region IStateMachineSystem implementation
+
+        public void Transition(ref SystemState ecsState) {
+            GeneratorState current = StateMachine.GetState<GeneratorState>(ecsState).Current;
+            GeneratorState next = StateMachine.GetNextState<GeneratorState>(ecsState).Value;
+
+            SystemAPI.SetComponentEnabled<NextState<GeneratorState>>(ecsState.SystemHandle, false);
+
+            OnExit(ref ecsState, current);
+            OnEnter(ref ecsState, next);
+            StateMachine.SetState(ecsState, next);
+        }
+
+        /// <summary>
+        /// Called when transitioning into a state
+        /// Used to set up temporary buffers and schedule jobs
+        /// </summary>
+        [BurstCompile]
+        public void OnEnter(ref SystemState ecsState, State<GeneratorState> fsmState) {
+            switch (fsmState.Current) {
+                case GeneratorState.Idle:
+                    Log.Debug("[MapGenerator] Idle");
+                    return;
+                case GeneratorState.Initialize:
+                    Log.Debug("[MapGenerator] Initializing");
+
+                    uint seed = _random.NextUInt();
+                    ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
+
+                    if (SystemAPI.HasBuffer<Child>(_mapRoot)) {
+                        NativeArray<Entity> children =
+                            SystemAPI.GetBuffer<Child>(_mapRoot).Reinterpret<Entity>().AsNativeArray();
+                        if (children.Length > 0) {
+                            Log.Debug("[MapGenerator] Despawning map cells");
+                            CreateCommandBuffer(ref ecsState).DestroyEntity(children);
+                        }
+
+                        Log.Debug("[MapGenerator] Clearing map buffers");
+                        SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
+                        SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
+                        SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
+                    }
+
+
+                    Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
+                    StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
+
+                    break;
+                case GeneratorState.PlaceRooms:
+                    Log.Debug("[MapGenerator] Configuring GenerateRoomsJob");
+                    _generateRooms = new GenerateRoomsJob {
+                        Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
+                        Rooms = new NativeList<Room>(Allocator.Persistent),
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling GenerateRoomsJob");
+                    ecsState.Dependency = _generateRooms.Schedule(ecsState.Dependency);
+
+                    break;
+                case GeneratorState.Triangulate:
+                    Log.Debug("[MapGenerator] Building room graph");
+
+                    Log.Debug("[MapGenerator] Configuring TriangulateMapJob");
+                    _triangulateMap = new TriangulateMapJob {
+                        Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
+                        Edges = new NativeList<Edge>(Allocator.Persistent),
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling TriangulateMapJob");
+                    ecsState.Dependency = _triangulateMap.Schedule(ecsState.Dependency);
+
+                    break;
+                case GeneratorState.FilterEdges:
+                    Log.Debug("[MapGenerator] Configuring FilterEdgesJob");
+                    DynamicBuffer<Edge> edges = SystemAPI.GetBuffer<Edge>(_mapRoot);
+                    _filterEdges = new FilterEdgesJob {
+                        Start = edges.ElementAt(0).A,
+                        Edges = edges.AsNativeArray().AsReadOnly(),
+                        Random = new Random(_random.NextUInt()),
+                        Results = new NativeList<Edge>(Allocator.Persistent),
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling FilterEdgesJob");
+                    ecsState.Dependency = _filterEdges.Schedule(ecsState.Dependency);
+
+                    return;
+                case GeneratorState.SetMapCells:
+                    Log.Debug("[MapGenerator] Configuring SetMapCellsJob");
+                    var config = SystemAPI.GetComponent<MapConfig>(_mapRoot);
+                    int cellCount = config.Diameter * config.Diameter;
+
+                    _setMapCells = new SetMapCells {
+                        Config = config,
+                        Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
+                        Hallways = SystemAPI.GetBuffer<Edge>(_mapRoot).AsNativeArray().AsReadOnly(),
+                        Results = new NativeArray<MapCell>(cellCount, Allocator.Persistent),
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling SetMapCellsJob");
+                    ecsState.Dependency = _setMapCells.Schedule(cellCount, 1024, ecsState.Dependency);
+
+                    return;
+                case GeneratorState.Spawning:
+                    Log.Debug("[MapGenerator] Configuring SpawnMapCellsJob");
+
+                    NativeArray<MapCell>.ReadOnly mapCells =
+                        SystemAPI.GetBuffer<MapCell>(_mapRoot).AsNativeArray().AsReadOnly();
+                    _spawnMapCells = new SpawnMapCellsJob {
+                        MapRoot = _mapRoot,
+                        Theme = SystemAPI.GetSingleton<MapTheme>(),
+                        Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
+                        Cells = mapCells,
+                        Commands = CreateCommandBuffer(ref ecsState).AsParallelWriter(),
+                    };
+
+                    Log.Debug("[MapGenerator] Scheduling SpawnMapCellsJob");
+                    ecsState.Dependency = _spawnMapCells.Schedule(mapCells.Length, 1024, ecsState.Dependency);
+
+                    return;
+                case GeneratorState.Cleanup:
+                    Log.Debug("[MapGenerator] Cleaning up");
+
+                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
+                    StateMachine.SetNextState(ecsState, GeneratorState.Idle);
+                    EventBus<MapReadyEvent>.Raise(default);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         /// <summary>
         /// Called when transitioning out of a state
         /// Used to deallocate temporary buffers
@@ -347,26 +366,6 @@ namespace Foxglove.Maps {
             }
         }
 
-
-        [BurstCompile]
-        private void SpawnMapRoot(ref SystemState ecsState) {
-            Log.Debug("[MapGenerator] Creating Map Root");
-            _mapRoot = ecsState.EntityManager.CreateEntity();
-            ecsState.EntityManager.SetName(_mapRoot, "Map Root");
-
-            ecsState.EntityManager.AddBuffer<Room>(_mapRoot);
-            ecsState.EntityManager.AddBuffer<Edge>(_mapRoot);
-            ecsState.EntityManager.AddBuffer<MapCell>(_mapRoot);
-
-            ecsState.EntityManager.AddComponent<Map>(_mapRoot);
-            ecsState.EntityManager.AddComponent<MapConfig>(_mapRoot);
-            ecsState.EntityManager.AddComponentData(_mapRoot, LocalTransform.FromScale(1));
-            ecsState.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
-        }
-
-        private EntityCommandBuffer CreateCommandBuffer(ref SystemState ecsState) =>
-            SystemAPI
-                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(ecsState.WorldUnmanaged);
+#endregion
     }
 }

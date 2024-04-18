@@ -9,7 +9,7 @@ namespace Foxglove.Editor.Maps {
 
         public void OnUpdate(ref SystemState state) {
             if (Keyboard.current.f5Key.wasPressedThisFrame) {
-                SystemHandle mapGenSystemHandle = state.WorldUnmanaged.GetExistingUnmanagedSystem<MapGeneratorSystem>();
+                SystemHandle mapGenSystemHandle = state.World.GetOrCreateSystem<MapGeneratorSystem>();
                 state.EntityManager.SetComponentEnabled<GenerateMapRequest>(mapGenSystemHandle, true);
             }
         }
