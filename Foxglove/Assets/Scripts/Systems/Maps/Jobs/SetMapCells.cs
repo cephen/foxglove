@@ -107,7 +107,7 @@ namespace Foxglove.Maps.Jobs {
             float u = uTop / uBot;
 
             return t is >= 0 and <= 1
-                   && u is >= 0 and <= 1;
+                   && (u is >= 0 and <= 1 || -u is >= 0 and <= 1);
         }
     }
 }
