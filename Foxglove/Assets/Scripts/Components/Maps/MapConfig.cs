@@ -31,11 +31,5 @@ namespace Foxglove.Maps {
             int2 coords = CoordsFromIndex(index);
             return new float3(coords.x, 0, coords.y);
         }
-
-        [BurstCompile]
-        public int IndexFromPosition(in float3 position) {
-            int2 coords = (int2)math.floor(position.xz) + Radius;
-            return IndexFromCoords(coords);
-        }
     }
 }

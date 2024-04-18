@@ -8,7 +8,7 @@ using Unity.Transforms;
 
 namespace Foxglove.Camera {
     /// <summary>
-    /// This system is responsible for moving and orienting the camera after the main gameplay logic
+    /// This system adjusts the camera's zoom level based on collisions
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -56,18 +56,18 @@ namespace Foxglove.Camera {
             /// This method is called for every Entity in the world with the required components.
             /// </summary>
             /// <param name="entity">The entity being operated on</param>
-            /// <param name="orbitCamera">The Camera Component of the entity</param>
-            /// <param name="cameraControl">The Camera inputs of the entity</param>
-            /// <param name="ignoredEntitiesBuffer">Entities the camera should ignore when checking collisions</param>
+            /// <param name="camera">The Camera Component of the entity</param>
+            /// <param name="control">The Camera inputs of the entity</param>
+            /// <param name="ignoredEntities">Entities the camera should ignore when checking collisions</param>
             private void Execute(
                 Entity entity,
-                ref OrbitCamera orbitCamera,
-                in OrbitCameraControl cameraControl,
-                in DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntitiesBuffer
+                ref OrbitCamera camera,
+                in OrbitCameraControl control,
+                in DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntities
             ) {
                 // Early exit if required components can't be found
                 if (!OrbitCameraUtilities.TryGetCameraTargetInterpolatedWorldTransform(
-                        cameraControl.FollowedCharacterEntity,
+                        control.FollowedCharacterEntity,
                         ref LocalToWorldLookup,
                         ref CameraTargetLookup,
                         out LocalToWorld targetWorldTransform
@@ -76,32 +76,35 @@ namespace Foxglove.Camera {
 
                 quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
                     targetWorldTransform.Up,
-                    orbitCamera.PlanarForward,
-                    orbitCamera.PitchAngle
+                    camera.PlanarForward,
+                    camera.PitchAngle
                 );
 
                 float3 cameraForward = math.mul(cameraRotation, math.forward());
                 float3 targetPosition = targetWorldTransform.Position; // position the camera should look at
 
                 // Zoom smoothing
-                orbitCamera.SmoothedTargetDistance = math.lerp(
-                    orbitCamera.SmoothedTargetDistance,
-                    orbitCamera.TargetDistance,
-                    MathUtilities.GetSharpnessInterpolant(orbitCamera.DistanceMovementSharpness, DeltaTime)
+                camera.SmoothedTargetDistance = math.lerp(
+                    camera.SmoothedTargetDistance,
+                    camera.TargetDistance,
+                    MathUtilities.GetSharpnessInterpolant(camera.DistanceMovementSharpness, DeltaTime)
                 );
 
                 // If the radius for the collision checking sphere is greater than zero
-                if (orbitCamera.ObstructionRadius > 0f) { // Detect obstructions and adjust target distance
-                    float obstructionCheckDistance = orbitCamera.SmoothedTargetDistance;
+                if (camera.ObstructionRadius > 0f) {
+                    float obstructionCheckDistance = camera.SmoothedTargetDistance;
 
+                    // This struct collects hits from the upcoming sphere cast
                     var collector = new CameraObstructionHitsCollector(
-                        cameraControl.FollowedCharacterEntity,
-                        ignoredEntitiesBuffer,
+                        control.FollowedCharacterEntity,
+                        ignoredEntities,
                         cameraForward
                     );
+
+                    // Cast a sphere from the target towards the camera
                     PhysicsWorld.SphereCastCustom(
-                        targetPosition, // Sphere origin
-                        orbitCamera.ObstructionRadius, // Sphere radius
+                        targetPosition, // Cast origin
+                        camera.ObstructionRadius, // Sphere radius
                         -cameraForward, // Cast direction
                         obstructionCheckDistance, // Max cast distance
                         ref collector, // hit collector
@@ -115,9 +118,9 @@ namespace Foxglove.Camera {
                     if (collector.NumHits > 0)
                         // Find distance to closest hit
                         newObstructedDistance = FindClosestObstructionDistance(
-                            orbitCamera,
-                            cameraControl,
-                            ignoredEntitiesBuffer,
+                            camera,
+                            control,
+                            ignoredEntities,
                             obstructionCheckDistance,
                             ref collector,
                             cameraForward,
@@ -125,37 +128,37 @@ namespace Foxglove.Camera {
                         );
 
                     // If the last frame's obstruction is closer than this frame's obstruction
-                    if (orbitCamera.ObstructedDistance < newObstructedDistance)
+                    if (camera.ObstructedDistance < newObstructedDistance)
                         // lerp obstruction distance towards found obstruction distance
-                        orbitCamera.ObstructedDistance = math.lerp(
-                            orbitCamera.ObstructedDistance,
+                        camera.ObstructedDistance = math.lerp(
+                            camera.ObstructedDistance,
                             newObstructedDistance,
                             MathUtilities.GetSharpnessInterpolant(
-                                orbitCamera.ObstructionOuterSmoothingSharpness, // using the zoom out smoothness
+                                camera.ObstructionOuterSmoothingSharpness, // using the zoom out smoothness
                                 DeltaTime
                             )
                         );
                     // otherwise, if the last frame's obstruction is further away than this frame's obstruction
-                    else if (orbitCamera.ObstructedDistance > newObstructedDistance)
+                    else if (camera.ObstructedDistance > newObstructedDistance)
                         // lerp obstruction distance towards found obstruction distance
-                        orbitCamera.ObstructedDistance = math.lerp(
-                            orbitCamera.ObstructedDistance,
+                        camera.ObstructedDistance = math.lerp(
+                            camera.ObstructedDistance,
                             newObstructedDistance,
                             MathUtilities.GetSharpnessInterpolant(
-                                orbitCamera.ObstructionInnerSmoothingSharpness, // using the zoom in smoothness
+                                camera.ObstructionInnerSmoothingSharpness, // using the zoom in smoothness
                                 DeltaTime
                             )
                         );
                 }
                 else { // Nothing was hit
-                    orbitCamera.ObstructedDistance = orbitCamera.SmoothedTargetDistance;
+                    camera.ObstructedDistance = camera.SmoothedTargetDistance;
                 }
 
                 // Place camera at the final distance (includes smoothing and obstructions)
                 float3 cameraPosition = OrbitCameraUtilities.CalculateCameraPosition(
                     targetPosition,
                     cameraRotation,
-                    orbitCamera.ObstructedDistance
+                    camera.ObstructedDistance
                 );
 
                 // Set camera transform matrix

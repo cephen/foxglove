@@ -1,4 +1,4 @@
-﻿using Foxglove.Maps.Delaunay;
+using Foxglove.Maps.Delaunay;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -16,12 +16,8 @@ namespace Foxglove.Maps.Jobs {
 
         internal NativeArray<MapCell> Results;
 
-        public void Execute() {
-            for (var i = 0; i < Results.Length; i++) Execute(i);
-        }
-
         public void Execute(int i) {
-            int2 cellCoord = Config.CoordsFromIndex(i); ;
+            int2 cellCoord = Config.CoordsFromIndex(i);
             var cellType = CellType.None;
 
             foreach (Edge edge in Hallways) {
@@ -70,7 +66,7 @@ namespace Foxglove.Maps.Jobs {
             return borders;
         }
 
-        private bool CellIsInRoom(in Room room, in int2 cellCoordinate) {
+        private readonly bool CellIsInRoom(in Room room, in int2 cellCoordinate) {
             int2 southWest = room.Position;
             int2 northEast = room.Position + room.Size;
             bool xInRange = cellCoordinate.x >= southWest.x && cellCoordinate.x <= northEast.x;
@@ -111,7 +107,7 @@ namespace Foxglove.Maps.Jobs {
             float u = uTop / uBot;
 
             return t is >= 0 and <= 1
-                   && u is >= 0 and <= 1;
+                   && (u is >= 0 and <= 1 || -u is >= 0 and <= 1);
         }
     }
 }

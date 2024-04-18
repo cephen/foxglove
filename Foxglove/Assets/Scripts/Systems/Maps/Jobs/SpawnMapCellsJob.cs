@@ -1,5 +1,3 @@
-using System;
-using System.Numerics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -21,7 +19,11 @@ namespace Foxglove.Maps.Jobs {
         [NativeSetThreadIndex] private int _threadIndex;
 
         public void Execute(int index) {
+            int2 coords = Config.CoordsFromIndex(index);
             switch (Cells[index].Type) {
+                case CellType.None when CountFilledNeighbours(coords) is 4:
+                    SpawnTile(index, Theme.HallTile);
+                    return;
                 case CellType.None:
                     TrySpawnWall(index);
                     return;
@@ -35,55 +37,53 @@ namespace Foxglove.Maps.Jobs {
         }
 
         /// <summary>
-        /// Spawns a wall if any of the cell's neighbours is not CellType.None
+        /// Counts the number of neighbour cells that are not CellType.None
         /// </summary>
-        private void TrySpawnWall(int index) {
-            int2 coords = Config.CoordsFromIndex(index);
+        private readonly int CountFilledNeighbours(int2 coords) {
             NativeArray<int2> neighbours = NeighboursOf(coords);
+            int filled = 0;
 
             foreach (int2 neighbour in neighbours) {
+                // Skip out of bounds cells
                 bool xInBounds = neighbour.x >= -Config.Radius && neighbour.x < Config.Radius;
                 bool yInBounds = neighbour.y >= -Config.Radius && neighbour.y < Config.Radius;
-                if (!xInBounds || !yInBounds) continue;
+                if (!(xInBounds && yInBounds)) continue;
 
                 CellType neighbourType = Cells[Config.IndexFromCoords(neighbour)].Type;
-
-                if (neighbourType is not CellType.None) {
-                    // Walls don't need to be rotated bc they're cubes
-                    LocalTransform transform = LocalTransform.FromPosition(Config.PositionFromIndex(index));
-
-                    Entity entity = Commands.Instantiate(_threadIndex, Theme.WallTile);
-                    Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
-                    Commands.SetComponent(_threadIndex, entity, transform);
-                    break;
-                }
+                if (neighbourType is not CellType.None) filled++;
             }
 
             neighbours.Dispose();
+            return filled;
         }
 
-        private void SpawnTile(int index, Entity prefab) {
-            // room and hall tiles are quads, and need to be rotated
-            LocalTransform transform =
-                LocalTransform
-                    .FromPosition(Config.PositionFromIndex(index))
-                    .WithRotation(quaternion.RotateX(math.radians(90)));
-
-            Entity entity = Commands.Instantiate(_threadIndex, prefab);
-            Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
-            Commands.SetComponent(_threadIndex, entity, transform);
-
-        }
-
+        /// <summary>
+        /// Get an array of potential neighbour coordinates
+        /// </summary>
         private readonly NativeArray<int2> NeighboursOf(in int2 position) {
             var array = new NativeArray<int2>(4, Allocator.Temp);
 
-            array[0] = position + new int2(1, 0); // North
-            array[1] = position + new int2(0, 1); // East
-            array[2] = position + new int2(-1, 0); // South
-            array[3] = position + new int2(0, -1); // West
+            array[0] = position + new int2(0, 1); // North
+            array[1] = position + new int2(1, 0); // East
+            array[2] = position + new int2(0, -1); // South
+            array[3] = position + new int2(-1, 0); // West
 
             return array;
+        }
+
+        /// <summary>
+        /// Spawns a wall if the cell has at least one neighbour
+        /// </summary>
+        private void TrySpawnWall(int index) {
+            int2 coords = Config.CoordsFromIndex(index);
+            if (CountFilledNeighbours(coords) is 0) return;
+            SpawnTile(index, Theme.WallTile);
+        }
+
+        private void SpawnTile(int index, Entity prefab) {
+            Entity entity = Commands.Instantiate(_threadIndex, prefab);
+            Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
+            Commands.AddComponent(_threadIndex, entity, LocalTransform.FromPosition(Config.PositionFromIndex(index)));
         }
     }
 }

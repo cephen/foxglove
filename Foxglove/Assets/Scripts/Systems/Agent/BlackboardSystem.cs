@@ -22,12 +22,14 @@ namespace Foxglove.Agent {
 
             // If there is exactly one player in the world
             if (SystemAPI.TryGetSingletonEntity<PlayerCharacterTag>(out Entity player)
-                // And the currently tracked player is not that player
-                && !SystemAPI.Exists(blackboard.PlayerEntity))
+                // And the currently tracked player does not exist, or is not that player
+                && (!SystemAPI.Exists(blackboard.PlayerEntity) || blackboard.PlayerEntity != player))
                 // Track that player
                 blackboard.PlayerEntity = player;
 
+            // If the player has a LocalToWorld (transform) component
             if (SystemAPI.HasComponent<LocalToWorld>(blackboard.PlayerEntity))
+                // Cache the player's position in the blackboard
                 blackboard.PlayerPosition = SystemAPI.GetComponent<LocalToWorld>(blackboard.PlayerEntity).Position;
         }
     }

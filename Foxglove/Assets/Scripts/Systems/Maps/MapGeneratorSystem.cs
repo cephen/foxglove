@@ -133,7 +133,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Configuring GenerateRoomsJob");
                     _generateRooms = new GenerateRoomsJob {
                         Config = SystemAPI.GetComponent<MapConfig>(_mapRoot),
-                        Rooms = new NativeList<Room>(Allocator.TempJob),
+                        Rooms = new NativeList<Room>(Allocator.Persistent),
                     };
 
                     Log.Debug("[MapGenerator] Scheduling GenerateRoomsJob");
@@ -146,7 +146,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Configuring TriangulateMapJob");
                     _triangulateMap = new TriangulateMapJob {
                         Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
-                        Edges = new NativeList<Edge>(Allocator.TempJob),
+                        Edges = new NativeList<Edge>(Allocator.Persistent),
                     };
 
                     Log.Debug("[MapGenerator] Scheduling TriangulateMapJob");
@@ -160,7 +160,7 @@ namespace Foxglove.Maps {
                         Start = edges.ElementAt(0).A,
                         Edges = edges.AsNativeArray().AsReadOnly(),
                         Random = new Random(_random.NextUInt()),
-                        Results = new NativeList<Edge>(Allocator.TempJob),
+                        Results = new NativeList<Edge>(Allocator.Persistent),
                     };
 
                     Log.Debug("[MapGenerator] Scheduling FilterEdgesJob");
@@ -176,7 +176,7 @@ namespace Foxglove.Maps {
                         Config = config,
                         Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
                         Hallways = SystemAPI.GetBuffer<Edge>(_mapRoot).AsNativeArray().AsReadOnly(),
-                        Results = new NativeArray<MapCell>(cellCount, Allocator.TempJob),
+                        Results = new NativeArray<MapCell>(cellCount, Allocator.Persistent),
                     };
 
                     Log.Debug("[MapGenerator] Scheduling SetMapCellsJob");
@@ -286,11 +286,9 @@ namespace Foxglove.Maps {
 
                     return;
                 case GeneratorState.Spawning:
-                    if (!ecsState.Dependency.IsCompleted) return; // wait for SpawnMapObjectsJob to complete
-
-                    Log.Debug("[MapGenerator] SpawnMapObjectsJob finished");
                     ecsState.Dependency.Complete();
 
+                    Log.Debug("[MapGenerator] SpawnMapCellsJob finished");
                     StateMachine.SetNextState(ecsState, GeneratorState.Cleanup);
 
                     return;

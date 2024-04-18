@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Foxglove.Character;
 using Unity.Burst;
 using Unity.Collections;
@@ -35,8 +35,9 @@ namespace Foxglove.Agent {
 
             // If the wisp has less than 0 health, but is not yet marked as dying
             if (aspect.Health.ValueRO.Current <= 0
-                && aspect.State.ValueRO.Current is not WispState.State.Die)
-                aspect.State.ValueRW.TransitionTo(WispState.State.Die); // mark it as dying
+                && aspect.State.ValueRO.Current is not WispState.State.Dying)
+                // mark it as dying
+                aspect.State.ValueRW.TransitionTo(WispState.State.Dying);
 
             switch (aspect.State.ValueRO.Current) {
                 case WispState.State.Inactive:
@@ -46,10 +47,7 @@ namespace Foxglove.Agent {
                     break;
                 case WispState.State.Spawn:
                     Log.Debug("Spawning Wisp {entity}", wispDebugName);
-                    // Set default stats
-                    aspect.Health.ValueRW.Max = 100;
-                    aspect.Health.ValueRW.Current = 100;
-                    // Enable Character Controller
+                    aspect.Health.ValueRW.Reset();
                     Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, true);
                     // Transition to Patrol state
                     aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
@@ -77,7 +75,7 @@ namespace Foxglove.Agent {
                     // TODO: spawn projectile
                     aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
                     break;
-                case WispState.State.Die:
+                case WispState.State.Dying:
                     if (aspect.IsCharacterControllerEnabled.ValueRO) {
                         Log.Debug(
                             "Wisp {entity} died, disabling character controller and adding despawn timer",
@@ -86,8 +84,7 @@ namespace Foxglove.Agent {
                         // Disable character controller
                         Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, false);
                         // Despawn in one second (50 ticks per second)
-                        Commands.SetComponentEnabled<DespawnTimer>(chunkIndex, aspect.Entity, true);
-                        Commands.SetComponent(chunkIndex, aspect.Entity, new DespawnTimer(Tick + 50));
+                        Commands.AddComponent(chunkIndex, aspect.Entity, new DespawnTimer(Tick + 50));
                     }
                     else if (aspect.DespawnTimer.ValueRO.TickToDestroy <= Tick) {
                         // Transition to Despawn after 1 second

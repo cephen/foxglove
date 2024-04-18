@@ -9,6 +9,10 @@ namespace Foxglove.Combat {
             Max = max;
             Current = max;
         }
+
+        public void Reset() {
+            Current = Max;
+        }
     }
 
     public struct HealthRegen : IComponentData, IEnableableComponent {

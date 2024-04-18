@@ -41,7 +41,7 @@ namespace Foxglove.Camera {
                 || !PhysicsUtilities.IsCollidable(hit.Material)) // Or the object isn't collidable
                 return false; // ignore the collision
 
-            // ignore hit if hit.Entity is ignored
+            // discard collisions with ignored entities
             for (var i = 0; i < _ignoredEntitiesBuffer.Length; i++) {
                 if (_ignoredEntitiesBuffer[i].Entity == hit.Entity)
                     return false;
