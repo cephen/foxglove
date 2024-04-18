@@ -42,13 +42,13 @@ namespace Foxglove.Maps.Jobs {
             foreach (int2 neighbour in neighbours) {
                 bool xInBounds = neighbour.x >= -Config.Radius && neighbour.x < Config.Radius;
                 bool yInBounds = neighbour.y >= -Config.Radius && neighbour.y < Config.Radius;
-                if (!xInBounds || !yInBounds) continue;
 
-                CellType neighbourType = Cells[Config.IndexFromCoords(neighbour)].Type;
+                // Skip out of bounds cells
+                if (!(xInBounds && yInBounds)) continue;
 
                 // Search for a Room or Hallway tile in neighbours
+                CellType neighbourType = Cells[Config.IndexFromCoords(neighbour)].Type;
                 if (neighbourType is CellType.None) continue;
-
 
                 // Spawn a wall prefab
                 Entity entity = Commands.Instantiate(_threadIndex, Theme.WallTile);
