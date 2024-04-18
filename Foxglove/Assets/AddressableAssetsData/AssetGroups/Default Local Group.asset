@@ -17,11 +17,6 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 3c0789197d757a94a8ecb00e9d92955d
   m_SerializeEntries:
-  - m_GUID: 737acf993459eb540a386f29d49cb6fc
-    m_Address: Assets/Scenes/DEBUG/DEBUG_PlayerController.unity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f8c5113ccbe790842a88594ab76df2fc
     m_Address: Assets/Scenes/Menus/MainMenu.unity
     m_ReadOnly: 0
