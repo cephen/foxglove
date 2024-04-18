@@ -65,8 +65,10 @@ namespace Foxglove.Core {
     /// </summary>
     [UpdateInGroup(typeof(LateSimulationSystemGroup), OrderLast = true)]
     public sealed partial class CheckpointUpdateGroup : ComponentSystemGroup {
-        public const int UpdateRate = 1;
-        public CheckpointUpdateGroup() => RateManager = new RateUtils.VariableRateManager(UpdateRate, false);
+        public const int UpdateRateMilliseconds = 1000;
+
+        public CheckpointUpdateGroup() =>
+            RateManager = new RateUtils.VariableRateManager(UpdateRateMilliseconds, false);
     }
 
 #endregion
