@@ -76,10 +76,10 @@ namespace Foxglove.Gameplay {
 
 #region IStateMachine Implementation
 
-        public void OnEnter(ref SystemState ecsState, State<GameState> fsmState) {
-            switch (fsmState.Current) {
+        public void OnEnter(ref SystemState ecsState, State<GameState> gameState) {
+            switch (gameState.Current) {
                 case GameState.Startup:
-                    EventBus<BuildMapEvent>.Raise(default);
+                    EventBus<BuildMapEvent>.Raise(new BuildMapEvent());
                     StateMachine.SetNextState(CheckedStateRef, GameState.WaitForMap);
                     return;
                 case GameState.MapReady:
@@ -97,7 +97,7 @@ namespace Foxglove.Gameplay {
             }
         }
 
-        public void OnExit(ref SystemState ecsState, State<GameState> fsmState) { }
+        public void OnExit(ref SystemState ecsState, State<GameState> gameState) { }
 
         public void Transition(ref SystemState ecsState) {
             GameState current = StateMachine.GetState<GameState>(ecsState).Current;
