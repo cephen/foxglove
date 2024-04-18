@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Foxglove.Character;
 using Foxglove.Core.State;
 using Foxglove.Maps;
@@ -46,13 +46,16 @@ namespace Foxglove.Gameplay {
         }
 
         private void SpawnPlayer() {
+            // Select a room to spawn the player in
             Entity mapEntity = SystemAPI.GetSingletonEntity<Map>();
             DynamicBuffer<Room> rooms = SystemAPI.GetBuffer<Room>(mapEntity);
-            int roomIndex = _rng.NextInt() % rooms.Length;
+            int roomIndex = _rng.NextInt(0, rooms.Length);
             Room room = rooms[roomIndex];
+
+            // Request spawning of the player
             var spawnRequest = new SpawnCharacterEvent {
                 Character = SpawnableCharacter.Player,
-                Position = new float3(room.Center.x, 0.1f, room.Center.y),
+                Position = new float3(room.Center.x, 10f, room.Center.y),
             };
             EventBus<SpawnCharacterEvent>.Raise(spawnRequest);
         }
@@ -70,29 +73,16 @@ namespace Foxglove.Gameplay {
                     EventBus<BuildMapEvent>.Raise(default);
                     StateMachine.SetNextState(CheckedStateRef, GameState.WaitForMap);
                     return;
-                case GameState.WaitForMap:
-                    return;
                 case GameState.MapReady:
                     SpawnPlayer();
                     StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
-                    return;
-                case GameState.Playing:
                     return;
                 default:
                     return;
             }
         }
 
-        public void OnExit(ref SystemState ecsState, State<GameState> fsmState) {
-            switch (fsmState.Current) {
-                case GameState.Startup:
-                    return;
-                case GameState.WaitForMap:
-                    return;
-                default:
-                    return;
-            }
-        }
+        public void OnExit(ref SystemState ecsState, State<GameState> fsmState) { }
 
         public void Transition(ref SystemState ecsState) {
             GameState current = StateMachine.GetState<GameState>(ecsState).Current;
