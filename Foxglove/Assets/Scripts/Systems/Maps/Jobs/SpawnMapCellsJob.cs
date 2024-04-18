@@ -81,9 +81,18 @@ namespace Foxglove.Maps.Jobs {
         }
 
         private void SpawnTile(int index, Entity prefab) {
+            float3 position = Config.PositionFromIndex(index);
+            LocalTransform transform = LocalTransform.FromPosition(position);
+
+            // Hall and Room tiles are quads, which by default are oriented to face the positive Z direction.
+            // This corrects their orientation to face upwards
+            if (prefab == Theme.HallTile
+                || prefab == Theme.RoomTile)
+                transform = transform.RotateX(math.radians(90));
+
             Entity entity = Commands.Instantiate(_threadIndex, prefab);
             Commands.AddComponent(_threadIndex, entity, new Parent { Value = MapRoot });
-            Commands.AddComponent(_threadIndex, entity, LocalTransform.FromPosition(Config.PositionFromIndex(index)));
+            Commands.AddComponent(_threadIndex, entity, transform);
         }
     }
 }
