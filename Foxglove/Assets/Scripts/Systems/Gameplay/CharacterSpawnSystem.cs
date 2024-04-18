@@ -1,8 +1,11 @@
 ﻿using System;
+using Foxglove.Camera;
 using Foxglove.Character;
+using Foxglove.Player;
 using SideFX.Events;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Gameplay {
@@ -12,7 +15,7 @@ namespace Foxglove.Gameplay {
 
         protected override void OnCreate() {
             // Dependencies
-            RequireForUpdate<CharacterPrefabStore>();
+            RequireForUpdate<SpawnablePrefabs>();
             RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
 
             _spawnBinding = new EventBinding<SpawnCharacterEvent>(OnSpawnCharacter);
@@ -34,19 +37,55 @@ namespace Foxglove.Gameplay {
                 .GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(World.Unmanaged);
 
-            var prefabs = SystemAPI.GetSingleton<CharacterPrefabStore>();
+            var prefabs = SystemAPI.GetSingleton<SpawnablePrefabs>();
 
             while (_spawnQueue.Count > 0) {
                 SpawnCharacterEvent e = _spawnQueue.Dequeue();
 
-                Entity character = e.Character switch {
-                    SpawnableCharacter.Player => prefabs.PlayerPrefab,
-                    SpawnableCharacter.Wisp => prefabs.WispPrefab,
-                    _ => throw new ArgumentOutOfRangeException(),
-                };
+                switch (e.Character) {
+                    case SpawnableCharacter.Player:
+                        SpawnPlayer(commands, e.Position);
+                        continue;
+                    case SpawnableCharacter.Wisp:
+                        Entity wisp = commands.Instantiate(prefabs.WispPrefab);
+                        commands.SetComponent(wisp, LocalTransform.FromPosition(e.Position));
+                        continue;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
 
-                Entity spawned = commands.Instantiate(character);
-                commands.SetComponent(spawned, LocalTransform.FromPosition(e.Position));
+        private void SpawnPlayer(EntityCommandBuffer commands, float3 position) {
+            var prefabStore = SystemAPI.GetSingleton<SpawnablePrefabs>();
+
+            Entity player = commands.Instantiate(prefabStore.PlayerPrefab);
+            commands.SetComponent(player, LocalTransform.FromPosition(position));
+
+            Entity camera = SystemAPI.HasSingleton<MainCameraTag>()
+                                ? SystemAPI.GetSingletonEntity<MainCameraTag>()
+                                : commands.Instantiate(prefabStore.OrbitCamera);
+
+            // Set up player controller
+            if (SystemAPI.HasSingleton<PlayerController>()) {
+                Entity controller = SystemAPI.GetSingletonEntity<PlayerController>();
+                commands.SetComponent(
+                    controller,
+                    new PlayerController {
+                        ControlledCamera = camera,
+                        ControlledCharacter = player,
+                    }
+                );
+            }
+            else {
+                Entity controller = commands.CreateEntity();
+                commands.AddComponent(
+                    controller,
+                    new PlayerController {
+                        ControlledCamera = camera,
+                        ControlledCharacter = player,
+                    }
+                );
             }
         }
     }
