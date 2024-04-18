@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Foxglove.Character;
 using Foxglove.Core.State;
 using Foxglove.Maps;
@@ -36,20 +36,12 @@ namespace Foxglove.Gameplay {
 
             State<GameState> state = StateMachine.GetState<GameState>(CheckedStateRef);
 
-            switch (state.Current) {
-                case GameState.Startup:
-                    return;
-                case GameState.WaitForMap:
-                    if (!_mapIsReady) return;
 
-                    StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
-                    _mapIsReady = false;
+            if (state.Current is GameState.WaitForMap) {
+                if (!_mapIsReady) return;
 
-                    return;
-                case GameState.MapReady:
-                    return;
-                default:
-                    return;
+                StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
+                _mapIsReady = false;
             }
         }
 
