@@ -183,7 +183,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!114 &795965453
 MonoBehaviour:
@@ -197,6 +197,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1806044c57e849549cc06d684623deb3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OrbitCamera: {fileID: 7568817337597995144, guid: 492a184cc1501fe4da86d69b5eddc366, type: 3}
   PlayerPrefab: {fileID: 1692896102597148395, guid: 5fbcc801dea8fd640a004697d22ed448, type: 3}
   WispPrefab: {fileID: 8872793339225300403, guid: 449d9c9e8b2f8b2469615f7ba27249ee, type: 3}
 --- !u!4 &795965454
