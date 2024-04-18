@@ -66,7 +66,7 @@ namespace Foxglove.Maps.Jobs {
             return borders;
         }
 
-        private bool CellIsInRoom(in Room room, in int2 cellCoordinate) {
+        private readonly bool CellIsInRoom(in Room room, in int2 cellCoordinate) {
             int2 southWest = room.Position;
             int2 northEast = room.Position + room.Size;
             bool xInRange = cellCoordinate.x >= southWest.x && cellCoordinate.x <= northEast.x;
