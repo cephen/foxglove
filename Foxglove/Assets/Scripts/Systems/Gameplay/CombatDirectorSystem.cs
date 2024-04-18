@@ -16,6 +16,8 @@ namespace Foxglove.Gameplay {
         private EventBinding<ToggleSpawnersEvent> _toggleSpawnersBinding;
         private uint _credits;
         private Random _rng;
+        private const float MinSpawnDistance = 10f;
+        private const float MaxSpawnDistance = 25f;
 
         protected override void OnCreate() {
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
@@ -45,10 +47,9 @@ namespace Foxglove.Gameplay {
 
             uint spawnedCreatures = 0;
             while (spawnedCreatures < creaturesToSpawn) {
-                // Spawn a wisp within 10 meters of the player
                 float3 spawnPosition = playerPosition;
-                float2 offset = _rng.NextFloat() * 10 * _rng.NextFloat2Direction();
-                spawnPosition.xz += offset;
+                float spawnDistance = math.lerp(MinSpawnDistance, MaxSpawnDistance, _rng.NextFloat());
+                spawnPosition.xz += _rng.NextFloat2Direction() * spawnDistance;
 
                 // Spawn wisps floating in the air
                 spawnPosition.y = 1;
