@@ -37,14 +37,14 @@ namespace Foxglove.Maps {
     /// States are modeled with the GeneratorState enum, and the system flows through states in the order they are defined.
     /// Once generation is complete, and the system has finished cleaning up, it returns to the Idle state
     /// and waits for a new map generation request.
-    /// ---
-    /// For debugging purposes it also starts a new generation cycle after idling for 10 seconds.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     internal sealed partial class MapGeneratorSystem : SystemBase, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
         private Random _random;
+
+        private EventBinding<BuildMapEvent> _buildMapBinding;
 
         // These jobs are used to incrementally build the map over several frames.
         // Each state in the state machine will be responsible for one of these jobs
@@ -74,6 +74,13 @@ namespace Foxglove.Maps {
             StateMachine.Init(CheckedStateRef, GeneratorState.Idle);
 
             SpawnMapRoot();
+
+            _buildMapBinding = new EventBinding<BuildMapEvent>(OnBuildMapRequest);
+            EventBus<BuildMapEvent>.Register(_buildMapBinding);
+        }
+
+        protected override void OnDestroy() {
+            EventBus<BuildMapEvent>.Deregister(_buildMapBinding);
         }
 
         /// <summary>
@@ -84,6 +91,8 @@ namespace Foxglove.Maps {
             if (StateMachine.IsTransitionQueued<GeneratorState>(CheckedStateRef)) Transition(ref CheckedStateRef);
             HandleStateUpdate(ref CheckedStateRef);
         }
+
+        private void OnBuildMapRequest() => SystemAPI.SetComponentEnabled<GenerateMapRequest>(SystemHandle, true);
 
         /// <summary>
         /// Called every frame, used to wait for generation jobs to complete
