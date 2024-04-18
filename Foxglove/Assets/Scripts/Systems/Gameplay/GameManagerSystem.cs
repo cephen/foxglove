@@ -16,6 +16,7 @@ namespace Foxglove.Gameplay {
         WaitForMap,
         MapReady,
         Playing,
+        Paused,
     }
 
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
