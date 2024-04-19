@@ -17,7 +17,7 @@ namespace Foxglove.Gameplay {
 
     public readonly struct ResumeGame : IEvent { }
 
-    public readonly struct ExitToMainMenu : IEvent { }
+    public readonly struct ExitGame : IEvent { }
 
     public readonly struct Shutdown : IEvent { }
 }
