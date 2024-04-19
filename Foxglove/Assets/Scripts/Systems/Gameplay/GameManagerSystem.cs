@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Foxglove.Character;
 using Foxglove.Core.State;
 using Foxglove.Maps;
@@ -42,8 +42,13 @@ namespace Foxglove.Gameplay {
 
         protected override void OnUpdate() {
             if (StateMachine.IsTransitionQueued<GameState>(CheckedStateRef)) Transition(ref CheckedStateRef);
+            var tick = SystemAPI.GetSingleton<Tick>();
+            var inputState = SystemAPI.GetSingleton<InputState>();
 
             State<GameState> state = StateMachine.GetState<GameState>(CheckedStateRef);
+            if (state.Current is GameState.Playing
+                && inputState.Pause.IsSet(tick)
+            ) StateMachine.SetNextState(CheckedStateRef, GameState.Paused);
         }
 
         private void SpawnPlayer() {
@@ -90,7 +95,9 @@ namespace Foxglove.Gameplay {
                     EventBus<ToggleSpawnersEvent>.Raise(new ToggleSpawnersEvent { Enabled = true });
                     return;
                 case GameState.Paused:
-                    EventBus<ToggleSpawnersEvent>.Raise(new ToggleSpawnersEvent { Enabled = false });
+                    EventBus<PauseEvent>.Raise(new PauseEvent());
+                    Cursor.lockState = CursorLockMode.Confined;
+                    // TODO: Deactivate simulation for player & enemies
                     return;
                 default:
                     return;
