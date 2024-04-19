@@ -4,19 +4,16 @@ namespace Foxglove.Input {
     /// this struct is used to work around frame rate dependency issues
     /// </summary>
     public struct FixedInputEvent {
-        private byte _wasEverSet;
+        private bool _wasEverSet;
         private uint _lastSetTick;
 
         public void Set(uint tick) {
             _lastSetTick = tick;
-            _wasEverSet = 1;
+            _wasEverSet = true;
         }
 
-        public readonly bool IsSet(uint tick) {
-            if (_wasEverSet == 1) return tick == _lastSetTick;
+        public readonly bool IsSet(uint tick) => _wasEverSet && tick == _lastSetTick;
 
-            return false;
-        }
 
         public readonly uint TicksSinceLastSet(in uint tick) => tick - _lastSetTick;
     }
