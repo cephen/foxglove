@@ -42,6 +42,6 @@ namespace Foxglove.Interface {
         }
 
         private void OnPlayClicked() => EventBus<LoadRequest>.Raise(new LoadRequest(_gameplayScene));
-        private static void OnExitClicked() => EventBus<ShutdownEvent>.Raise(new ShutdownEvent());
+        private static void OnExitClicked() => EventBus<Shutdown>.Raise(new Shutdown());
     }
 }

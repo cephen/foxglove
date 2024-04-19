@@ -29,9 +29,9 @@ namespace Foxglove.Gameplay {
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
-        private EventBinding<ResumeEvent> _resumeBinding;
-        private EventBinding<PauseEvent> _pauseBinding;
-        private EventBinding<ShutdownEvent> _shutdownBinding;
+        private EventBinding<ResumeGame> _resumeBinding;
+        private EventBinding<PauseGame> _pauseBinding;
+        private EventBinding<Shutdown> _shutdownBinding;
 
         private Random _rng;
 
@@ -42,24 +42,24 @@ namespace Foxglove.Gameplay {
             // Initialize event bindings
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
             _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
-            _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
-            _pauseBinding = new EventBinding<PauseEvent>(OnPause);
-            _shutdownBinding = new EventBinding<ShutdownEvent>(OnShutdown);
+            _resumeBinding = new EventBinding<ResumeGame>(OnResume);
+            _pauseBinding = new EventBinding<PauseGame>(OnPause);
+            _shutdownBinding = new EventBinding<Shutdown>(OnShutdown);
 
             // Register event bindings
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             EventBus<SceneReady>.Register(_sceneReadyBinding);
-            EventBus<ResumeEvent>.Register(_resumeBinding);
-            EventBus<PauseEvent>.Register(_pauseBinding);
-            EventBus<ShutdownEvent>.Register(_shutdownBinding);
+            EventBus<ResumeGame>.Register(_resumeBinding);
+            EventBus<PauseGame>.Register(_pauseBinding);
+            EventBus<Shutdown>.Register(_shutdownBinding);
         }
 
         protected override void OnDestroy() {
             EventBus<MapReadyEvent>.Deregister(_mapReadyBinding);
             EventBus<SceneReady>.Deregister(_sceneReadyBinding);
-            EventBus<ResumeEvent>.Deregister(_resumeBinding);
-            EventBus<PauseEvent>.Deregister(_pauseBinding);
-            EventBus<ShutdownEvent>.Deregister(_shutdownBinding);
+            EventBus<ResumeGame>.Deregister(_resumeBinding);
+            EventBus<PauseGame>.Deregister(_pauseBinding);
+            EventBus<Shutdown>.Deregister(_shutdownBinding);
         }
 
         protected override void OnUpdate() {
@@ -79,10 +79,10 @@ namespace Foxglove.Gameplay {
             )
                 switch (state.Current) {
                     case GameState.Playing:
-                        EventBus<PauseEvent>.Raise(new PauseEvent());
+                        EventBus<PauseGame>.Raise(new PauseGame());
                         break;
                     case GameState.Paused:
-                        EventBus<ResumeEvent>.Raise(new ResumeEvent());
+                        EventBus<ResumeGame>.Raise(new ResumeGame());
                         break;
                     default:
                         return;
@@ -119,17 +119,18 @@ namespace Foxglove.Gameplay {
                 StateMachine.SetNextState(CheckedStateRef, GameState.Startup);
         }
 
-        private void OnPause(PauseEvent _) {
+        private void OnPause(PauseGame _) {
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Playing)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Paused);
         }
 
-        private void OnResume(ResumeEvent _) {
+        private void OnResume(ResumeGame _) {
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Paused)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
         }
 
         private void OnShutdown(ShutdownEvent _) {
+        private void OnShutdown(Shutdown _) {
 #if UNITY_EDITOR
             EditorApplication.ExitPlaymode();
 #else
@@ -153,12 +154,12 @@ namespace Foxglove.Gameplay {
                     return;
                 case GameState.Playing:
                     if (gameState.Previous is GameState.MapReady)
-                        EventBus<StartGameEvent>.Raise(new StartGameEvent());
+                        EventBus<StartGame>.Raise(new StartGame());
                     Cursor.lockState = CursorLockMode.Locked;
                     // Activate simulation for player & enemies
                     return;
                 case GameState.Paused:
-                    EventBus<PauseEvent>.Raise(new PauseEvent());
+                    EventBus<PauseGame>.Raise(new PauseGame());
                     Cursor.lockState = CursorLockMode.Confined;
                     // TODO: Deactivate simulation for player & enemies
                     return;

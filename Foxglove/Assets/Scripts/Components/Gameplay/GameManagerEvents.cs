@@ -1,11 +1,13 @@
 using SideFX.Events;
 
 namespace Foxglove.Gameplay {
-    public readonly struct StartGameEvent : IEvent { }
+    public readonly struct StartGame : IEvent { }
 
-    public readonly struct PauseEvent : IEvent { }
+    public readonly struct PauseGame : IEvent { }
 
-    public readonly struct ResumeEvent : IEvent { }
+    public readonly struct ResumeGame : IEvent { }
 
-    public readonly struct ShutdownEvent : IEvent { }
+    public readonly struct ExitToMainMenu : IEvent { }
+
+    public readonly struct Shutdown : IEvent { }
 }

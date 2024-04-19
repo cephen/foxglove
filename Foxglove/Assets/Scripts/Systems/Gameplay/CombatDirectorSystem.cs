@@ -13,9 +13,9 @@ using Random = Unity.Mathematics.Random;
 namespace Foxglove.Gameplay {
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public sealed partial class CombatDirectorSystem : SystemBase {
-        private EventBinding<StartGameEvent> _startGameBinding;
-        private EventBinding<PauseEvent> _pauseBinding;
-        private EventBinding<ResumeEvent> _resumeBinding;
+        private EventBinding<StartGame> _startGameBinding;
+        private EventBinding<PauseGame> _pauseBinding;
+        private EventBinding<ResumeGame> _resumeBinding;
         private uint _credits;
         private Random _rng;
         private const float MinSpawnDistance = 10f;
@@ -26,20 +26,20 @@ namespace Foxglove.Gameplay {
             Enabled = false;
 
             // Initialize event bindings
-            _startGameBinding = new EventBinding<StartGameEvent>(OnStartGame);
-            _pauseBinding = new EventBinding<PauseEvent>(OnPause);
-            _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
+            _startGameBinding = new EventBinding<StartGame>(OnStartGame);
+            _pauseBinding = new EventBinding<PauseGame>(OnPause);
+            _resumeBinding = new EventBinding<ResumeGame>(OnResume);
 
             // Register bindings
-            EventBus<StartGameEvent>.Register(_startGameBinding);
-            EventBus<PauseEvent>.Register(_pauseBinding);
-            EventBus<ResumeEvent>.Register(_resumeBinding);
+            EventBus<StartGame>.Register(_startGameBinding);
+            EventBus<PauseGame>.Register(_pauseBinding);
+            EventBus<ResumeGame>.Register(_resumeBinding);
         }
 
         protected override void OnDestroy() {
-            EventBus<StartGameEvent>.Deregister(_startGameBinding);
-            EventBus<PauseEvent>.Deregister(_pauseBinding);
-            EventBus<ResumeEvent>.Deregister(_resumeBinding);
+            EventBus<StartGame>.Deregister(_startGameBinding);
+            EventBus<PauseGame>.Deregister(_pauseBinding);
+            EventBus<ResumeGame>.Deregister(_resumeBinding);
         }
 
         protected override void OnUpdate() {
@@ -82,18 +82,18 @@ namespace Foxglove.Gameplay {
             }
         }
 
-        private void OnStartGame(StartGameEvent e) {
+        private void OnStartGame(StartGame e) {
             Log.Debug("[CombatDirector] Initializing");
             _credits = 0;
             Enabled = true;
         }
 
-        private void OnPause(PauseEvent e) {
+        private void OnPause(PauseGame e) {
             Log.Debug("[CombatDirector] Disabling spawners");
             Enabled = false;
         }
 
-        private void OnResume(ResumeEvent e) {
+        private void OnResume(ResumeGame e) {
             Log.Debug("[CombatDirector] Enabling spawners");
             Enabled = true;
         }

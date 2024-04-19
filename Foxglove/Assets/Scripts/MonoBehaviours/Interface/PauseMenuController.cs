@@ -12,18 +12,18 @@ namespace Foxglove.Interface {
         private UIDocument _doc;
         private Button _resumeButton;
         private Button _exitButton;
-        private EventBinding<PauseEvent> _pauseBinding;
-        private EventBinding<ResumeEvent> _resumeBinding;
+        private EventBinding<PauseGame> _pauseBinding;
+        private EventBinding<ResumeGame> _resumeBinding;
 
         private void Awake() {
             _doc = GetComponent<UIDocument>();
-            _pauseBinding = new EventBinding<PauseEvent>(OnPauseEvent);
-            _resumeBinding = new EventBinding<ResumeEvent>(OnResumeEvent);
+            _pauseBinding = new EventBinding<PauseGame>(OnPauseEvent);
+            _resumeBinding = new EventBinding<ResumeGame>(OnResumeEvent);
         }
 
         private void OnEnable() {
-            EventBus<PauseEvent>.Register(_pauseBinding);
-            EventBus<ResumeEvent>.Register(_resumeBinding);
+            EventBus<PauseGame>.Register(_pauseBinding);
+            EventBus<ResumeGame>.Register(_resumeBinding);
 
             _resumeButton = _doc.rootVisualElement.Q<Button>("resume-button");
             _exitButton = _doc.rootVisualElement.Q<Button>("exit-button");
@@ -32,8 +32,8 @@ namespace Foxglove.Interface {
         }
 
         private void OnDisable() {
-            EventBus<PauseEvent>.Deregister(_pauseBinding);
-            EventBus<ResumeEvent>.Deregister(_resumeBinding);
+            EventBus<PauseGame>.Deregister(_pauseBinding);
+            EventBus<ResumeGame>.Deregister(_resumeBinding);
 
             _resumeButton.clicked -= OnResumeClicked;
             _exitButton.clicked -= OnExitClicked;
@@ -41,7 +41,7 @@ namespace Foxglove.Interface {
 
 #region Button bindings
 
-        private static void OnResumeClicked() => EventBus<ResumeEvent>.Raise(new ResumeEvent());
+        private static void OnResumeClicked() => EventBus<ResumeGame>.Raise(new ResumeGame());
         private void OnExitClicked() => EventBus<LoadRequest>.Raise(new LoadRequest(_mainMenuScene));
 
 #endregion
