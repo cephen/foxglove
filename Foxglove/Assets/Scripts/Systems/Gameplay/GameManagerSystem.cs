@@ -12,6 +12,10 @@ using Unity.Mathematics;
 using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Foxglove.Gameplay {
     internal enum GameState {
         Waiting,
@@ -26,6 +30,7 @@ namespace Foxglove.Gameplay {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
         private EventBinding<ResumeEvent> _resumeBinding;
+        private EventBinding<ShutdownEvent> _shutdownBinding;
 
         private Random _rng;
 
@@ -37,17 +42,20 @@ namespace Foxglove.Gameplay {
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
             _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
             _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
+            _shutdownBinding = new EventBinding<ShutdownEvent>(OnShutdown);
 
             // Register event bindings
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             EventBus<SceneReady>.Register(_sceneReadyBinding);
             EventBus<ResumeEvent>.Register(_resumeBinding);
+            EventBus<ShutdownEvent>.Register(_shutdownBinding);
         }
 
         protected override void OnDestroy() {
             EventBus<MapReadyEvent>.Deregister(_mapReadyBinding);
             EventBus<SceneReady>.Deregister(_sceneReadyBinding);
             EventBus<ResumeEvent>.Deregister(_resumeBinding);
+            EventBus<ShutdownEvent>.Deregister(_shutdownBinding);
         }
 
         protected override void OnUpdate() {
@@ -94,6 +102,14 @@ namespace Foxglove.Gameplay {
         private void OnResume(ResumeEvent _) {
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Paused)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
+        }
+
+        private void OnShutdown(ShutdownEvent _) {
+#if UNITY_EDITOR
+            EditorApplication.ExitPlaymode();
+#else
+            Application.Quit();
+#endif
         }
 
 #endregion
