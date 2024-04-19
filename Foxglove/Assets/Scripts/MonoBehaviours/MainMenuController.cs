@@ -1,8 +1,8 @@
+using Foxglove.Gameplay;
 using SideFX.Events;
 using SideFX.SceneManagement;
 using SideFX.SceneManagement.Events;
 using Unity.Logging;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -41,16 +41,7 @@ namespace Foxglove {
             _exitButton.clicked -= OnExitClicked;
         }
 
-        private void OnPlayClicked() {
-            EventBus<LoadRequest>.Raise(new LoadRequest(_gameplayScene));
-        }
-
-        private static void OnExitClicked() {
-#if UNITY_EDITOR
-            EditorApplication.ExitPlaymode();
-#else
-            Application.Quit();
-#endif
-        }
+        private void OnPlayClicked() => EventBus<LoadRequest>.Raise(new LoadRequest(_gameplayScene));
+        private static void OnExitClicked() => EventBus<ShutdownEvent>.Raise(new ShutdownEvent());
     }
 }
