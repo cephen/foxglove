@@ -6,8 +6,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Agent {
     /// <summary>
-    /// This system is responsible for scheduling behaviour updates for wisps.
-    /// The system itself aggregates data and copies it into a <see cref="WispStateMachineJob" /> that runs on a worker thread
+    /// The system configures and schedules a <see cref="WispStateMachineJob" /> that manages each wisp's state
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(AgentSimulationGroup))]
@@ -28,7 +27,8 @@ namespace Foxglove.Agent {
             // Command buffers are used to schedule structural changes on entities
             // This includes adding/removing/enabling/disabling components
             EntityCommandBuffer commands = SystemAPI
-                // Commands written to this buffer will be played back after all systems in the fixed update group have finished updating
+                // Commands written to this buffer will be played back
+                // after all systems in the fixed update group have finished updating
                 .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 

@@ -37,12 +37,14 @@ namespace Foxglove.Camera {
             // Ignore collisions with the followed character
             if (_followedCharacter == hit.Entity) return false;
 
-            if (math.dot(hit.SurfaceNormal, _cameraDirection) < 0f // If the camera is looking towards the object
-                || !PhysicsUtilities.IsCollidable(hit.Material)) // Or the object isn't collidable
+            // If the camera is looking towards the object
+            if (math.dot(hit.SurfaceNormal, _cameraDirection) < 0f
+                // Or the object isn't collidable
+                || !PhysicsUtilities.IsCollidable(hit.Material))
                 return false; // ignore the collision
 
             // discard collisions with ignored entities
-            for (var i = 0; i < _ignoredEntitiesBuffer.Length; i++) {
+            for (int i = 0; i < _ignoredEntitiesBuffer.Length; i++) {
                 if (_ignoredEntitiesBuffer[i].Entity == hit.Entity)
                     return false;
             }

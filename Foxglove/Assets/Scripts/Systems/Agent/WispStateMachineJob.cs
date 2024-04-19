@@ -24,7 +24,7 @@ namespace Foxglove.Agent {
         /// Run state machine logic for a single wisp.
         /// </summary>
         /// <param name="entity">The wisp being updated</param>
-        /// <param name="aspect">WispAspect of the wisp being operated on</param>
+        /// <param name="aspect">WispAspect of the wisp being updated</param>
         /// <param name="chunkIndex">
         /// The chunk the wisp is in.
         /// Used as a key for <see cref="Commands" /> because this job can run in parallel
@@ -33,8 +33,9 @@ namespace Foxglove.Agent {
             // regular ToString is disallowed in burst because it allocates on the heap
             FixedString64Bytes wispDebugName = entity.ToFixedString();
 
-            // If the wisp has less than 0 health, but is not yet marked as dying
+            // If the wisp has less than 0 health
             if (aspect.Health.ValueRO.Current <= 0
+                // and is not yet marked as dying
                 && aspect.State.ValueRO.Current is not WispState.State.Dying)
                 // mark it as dying
                 aspect.State.ValueRW.TransitionTo(WispState.State.Dying);

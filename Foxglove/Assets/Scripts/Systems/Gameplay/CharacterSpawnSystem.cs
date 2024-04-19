@@ -9,6 +9,9 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Gameplay {
+    /// <summary>
+    /// Spawns entities from prefabs.
+    /// </summary>
     internal sealed partial class CharacterSpawnSystem : SystemBase {
         private NativeQueue<SpawnCharacterEvent> _spawnQueue;
         private EventBinding<SpawnCharacterEvent> _spawnBinding;
@@ -18,9 +21,10 @@ namespace Foxglove.Gameplay {
             RequireForUpdate<SpawnablePrefabs>();
             RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
 
+            _spawnQueue = new NativeQueue<SpawnCharacterEvent>(Allocator.Persistent);
+
             _spawnBinding = new EventBinding<SpawnCharacterEvent>(OnSpawnCharacter);
             EventBus<SpawnCharacterEvent>.Register(_spawnBinding);
-            _spawnQueue = new NativeQueue<SpawnCharacterEvent>(Allocator.Persistent);
         }
 
         protected override void OnDestroy() {

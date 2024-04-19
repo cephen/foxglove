@@ -65,14 +65,14 @@ namespace Foxglove.Camera {
                 in OrbitCameraControl control,
                 in DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntities
             ) {
-                // Early exit if required components can't be found
+                // Early exit if target doesn't have a transform
                 if (!OrbitCameraUtilities.TryGetCameraTargetInterpolatedWorldTransform(
                         control.FollowedCharacterEntity,
                         ref LocalToWorldLookup,
                         ref CameraTargetLookup,
                         out LocalToWorld targetWorldTransform
-                    ))
-                    return;
+                    )
+                ) return;
 
                 quaternion cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
                     targetWorldTransform.Up,
@@ -81,7 +81,7 @@ namespace Foxglove.Camera {
                 );
 
                 float3 cameraForward = math.mul(cameraRotation, math.forward());
-                float3 targetPosition = targetWorldTransform.Position; // position the camera should look at
+                float3 targetPosition = targetWorldTransform.Position;
 
                 // Zoom smoothing
                 camera.SmoothedTargetDistance = math.lerp(
@@ -129,7 +129,7 @@ namespace Foxglove.Camera {
 
                     // If the last frame's obstruction is closer than this frame's obstruction
                     if (camera.ObstructedDistance < newObstructedDistance)
-                        // lerp obstruction distance towards found obstruction distance
+                        // smooth towards found obstruction distance
                         camera.ObstructedDistance = math.lerp(
                             camera.ObstructedDistance,
                             newObstructedDistance,
@@ -140,7 +140,7 @@ namespace Foxglove.Camera {
                         );
                     // otherwise, if the last frame's obstruction is further away than this frame's obstruction
                     else if (camera.ObstructedDistance > newObstructedDistance)
-                        // lerp obstruction distance towards found obstruction distance
+                        // smooth towards found obstruction distance
                         camera.ObstructedDistance = math.lerp(
                             camera.ObstructedDistance,
                             newObstructedDistance,

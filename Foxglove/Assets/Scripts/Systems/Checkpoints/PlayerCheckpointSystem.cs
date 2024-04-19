@@ -6,6 +6,9 @@ using Unity.Entities;
 using Unity.Transforms;
 
 namespace Foxglove.Checkpoints {
+    /// <summary>
+    /// Tracks the player and returns them to a safe place if they fall out of the map
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     internal partial struct PlayerCheckpointSystem : ISystem {
@@ -20,16 +23,17 @@ namespace Foxglove.Checkpoints {
         public void OnUpdate(ref SystemState state) {
             RefRW<PlayerCheckpoints> checkpoint = SystemAPI.GetComponentRW<PlayerCheckpoints>(state.SystemHandle);
 
-            foreach (RefRO<PlayerController> player in SystemAPI.Query<RefRO<PlayerController>>().WithAll<Simulate>()) {
-                Entity characterEntity = player.ValueRO.ControlledCharacter;
-                RefRW<LocalTransform> transform = SystemAPI.GetComponentRW<LocalTransform>(characterEntity);
-                var character = SystemAPI.GetComponent<KinematicCharacterBody>(characterEntity);
+            RefRW<PlayerController> controller = SystemAPI.GetSingletonRW<PlayerController>();
+            if (!SystemAPI.Exists(controller.ValueRO.ControlledCharacter)) return;
+            Entity characterEntity = controller.ValueRO.ControlledCharacter;
 
-                if (character.IsGrounded)
-                    checkpoint.ValueRW.LastGroundPosition = transform.ValueRO.Position;
-                else if (transform.ValueRO.Position.y < -3f)
-                    transform.ValueRW.Position = checkpoint.ValueRO.LastGroundPosition;
-            }
+            RefRW<LocalTransform> transform = SystemAPI.GetComponentRW<LocalTransform>(characterEntity);
+            var character = SystemAPI.GetComponent<KinematicCharacterBody>(characterEntity);
+
+            if (character.IsGrounded)
+                checkpoint.ValueRW.LastGroundPosition = transform.ValueRO.Position;
+            else if (transform.ValueRO.Position.y < -3f)
+                transform.ValueRW.Position = checkpoint.ValueRO.LastGroundPosition;
         }
     }
 }

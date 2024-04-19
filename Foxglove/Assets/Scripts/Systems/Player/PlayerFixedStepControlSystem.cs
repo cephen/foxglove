@@ -34,30 +34,29 @@ namespace Foxglove.Player {
                 return;
             }
 
-            Entity controlledCharacter = playerController.ControlledCharacter;
+            Entity characterEntity = playerController.ControlledCharacter;
 
             if (playerController.ControlledCamera == Entity.Null) {
                 Log.Error("[PlayerFixedStepControlSystem] - playerController.ControlledCamera is null");
                 return;
             }
 
-            Entity controlledCamera = playerController.ControlledCamera;
+            Entity cameraEntity = playerController.ControlledCamera;
 
-            if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) {
+            if (!SystemAPI.HasComponent<CharacterController>(characterEntity)) {
                 Log.Error("[PlayerFixedStepControlSystem] - controlledCharacter has no CharacterController component");
                 return;
             }
 
-            var control = SystemAPI.GetComponent<CharacterController>(controlledCharacter);
-
-            var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
+            var control = SystemAPI.GetComponent<CharacterController>(characterEntity);
+            var transform = SystemAPI.GetComponent<LocalTransform>(characterEntity);
             float3 characterUp = MathUtilities.GetUpFromRotation(transform.Rotation);
 
             // player movement should be relative to camera rotation.
             quaternion cameraRotation = quaternion.identity;
 
-            if (SystemAPI.HasComponent<OrbitCamera>(controlledCamera)) {
-                var camera = SystemAPI.GetComponent<OrbitCamera>(controlledCamera);
+            if (SystemAPI.HasComponent<OrbitCamera>(cameraEntity)) {
+                var camera = SystemAPI.GetComponent<OrbitCamera>(cameraEntity);
                 cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
                     characterUp,
                     camera.PlanarForward,
@@ -81,7 +80,7 @@ namespace Foxglove.Player {
             // Jump
             control.Jump = input.Jump.IsSet(tick);
 
-            SystemAPI.SetComponent(controlledCharacter, control);
+            SystemAPI.SetComponent(characterEntity, control);
         }
 
         public void OnDestroy(ref SystemState state) { }
