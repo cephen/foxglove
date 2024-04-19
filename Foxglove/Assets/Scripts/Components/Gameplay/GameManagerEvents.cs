@@ -1,6 +1,16 @@
 using SideFX.Events;
 
 namespace Foxglove.Gameplay {
+    public enum GameState {
+        Waiting,
+        Startup,
+        WaitForMap,
+        MapReady,
+        Playing,
+        Paused,
+        ExitToMenu,
+    }
+
     public readonly struct StartGame : IEvent { }
 
     public readonly struct PauseGame : IEvent { }
