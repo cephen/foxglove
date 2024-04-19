@@ -35,10 +35,11 @@ namespace Foxglove.Gameplay {
 
             // Initialize event bindings
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
-            EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
             _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
 
+            // Register event bindings
+            EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             EventBus<SceneReady>.Register(_sceneReadyBinding);
             EventBus<ResumeEvent>.Register(_resumeBinding);
         }
@@ -110,7 +111,10 @@ namespace Foxglove.Gameplay {
                     StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
                     return;
                 case GameState.Playing:
-                    EventBus<ToggleSpawnersEvent>.Raise(new ToggleSpawnersEvent { Enabled = true });
+                    if (gameState.Previous is GameState.MapReady)
+                        EventBus<StartGameEvent>.Raise(new StartGameEvent());
+                    Cursor.lockState = CursorLockMode.Locked;
+                    // Activate simulation for player & enemies
                     return;
                 case GameState.Paused:
                     EventBus<PauseEvent>.Raise(new PauseEvent());
