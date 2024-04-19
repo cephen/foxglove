@@ -43,6 +43,7 @@ namespace Foxglove.Maps {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     internal sealed partial class MapGeneratorSystem : SystemBase, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
+        private bool _hasCells;
         private Random _random;
 
         private EventBinding<BuildMapEvent> _buildMapBinding;
@@ -227,6 +228,7 @@ namespace Foxglove.Maps {
                     uint seed = _random.NextUInt();
                     ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
 
+                    if (_hasCells) StateMachine.SetNextState(ecsState, GeneratorState.Despawn);
 
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
                     StateMachine.SetNextState(ecsState, GeneratorState.PlaceRooms);
