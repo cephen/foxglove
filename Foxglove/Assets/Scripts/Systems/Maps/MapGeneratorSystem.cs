@@ -22,7 +22,8 @@ namespace Foxglove.Maps {
         FilterEdges,
         SetMapCells,
         Spawning,
-        Cleanup,
+        Finished,
+        Despawn,
     }
 
     /// <summary>
@@ -60,7 +61,7 @@ namespace Foxglove.Maps {
         /// Used to define data dependencies, and to add components to the system.
         /// </summary>
         protected override void OnCreate() {
-            var initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
+            uint initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
             Log.Debug("[MapGenerator] Initial seed: {seed}", initialSeed);
             _random = new Random(initialSeed);
 
@@ -165,13 +166,11 @@ namespace Foxglove.Maps {
 
                     return;
                 case GeneratorState.Spawning:
+                    // wait for spawning job
                     ecsState.Dependency.Complete();
 
-                    Log.Debug("[MapGenerator] SpawnMapCellsJob finished");
-                    StateMachine.SetNextState(ecsState, GeneratorState.Cleanup);
+                    StateMachine.SetNextState(ecsState, GeneratorState.Finished);
 
-                    return;
-                case GeneratorState.Cleanup:
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -227,20 +226,6 @@ namespace Foxglove.Maps {
 
                     uint seed = _random.NextUInt();
                     ecsState.EntityManager.SetComponentData(_mapRoot, new MapConfig(seed));
-
-                    if (SystemAPI.HasBuffer<Child>(_mapRoot)) {
-                        NativeArray<Entity> children =
-                            SystemAPI.GetBuffer<Child>(_mapRoot).Reinterpret<Entity>().AsNativeArray();
-                        if (children.Length > 0) {
-                            Log.Debug("[MapGenerator] Despawning map cells");
-                            CreateCommandBuffer(ref ecsState).DestroyEntity(children);
-                        }
-
-                        Log.Debug("[MapGenerator] Clearing map buffers");
-                        SystemAPI.GetBuffer<Room>(_mapRoot).Clear();
-                        SystemAPI.GetBuffer<Edge>(_mapRoot).Clear();
-                        SystemAPI.GetBuffer<MapCell>(_mapRoot).Clear();
-                    }
 
 
                     Log.Debug("[MapGenerator] Generating map with seed {seed}", seed);
@@ -318,12 +303,37 @@ namespace Foxglove.Maps {
                     ecsState.Dependency = _spawnMapCells.Schedule(mapCells.Length, 1024, ecsState.Dependency);
 
                     return;
-                case GeneratorState.Cleanup:
-                    Log.Debug("[MapGenerator] Cleaning up");
+                case GeneratorState.Finished:
+                    Log.Debug("[MapGenerator] Finished Spawning map, disposing intermediate buffers");
 
-                    SystemAPI.SetComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle, false);
+                    _generateRooms.Rooms.Dispose();
+                    _triangulateMap.Edges.Dispose();
+                    _filterEdges.Results.Dispose();
+                    _setMapCells.Results.Dispose();
+                    return;
+                case GeneratorState.Despawn:
+                    if (!SystemAPI.HasBuffer<Child>(_mapRoot)) return;
+
+                    EntityCommandBuffer commands = CreateCommandBuffer(ref ecsState);
+
+                    NativeArray<Entity> children =
+                        SystemAPI
+                            .GetBuffer<Child>(_mapRoot)
+                            .Reinterpret<Entity>()
+                            .AsNativeArray();
+
+                    if (children.Length > 0) {
+                        Log.Debug("[MapGenerator] Despawning map cells");
+                        commands.DestroyEntity(children);
+                    }
+
+                    Log.Debug("[MapGenerator] Clearing map buffers");
+                    commands.SetBuffer<Room>(_mapRoot);
+                    commands.SetBuffer<Edge>(_mapRoot);
+                    commands.SetBuffer<MapCell>(_mapRoot);
+
                     StateMachine.SetNextState(ecsState, GeneratorState.Idle);
-                    EventBus<MapReadyEvent>.Raise(default);
+
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -338,40 +348,27 @@ namespace Foxglove.Maps {
         public void OnExit(ref SystemState ecsState, State<GeneratorState> fsmState) {
             switch (fsmState.Current) {
                 case GeneratorState.Idle:
-                    break;
+                    return;
                 case GeneratorState.Initialize:
-                    Log.Debug("[MapGenerator] Done initializing");
-                    break;
+                    Log.Debug("[MapGenerator] Initialized");
+                    return;
                 case GeneratorState.PlaceRooms:
-                    Log.Debug("[MapGenerator] Done placing rooms disposing GenerateRoomsJob buffers");
-                    _generateRooms.Rooms.Dispose(ecsState.Dependency);
-
-                    break;
-                case GeneratorState.Triangulate:
-                    Log.Debug("[MapGenerator] Done triangulating map, disposing TriangulateMapJob buffers");
-                    _triangulateMap.Edges.Dispose(ecsState.Dependency);
-
+                    Log.Debug("[MapGenerator] Rooms placed");
                     return;
                 case GeneratorState.FilterEdges:
-                    Log.Debug("[MapGenerator] Done filtering edges disposing FilterEdgesJob buffers");
-                    _filterEdges.Results.Dispose(ecsState.Dependency);
-
-                    Log.Debug("[MapGenerator] Done building map graph");
-
-                    break;
+                    Log.Debug("[MapGenerator] Built map graph");
+                    return;
                 case GeneratorState.SetMapCells:
-                    Log.Debug("[MapGenerator] Done pathfinding hallways disposing SetMapCellsJob buffers");
-                    _setMapCells.Results.Dispose(ecsState.Dependency);
-
-                    break;
+                    Log.Debug("[MapGenerator] Map tiles configured");
+                    return;
                 case GeneratorState.Spawning:
-                    Log.Debug("[MapGenerator] Done spawning map objects");
-                    break;
-                case GeneratorState.Cleanup:
+                    Log.Debug("[MapGenerator] Map objects spawned");
+                    return;
+                case GeneratorState.Despawn:
                     Log.Debug("[MapGenerator] Done cleaning up");
-                    break;
+                    return;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return;
             }
         }
 
