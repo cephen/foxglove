@@ -27,11 +27,13 @@ namespace Foxglove.Gameplay {
         ExitToMenu,
     }
 
+    [UpdateInGroup(typeof(InitializationSystemGroup))]
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
         private EventBinding<ResumeGame> _resumeBinding;
         private EventBinding<PauseGame> _pauseBinding;
+        private EventBinding<ExitGame> _exitGameBinding;
         private EventBinding<Shutdown> _shutdownBinding;
 
         private Random _rng;
@@ -46,6 +48,7 @@ namespace Foxglove.Gameplay {
             _resumeBinding = new EventBinding<ResumeGame>(OnResume);
             _pauseBinding = new EventBinding<PauseGame>(OnPause);
             _shutdownBinding = new EventBinding<Shutdown>(OnShutdown);
+            _exitGameBinding = new EventBinding<ExitGame>(OnExitGame);
 
             // Register event bindings
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
@@ -53,6 +56,7 @@ namespace Foxglove.Gameplay {
             EventBus<ResumeGame>.Register(_resumeBinding);
             EventBus<PauseGame>.Register(_pauseBinding);
             EventBus<Shutdown>.Register(_shutdownBinding);
+            EventBus<ExitGame>.Register(_exitGameBinding);
         }
 
         protected override void OnDestroy() {
@@ -61,6 +65,7 @@ namespace Foxglove.Gameplay {
             EventBus<ResumeGame>.Deregister(_resumeBinding);
             EventBus<PauseGame>.Deregister(_pauseBinding);
             EventBus<Shutdown>.Deregister(_shutdownBinding);
+            EventBus<ExitGame>.Deregister(_exitGameBinding);
         }
 
         protected override void OnUpdate() {
@@ -130,7 +135,7 @@ namespace Foxglove.Gameplay {
                 StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
         }
 
-        private void OnExit(ExitToMainMenu _) {
+        private void OnExitGame(ExitGame _) {
             StateMachine.SetNextState(CheckedStateRef, GameState.ExitToMenu);
         }
 
@@ -166,6 +171,10 @@ namespace Foxglove.Gameplay {
                     EventBus<PauseGame>.Raise(new PauseGame());
                     Cursor.lockState = CursorLockMode.Confined;
                     // TODO: Deactivate simulation for player & enemies
+                case GameState.ExitToMenu:
+
+                    EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
+                    StateMachine.SetNextState(CheckedStateRef, GameState.Waiting);
                     return;
                 default:
                     return;
