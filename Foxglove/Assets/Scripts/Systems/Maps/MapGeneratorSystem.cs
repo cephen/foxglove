@@ -312,6 +312,10 @@ namespace Foxglove.Maps {
                     _triangulateMap.Edges.Dispose();
                     _filterEdges.Results.Dispose();
                     _setMapCells.Results.Dispose();
+
+                    EventBus<MapReadyEvent>.Raise(new MapReadyEvent());
+
+                    StateMachine.SetNextState(ecsState, GeneratorState.Idle);
                     return;
                 case GeneratorState.Despawn:
                     if (!SystemAPI.HasBuffer<Child>(_mapRoot)) return;
