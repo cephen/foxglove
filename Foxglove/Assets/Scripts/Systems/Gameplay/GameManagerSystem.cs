@@ -24,6 +24,7 @@ namespace Foxglove.Gameplay {
         MapReady,
         Playing,
         Paused,
+        ExitToMenu,
     }
 
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
@@ -129,7 +130,10 @@ namespace Foxglove.Gameplay {
                 StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
         }
 
-        private void OnShutdown(ShutdownEvent _) {
+        private void OnExit(ExitToMainMenu _) {
+            StateMachine.SetNextState(CheckedStateRef, GameState.ExitToMenu);
+        }
+
         private void OnShutdown(Shutdown _) {
 #if UNITY_EDITOR
             EditorApplication.ExitPlaymode();
