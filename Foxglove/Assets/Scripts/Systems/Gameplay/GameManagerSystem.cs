@@ -1,12 +1,15 @@
 using System;
 using Foxglove.Character;
+using Foxglove.Core;
 using Foxglove.Core.State;
+using Foxglove.Input;
 using Foxglove.Maps;
 using SideFX.Events;
 using SideFX.SceneManagement;
 using SideFX.SceneManagement.Events;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Gameplay {
@@ -22,6 +25,8 @@ namespace Foxglove.Gameplay {
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
+        private EventBinding<ResumeEvent> _resumeBinding;
+
         private Random _rng;
 
         protected override void OnCreate() {
@@ -32,12 +37,16 @@ namespace Foxglove.Gameplay {
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
+            _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
+
             EventBus<SceneReady>.Register(_sceneReadyBinding);
+            EventBus<ResumeEvent>.Register(_resumeBinding);
         }
 
         protected override void OnDestroy() {
             EventBus<MapReadyEvent>.Deregister(_mapReadyBinding);
             EventBus<SceneReady>.Deregister(_sceneReadyBinding);
+            EventBus<ResumeEvent>.Deregister(_resumeBinding);
         }
 
         protected override void OnUpdate() {
@@ -66,6 +75,8 @@ namespace Foxglove.Gameplay {
             EventBus<SpawnCharacterEvent>.Raise(spawnRequest);
         }
 
+#region EventBus bindings
+
         private void OnMapReady() {
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is not GameState.WaitForMap) return;
 
@@ -78,6 +89,13 @@ namespace Foxglove.Gameplay {
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Waiting)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Startup);
         }
+
+        private void OnResume(ResumeEvent _) {
+            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Paused)
+                StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
+        }
+
+#endregion
 
 #region IStateMachine Implementation
 
