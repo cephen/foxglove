@@ -30,6 +30,7 @@ namespace Foxglove.Gameplay {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
         private EventBinding<ResumeEvent> _resumeBinding;
+        private EventBinding<PauseEvent> _pauseBinding;
         private EventBinding<ShutdownEvent> _shutdownBinding;
 
         private Random _rng;
@@ -42,12 +43,14 @@ namespace Foxglove.Gameplay {
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
             _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
             _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
+            _pauseBinding = new EventBinding<PauseEvent>(OnPause);
             _shutdownBinding = new EventBinding<ShutdownEvent>(OnShutdown);
 
             // Register event bindings
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             EventBus<SceneReady>.Register(_sceneReadyBinding);
             EventBus<ResumeEvent>.Register(_resumeBinding);
+            EventBus<PauseEvent>.Register(_pauseBinding);
             EventBus<ShutdownEvent>.Register(_shutdownBinding);
         }
 
@@ -55,18 +58,35 @@ namespace Foxglove.Gameplay {
             EventBus<MapReadyEvent>.Deregister(_mapReadyBinding);
             EventBus<SceneReady>.Deregister(_sceneReadyBinding);
             EventBus<ResumeEvent>.Deregister(_resumeBinding);
+            EventBus<PauseEvent>.Deregister(_pauseBinding);
             EventBus<ShutdownEvent>.Deregister(_shutdownBinding);
         }
 
         protected override void OnUpdate() {
+            CheckIfShouldPause();
             if (StateMachine.IsTransitionQueued<GameState>(CheckedStateRef)) Transition(ref CheckedStateRef);
+        }
+
+        private void CheckIfShouldPause() {
             var tick = SystemAPI.GetSingleton<Tick>();
             var inputState = SystemAPI.GetSingleton<InputState>();
 
             State<GameState> state = StateMachine.GetState<GameState>(CheckedStateRef);
-            if (state.Current is GameState.Playing
+            // If in a state where pressing pause matters
+            if (state.Current is GameState.Playing or GameState.Paused
+                // and the pause button was pressed this frame
                 && inputState.Pause.IsSet(tick)
-            ) StateMachine.SetNextState(CheckedStateRef, GameState.Paused);
+            )
+                switch (state.Current) {
+                    case GameState.Playing:
+                        EventBus<PauseEvent>.Raise(new PauseEvent());
+                        break;
+                    case GameState.Paused:
+                        EventBus<ResumeEvent>.Raise(new ResumeEvent());
+                        break;
+                    default:
+                        return;
+                }
         }
 
         private void SpawnPlayer() {
@@ -97,6 +117,11 @@ namespace Foxglove.Gameplay {
 
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Waiting)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Startup);
+        }
+
+        private void OnPause(PauseEvent _) {
+            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Playing)
+                StateMachine.SetNextState(CheckedStateRef, GameState.Paused);
         }
 
         private void OnResume(ResumeEvent _) {
