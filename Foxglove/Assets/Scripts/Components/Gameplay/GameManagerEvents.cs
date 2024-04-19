@@ -6,4 +6,6 @@ namespace Foxglove.Gameplay {
     public readonly struct PauseEvent : IEvent { }
 
     public readonly struct ResumeEvent : IEvent { }
+
+    public readonly struct ShutdownEvent : IEvent { }
 }
