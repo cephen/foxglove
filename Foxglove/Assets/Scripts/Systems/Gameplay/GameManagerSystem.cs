@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Foxglove.Character;
 using Foxglove.Core;
 using Foxglove.Core.State;
@@ -71,7 +71,7 @@ namespace Foxglove.Gameplay {
             // Request spawning of the player
             var spawnRequest = new SpawnCharacterEvent {
                 Character = SpawnableCharacter.Player,
-                Position = new float3(room.Center.x, 10f, room.Center.y),
+                Position = new float3(room.Center.x, 1f, room.Center.y),
             };
             EventBus<SpawnCharacterEvent>.Raise(spawnRequest);
         }
