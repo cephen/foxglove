@@ -174,7 +174,7 @@ namespace Foxglove.Maps {
 
                     return;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return;
             }
         }
 
