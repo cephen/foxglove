@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Interface/MainMenu/MainMenuStyles.uss?fileID=7433441132597879392&amp;guid=3f5623a0caecd907a9e33666e2ed67e8&amp;type=3#MainMenuStyles" />
+    <ui:VisualElement name="container" style="flex-grow: 1; align-items: center; justify-content: center; align-self: stretch;">
+        <ui:VisualElement name="menu-panel" style="align-items: center; justify-content: center; align-self: center; padding-top: 50px; padding-right: 50px; padding-bottom: 50px; padding-left: 50px; background-color: rgba(16, 15, 15, 0.6); color: rgb(206, 205, 195); -unity-font-style: bold; -unity-text-align: middle-center;">
+            <ui:Button text="Resume" name="resume-button" enable-rich-text="false" class="menu-button" />
+            <ui:Button text="Quit" name="exit-button" enable-rich-text="false" class="menu-button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
