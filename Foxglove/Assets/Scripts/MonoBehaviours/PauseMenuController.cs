@@ -13,22 +13,29 @@ namespace Foxglove {
         private Button _resumeButton;
         private Button _exitButton;
         private EventBinding<PauseEvent> _pauseBinding;
+        private EventBinding<ResumeEvent> _resumeBinding;
 
         private void Awake() {
             _doc = GetComponent<UIDocument>();
             _resumeButton = _doc.rootVisualElement.Q<Button>("resume-button");
             _exitButton = _doc.rootVisualElement.Q<Button>("exit-button");
+
             _pauseBinding = new EventBinding<PauseEvent>(OnPause);
+            _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
         }
 
         private void OnEnable() {
             EventBus<PauseEvent>.Register(_pauseBinding);
+            EventBus<ResumeEvent>.Register(_resumeBinding);
+
             _resumeButton.clicked += OnResumeClicked;
             _exitButton.clicked += OnExitClicked;
         }
 
         private void OnDisable() {
             EventBus<PauseEvent>.Deregister(_pauseBinding);
+            EventBus<ResumeEvent>.Deregister(_resumeBinding);
+
             _resumeButton.clicked -= OnResumeClicked;
             _exitButton.clicked -= OnExitClicked;
         }
