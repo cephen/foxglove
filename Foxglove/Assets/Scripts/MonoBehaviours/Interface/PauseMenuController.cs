@@ -5,7 +5,7 @@ using SideFX.SceneManagement.Events;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Foxglove {
+namespace Foxglove.Interface {
     [RequireComponent(typeof(UIDocument))]
     public sealed class PauseMenuController : MonoBehaviour {
         [SerializeField] private MainMenuScene _mainMenuScene;
@@ -17,17 +17,16 @@ namespace Foxglove {
 
         private void Awake() {
             _doc = GetComponent<UIDocument>();
-            _resumeButton = _doc.rootVisualElement.Q<Button>("resume-button");
-            _exitButton = _doc.rootVisualElement.Q<Button>("exit-button");
-
-            _pauseBinding = new EventBinding<PauseEvent>(OnPause);
-            _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
+            _pauseBinding = new EventBinding<PauseEvent>(OnPauseEvent);
+            _resumeBinding = new EventBinding<ResumeEvent>(OnResumeEvent);
         }
 
         private void OnEnable() {
             EventBus<PauseEvent>.Register(_pauseBinding);
             EventBus<ResumeEvent>.Register(_resumeBinding);
 
+            _resumeButton = _doc.rootVisualElement.Q<Button>("resume-button");
+            _exitButton = _doc.rootVisualElement.Q<Button>("exit-button");
             _resumeButton.clicked += OnResumeClicked;
             _exitButton.clicked += OnExitClicked;
         }
@@ -40,10 +39,18 @@ namespace Foxglove {
             _exitButton.clicked -= OnExitClicked;
         }
 
+#region Button bindings
+
         private static void OnResumeClicked() => EventBus<ResumeEvent>.Raise(new ResumeEvent());
         private void OnExitClicked() => EventBus<LoadRequest>.Raise(new LoadRequest(_mainMenuScene));
 
-        private void OnPause() => _doc.enabled = true;
-        private void OnResume() => _doc.enabled = false;
+#endregion
+
+#region EventBus Bindings
+
+        private void OnPauseEvent() => _doc.enabled = true;
+        private void OnResumeEvent() => _doc.enabled = false;
+
+#endregion
     }
 }

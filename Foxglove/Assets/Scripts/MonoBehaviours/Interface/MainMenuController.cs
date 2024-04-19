@@ -6,7 +6,7 @@ using Unity.Logging;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Foxglove {
+namespace Foxglove.Interface {
     [RequireComponent(typeof(UIDocument))]
     internal sealed class MainMenuController : MonoBehaviour {
         [SerializeField] private GameplayScene _gameplayScene;
