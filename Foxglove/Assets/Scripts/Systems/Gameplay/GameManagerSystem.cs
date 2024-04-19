@@ -84,7 +84,7 @@ namespace Foxglove.Gameplay {
         }
 
         private void OnSceneReady(SceneReady e) {
-            if (e.Scene is not GameplayScene gameplay) return;
+            if (e.Scene is not GameplayScene) return;
 
             if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Waiting)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Startup);
