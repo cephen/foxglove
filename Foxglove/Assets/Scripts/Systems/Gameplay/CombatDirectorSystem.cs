@@ -13,7 +13,9 @@ using Random = Unity.Mathematics.Random;
 namespace Foxglove.Gameplay {
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public sealed partial class CombatDirectorSystem : SystemBase {
-        private EventBinding<ToggleSpawnersEvent> _toggleSpawnersBinding;
+        private EventBinding<StartGameEvent> _startGameBinding;
+        private EventBinding<PauseEvent> _pauseBinding;
+        private EventBinding<ResumeEvent> _resumeBinding;
         private uint _credits;
         private Random _rng;
         private const float MinSpawnDistance = 10f;
@@ -21,14 +23,23 @@ namespace Foxglove.Gameplay {
 
         protected override void OnCreate() {
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
-
-            _toggleSpawnersBinding = new EventBinding<ToggleSpawnersEvent>(OnToggleSpawners);
-            EventBus<ToggleSpawnersEvent>.Register(_toggleSpawnersBinding);
             Enabled = false;
+
+            // Initialize event bindings
+            _startGameBinding = new EventBinding<StartGameEvent>(OnStartGame);
+            _pauseBinding = new EventBinding<PauseEvent>(OnPause);
+            _resumeBinding = new EventBinding<ResumeEvent>(OnResume);
+
+            // Register bindings
+            EventBus<StartGameEvent>.Register(_startGameBinding);
+            EventBus<PauseEvent>.Register(_pauseBinding);
+            EventBus<ResumeEvent>.Register(_resumeBinding);
         }
 
         protected override void OnDestroy() {
-            EventBus<ToggleSpawnersEvent>.Deregister(_toggleSpawnersBinding);
+            EventBus<StartGameEvent>.Deregister(_startGameBinding);
+            EventBus<PauseEvent>.Deregister(_pauseBinding);
+            EventBus<ResumeEvent>.Deregister(_resumeBinding);
         }
 
         protected override void OnUpdate() {
@@ -71,9 +82,20 @@ namespace Foxglove.Gameplay {
             }
         }
 
-        private void OnToggleSpawners(ToggleSpawnersEvent e) {
-            Log.Debug(e.Enabled ? "[CombatDirector] Turning spawners on" : "[CombatDirector] Turning spawners off");
-            Enabled = e.Enabled;
+        private void OnStartGame(StartGameEvent e) {
+            Log.Debug("[CombatDirector] Initializing");
+            _credits = 0;
+            Enabled = true;
+        }
+
+        private void OnPause(PauseEvent e) {
+            Log.Debug("[CombatDirector] Disabling spawners");
+            Enabled = false;
+        }
+
+        private void OnResume(ResumeEvent e) {
+            Log.Debug("[CombatDirector] Enabling spawners");
+            Enabled = true;
         }
     }
 }
