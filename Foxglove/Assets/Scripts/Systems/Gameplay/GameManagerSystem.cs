@@ -17,16 +17,6 @@ using UnityEditor;
 #endif
 
 namespace Foxglove.Gameplay {
-    internal enum GameState {
-        Waiting,
-        Startup,
-        WaitForMap,
-        MapReady,
-        Playing,
-        Paused,
-        ExitToMenu,
-    }
-
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
         private EventBinding<SceneReady> _sceneReadyBinding;
@@ -158,19 +148,13 @@ namespace Foxglove.Gameplay {
                     StateMachine.SetNextState(CheckedStateRef, GameState.WaitForMap);
                     return;
                 case GameState.MapReady:
-                    SpawnPlayer();
                     StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
                     return;
                 case GameState.Playing:
                     if (gameState.Previous is GameState.MapReady)
                         EventBus<StartGame>.Raise(new StartGame());
-                    Cursor.lockState = CursorLockMode.Locked;
                     // Activate simulation for player & enemies
                     return;
-                case GameState.Paused:
-                    EventBus<PauseGame>.Raise(new PauseGame());
-                    Cursor.lockState = CursorLockMode.Confined;
-                    // TODO: Deactivate simulation for player & enemies
                 case GameState.ExitToMenu:
 
                     EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
@@ -181,7 +165,23 @@ namespace Foxglove.Gameplay {
             }
         }
 
-        public void OnExit(ref SystemState ecsState, State<GameState> gameState) { }
+        public void OnExit(ref SystemState ecsState, State<GameState> gameState) {
+            GameState next = SystemAPI.GetComponent<NextState<GameState>>(ecsState.SystemHandle).Value;
+
+            switch ((gameState.Current, next)) {
+                case (GameState.Playing, GameState.Paused):
+                    Cursor.lockState = CursorLockMode.Confined;
+                    return;
+                case (GameState.Paused, GameState.Playing):
+                    Cursor.lockState = CursorLockMode.Locked;
+                    return;
+                case (GameState.MapReady, GameState.Playing):
+                    SpawnPlayer();
+                    return;
+                default:
+                    return;
+            }
+        }
 
         public void Transition(ref SystemState ecsState) {
             GameState current = StateMachine.GetState<GameState>(ecsState).Current;
