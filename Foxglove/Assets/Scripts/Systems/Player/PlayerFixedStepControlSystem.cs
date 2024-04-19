@@ -1,6 +1,8 @@
 using Foxglove.Camera;
 using Foxglove.Character;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.CharacterController;
@@ -25,12 +27,16 @@ namespace Foxglove.Player {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            if (SystemAPI.TryGetSingleton(out State<GameState> gameState)) return;
+            if (gameState.Current is not GameState.Playing) return;
+
             uint tick = SystemAPI.GetSingleton<Tick>().Value;
             var input = SystemAPI.GetSingleton<InputState>();
             var playerController = SystemAPI.GetSingleton<PlayerController>();
 
+
             if (playerController.ControlledCharacter == Entity.Null) {
-                Log.Error("[PlayerFixedStepControlSystem] - playerController.ControlledCharacter is null");
+                Log.Error("[PlayerFixedStepControlSystem] - character controlled by player  is null");
                 return;
             }
 
