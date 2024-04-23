@@ -176,8 +176,8 @@ namespace Foxglove.Gameplay {
 
                     return;
                 case GameState.CreateGame:
-                    Entity mapSystem = SystemAPI.GetSingletonEntity<ShouldBuild>();
-                    SystemAPI.SetComponentEnabled<ShouldBuild>(mapSystem, true);
+                    Entity mapEntity = SystemAPI.GetSingletonEntity<Map>();
+                    SystemAPI.SetComponentEnabled<ShouldBuild>(mapEntity, true);
 
                     return;
                 case GameState.Playing:
