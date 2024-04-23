@@ -1,5 +1,7 @@
 using System;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Unity.Burst;
 using Unity.Entities;
 using Random = Unity.Mathematics.Random;
@@ -15,6 +17,7 @@ namespace Foxglove.Agent {
 
         public void OnCreate(ref SystemState state) {
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<Blackboard>();
             state.RequireForUpdate<Tick>();
@@ -24,6 +27,8 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             // Command buffers are used to schedule structural changes on entities
             // This includes adding/removing/enabling/disabling components
             EntityCommandBuffer commands = SystemAPI

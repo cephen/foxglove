@@ -1,5 +1,7 @@
 using Foxglove.Character;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Navigation;
 using Unity.Burst;
 using Unity.Collections;
@@ -31,6 +33,7 @@ namespace Foxglove.Agent {
                 .WithAll<WispFlowField, FlowField, FlowFieldSample>()
                 .Build();
 
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate(_wispQuery);
             state.RequireForUpdate(_flowFieldQuery);
         }
@@ -39,6 +42,8 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             // GetSingletonEntity requires exactly one entity matches the query
             if (_flowFieldQuery.CalculateEntityCount() != 1) {
                 Log.Error("[WispPathfindingSystem] FlowField singleton not found, aborting");
