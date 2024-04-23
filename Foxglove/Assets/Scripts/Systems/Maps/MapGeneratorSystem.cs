@@ -95,8 +95,7 @@ namespace Foxglove.Maps {
 
             switch (state.Current) {
                 case GeneratorState.Idle:
-                    bool requested = SystemAPI.IsComponentEnabled<ShouldBuild>(_mapRoot);
-                    if (!requested) return;
+                    if (!SystemAPI.IsComponentEnabled<ShouldBuild>(_mapRoot)) return;
 
                     Log.Debug("[MapGenerator] Scheduling map generation");
                     StateMachine.SetNextState(ecsState, GeneratorState.Initialize);
@@ -305,6 +304,8 @@ namespace Foxglove.Maps {
                     _setMapCells.Results.Dispose();
 
                     EventBus<MapReadyEvent>.Raise(new MapReadyEvent());
+
+                    SystemAPI.SetComponentEnabled<ShouldBuild>(_mapRoot, false);
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Idle);
                     return;
