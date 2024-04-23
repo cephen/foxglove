@@ -13,6 +13,8 @@ namespace Foxglove.Gameplay {
 
     public readonly struct GameReady : IEvent { }
 
+    public readonly struct TeleporterTriggered : IEvent { }
+
     public readonly struct PauseGame : IEvent { }
 
     public readonly struct ResumeGame : IEvent { }
