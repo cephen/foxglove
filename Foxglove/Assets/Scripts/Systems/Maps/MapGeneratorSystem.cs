@@ -328,8 +328,8 @@ namespace Foxglove.Maps {
                     availableRooms.Dispose();
 
                     if (teleporterRoom is null) {
-                        Log.Error("[MapGenerator] Failed to place teleporter");
-                        StateMachine.SetNextState(ecsState, GeneratorState.Idle);
+                        Log.Error("[MapGenerator] Failed to place teleporter, restarting map generation");
+                        StateMachine.SetNextState(ecsState, GeneratorState.Initialize);
                         return;
                     }
 
