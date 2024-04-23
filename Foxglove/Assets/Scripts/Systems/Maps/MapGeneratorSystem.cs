@@ -41,12 +41,10 @@ namespace Foxglove.Maps {
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    internal sealed partial class MapGeneratorSystem : SystemBase, IStateMachineSystem<GeneratorState> {
+    internal partial struct MapGeneratorSystem : ISystem, IStateMachineSystem<GeneratorState> {
         private Entity _mapRoot;
         private bool _hasCells;
         private Random _random;
-
-        private EventBinding<BuildMapEvent> _buildMapBinding;
 
         // These jobs are used to incrementally build the map over several frames.
         // Each state in the state machine will be responsible for one of these jobs
@@ -61,40 +59,30 @@ namespace Foxglove.Maps {
         /// Called by the ECS framework when the system is created.
         /// Used to define data dependencies, and to add components to the system.
         /// </summary>
-        protected override void OnCreate() {
+        public void OnCreate(ref SystemState state) {
             uint initialSeed = (uint)DateTimeOffset.UtcNow.GetHashCode();
             Log.Debug("[MapGenerator] Initial seed: {seed}", initialSeed);
             _random = new Random(initialSeed);
 
-            RequireForUpdate<Tick>();
-            RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            RequireForUpdate<MapTheme>();
+            state.RequireForUpdate<Tick>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<MapTheme>();
 
-            EntityManager.AddComponent<GenerateMapRequest>(SystemHandle);
-            EntityManager.SetComponentEnabled<GenerateMapRequest>(SystemHandle, false);
 
-            StateMachine.Init(CheckedStateRef, GeneratorState.Idle);
+            StateMachine.Init(state, GeneratorState.Idle);
 
-            SpawnMapRoot();
-
-            _buildMapBinding = new EventBinding<BuildMapEvent>(OnBuildMapRequest);
-            EventBus<BuildMapEvent>.Register(_buildMapBinding);
-        }
-
-        protected override void OnDestroy() {
-            EventBus<BuildMapEvent>.Deregister(_buildMapBinding);
+            SpawnMapRoot(ref state);
         }
 
         /// <summary>
         /// Called once per frame by the ECS framework.
         /// Checks for state transitions, and calls the state update function
         /// </summary>
-        protected override void OnUpdate() {
-            if (StateMachine.IsTransitionQueued<GeneratorState>(CheckedStateRef)) Transition(ref CheckedStateRef);
-            HandleStateUpdate(ref CheckedStateRef);
+        public void OnUpdate(ref SystemState state) {
+            if (StateMachine.IsTransitionQueued<GeneratorState>(state)) Transition(ref state);
+            HandleStateUpdate(ref state);
         }
 
-        private void OnBuildMapRequest() => SystemAPI.SetComponentEnabled<GenerateMapRequest>(SystemHandle, true);
 
         /// <summary>
         /// Called every frame, used to wait for generation jobs to complete
@@ -107,7 +95,7 @@ namespace Foxglove.Maps {
 
             switch (state.Current) {
                 case GeneratorState.Idle:
-                    bool requested = SystemAPI.IsComponentEnabled<GenerateMapRequest>(ecsState.SystemHandle);
+                    bool requested = SystemAPI.IsComponentEnabled<ShouldBuild>(_mapRoot);
                     if (!requested) return;
 
                     Log.Debug("[MapGenerator] Scheduling map generation");
@@ -179,19 +167,22 @@ namespace Foxglove.Maps {
         }
 
         [BurstCompile]
-        private void SpawnMapRoot() {
+        private void SpawnMapRoot(ref SystemState state) {
             Log.Debug("[MapGenerator] Creating Map Root");
-            _mapRoot = EntityManager.CreateEntity();
-            EntityManager.SetName(_mapRoot, "Map Root");
+            _mapRoot = state.EntityManager.CreateEntity();
+            state.EntityManager.SetName(_mapRoot, "Map Root");
 
-            EntityManager.AddBuffer<Room>(_mapRoot);
-            EntityManager.AddBuffer<Edge>(_mapRoot);
-            EntityManager.AddBuffer<MapCell>(_mapRoot);
+            state.EntityManager.AddBuffer<Room>(_mapRoot);
+            state.EntityManager.AddBuffer<Edge>(_mapRoot);
+            state.EntityManager.AddBuffer<MapCell>(_mapRoot);
 
-            EntityManager.AddComponent<Map>(_mapRoot);
-            EntityManager.AddComponent<MapConfig>(_mapRoot);
-            EntityManager.AddComponentData(_mapRoot, LocalTransform.FromScale(1));
-            EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
+            state.EntityManager.AddComponent<ShouldBuild>(_mapRoot);
+            state.EntityManager.SetComponentEnabled<ShouldBuild>(_mapRoot, false);
+
+            state.EntityManager.AddComponent<Map>(_mapRoot);
+            state.EntityManager.AddComponent<MapConfig>(_mapRoot);
+            state.EntityManager.AddComponentData(_mapRoot, LocalTransform.FromScale(1));
+            state.EntityManager.AddComponentData(_mapRoot, new LocalToWorld { Value = float4x4.identity });
         }
 
         private EntityCommandBuffer CreateCommandBuffer(ref SystemState ecsState) =>
