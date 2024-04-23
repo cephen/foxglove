@@ -27,7 +27,7 @@ namespace Foxglove.Player {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            if (SystemAPI.TryGetSingleton(out State<GameState> gameState)) return;
+            if (!SystemAPI.TryGetSingleton(out State<GameState> gameState)) return;
             if (gameState.Current is not GameState.Playing) return;
 
             uint tick = SystemAPI.GetSingleton<Tick>().Value;
