@@ -1,4 +1,5 @@
-﻿using Foxglove.Gameplay;
+﻿using Foxglove.Character;
+using Foxglove.Gameplay;
 using SideFX.Events;
 using SideFX.SceneManagement;
 using SideFX.SceneManagement.Events;
@@ -8,28 +9,32 @@ using UnityEngine.UIElements;
 
 namespace Foxglove.Interface {
     [RequireComponent(typeof(UIDocument))]
-    public sealed class PauseMenuController : MonoBehaviour {
+    public sealed class UserInterfaceManager : MonoBehaviour {
         [SerializeField] private MainMenuScene _mainMenuScene;
         private UIDocument _doc;
         private Button _resumeButton;
         private Button _exitButton;
         private EventBinding<PauseGame> _pauseBinding;
         private EventBinding<ResumeGame> _resumeBinding;
+        private EventBinding<PlayerDied> _playerDiedEvent;
 
         private void Awake() {
             _doc = GetComponent<UIDocument>();
             _pauseBinding = new EventBinding<PauseGame>(OnPauseEvent);
             _resumeBinding = new EventBinding<ResumeGame>(OnResumeEvent);
+            _playerDiedEvent = new EventBinding<PlayerDied>(OnPlayerDied);
         }
 
         private void OnEnable() {
             EventBus<PauseGame>.Register(_pauseBinding);
             EventBus<ResumeGame>.Register(_resumeBinding);
+            EventBus<PlayerDied>.Register(_playerDiedEvent);
         }
 
         private void OnDisable() {
             EventBus<PauseGame>.Deregister(_pauseBinding);
             EventBus<ResumeGame>.Deregister(_resumeBinding);
+            EventBus<PlayerDied>.Deregister(_playerDiedEvent);
         }
 
 #region Button bindings
@@ -41,6 +46,11 @@ namespace Foxglove.Interface {
 
         private void OnExitClicked() {
             Log.Debug("[Pause Menu Controller] Exit clicked");
+            EventBus<LoadRequest>.Raise(new LoadRequest(_mainMenuScene));
+        }
+
+        private void OnPlayerDied() {
+            Log.Debug("Returning to main menu");
             EventBus<LoadRequest>.Raise(new LoadRequest(_mainMenuScene));
         }
 
