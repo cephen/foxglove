@@ -72,19 +72,12 @@ namespace Foxglove.Gameplay {
 
             State<GameState> state = StateMachine.GetState<GameState>(CheckedStateRef);
             // If in a state where pressing pause matters
-            if (state.Current is not (GameState.Playing or GameState.Paused)
-                // and the pause button was pressed this frame
-                || !inputState.Pause.IsSet(tick)) return;
-
-            switch (state.Current) {
-                case GameState.Playing:
-                    EventBus<PauseGame>.Raise(new PauseGame());
-                    break;
-                case GameState.Paused:
-                    EventBus<ResumeGame>.Raise(new ResumeGame());
-                    break;
-                default:
-                    return;
+            if (state.Current is (GameState.Playing or GameState.Paused)
+                // and the pause button was pressed this tick
+                && inputState.Pause.IsSet(tick)) {
+                // Toggle pause by sending an event depending on current state
+                if (state.Current == GameState.Playing) EventBus<PauseGame>.Raise(new PauseGame());
+                else if (state.Current == GameState.Paused) EventBus<ResumeGame>.Raise(new ResumeGame());
             }
         }
 
