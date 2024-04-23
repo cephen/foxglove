@@ -5,5 +5,6 @@ namespace Foxglove.Gameplay {
         public Entity OrbitCamera { get; init; }
         public Entity PlayerPrefab { get; init; }
         public Entity WispPrefab { get; init; }
+        public Entity TeleporterPrefab { get; init; }
     }
 }

@@ -7,6 +7,7 @@ namespace Foxglove.Authoring.Gameplay {
         public GameObject OrbitCamera;
         public GameObject PlayerPrefab;
         public GameObject WispPrefab;
+        public GameObject TeleporterPrefab;
 
         private sealed class Baker : Baker<SpawnablePrefabAuthoring> {
             public override void Bake(SpawnablePrefabAuthoring authoring) {
@@ -15,8 +16,9 @@ namespace Foxglove.Authoring.Gameplay {
                     e,
                     new SpawnablePrefabs {
                         OrbitCamera = GetEntity(authoring.OrbitCamera, TransformUsageFlags.Dynamic),
-                        PlayerPrefab = GetEntity(authoring.PlayerPrefab, TransformUsageFlags.WorldSpace),
-                        WispPrefab = GetEntity(authoring.WispPrefab, TransformUsageFlags.WorldSpace),
+                        PlayerPrefab = GetEntity(authoring.PlayerPrefab, TransformUsageFlags.Dynamic),
+                        WispPrefab = GetEntity(authoring.WispPrefab, TransformUsageFlags.Dynamic),
+                        TeleporterPrefab = GetEntity(authoring.TeleporterPrefab, TransformUsageFlags.Renderable),
                     }
                 );
             }
