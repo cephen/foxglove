@@ -131,6 +131,9 @@ namespace Foxglove.Gameplay {
                     return;
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Confined;
+                    NextState<GameState> next = StateMachine.GetNextState<GameState>(CheckedStateRef);
+                    if (next.Value is GameState.LevelComplete or GameState.MainMenu)
+                        EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
                     return;
                 default:
                     return;
@@ -193,10 +196,8 @@ namespace Foxglove.Gameplay {
         }
 
         private void OnQuitToMenu(QuitToMenu _) {
-            if (CurrentState is GameState.Playing or GameState.Paused) {
-                EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
+            if (CurrentState is GameState.Playing or GameState.Paused)
                 StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
-            }
         }
 
         private void OnPlayerDied(PlayerDied _) {
