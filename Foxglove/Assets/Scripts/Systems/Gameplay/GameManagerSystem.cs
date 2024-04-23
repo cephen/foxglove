@@ -157,8 +157,6 @@ namespace Foxglove.Gameplay {
                 case GameState.MainMenu:
                     Cursor.lockState = CursorLockMode.None;
 
-                    if (gameState.Previous is not GameState.GameOver) return;
-
                     return;
                 case GameState.CreateGame:
                     Entity mapEntity = SystemAPI.GetSingletonEntity<Map>();
@@ -167,6 +165,7 @@ namespace Foxglove.Gameplay {
                     return;
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Locked;
+
                     return;
                 case GameState.GameOver:
                     EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
