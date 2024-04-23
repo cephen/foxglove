@@ -7,7 +7,6 @@ namespace Foxglove.Authoring.Agent {
     /// Added to the wisp prefab, when instantiated this component is converted to a <see cref="Wisp" />
     /// </summary>
     internal sealed class WispAuthoring : MonoBehaviour {
-        public int MaxHealth = 100;
         public uint MinAttackCooldown = 50 * 4; // 4 Seconds @ 50 ticks per second
         public uint MaxAttackCooldown = 50 * 10; // 10 seconds
 
