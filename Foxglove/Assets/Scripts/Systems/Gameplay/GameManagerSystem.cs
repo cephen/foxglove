@@ -96,31 +96,6 @@ namespace Foxglove.Gameplay {
             EventBus<SpawnCharacterEvent>.Raise(spawnRequest);
         }
 
-        private void SetCameraEnabled(bool enabled) {
-            SetManagedSystemEnabled<CameraSystemGroup>(enabled);
-        }
-
-        private void SetPlayerControlsEnabled(bool enabled) {
-            SetManagedSystemEnabled<PlayerFixedStepSystemGroup>(enabled);
-            SetManagedSystemEnabled<PlayerVariableStepSystemGroup>(enabled);
-        }
-
-        private void SetCharactersEnabled(bool enabled) {
-            SetManagedSystemEnabled<BlackboardUpdateGroup>(enabled);
-            SetManagedSystemEnabled<AgentSimulationGroup>(enabled);
-            SetManagedSystemEnabled<CharacterSystemGroup>(enabled);
-            SetManagedSystemEnabled<CheckpointUpdateGroup>(enabled);
-        }
-
-        private void SetSystemEnabled<T>(bool enabled)
-            where T : unmanaged, ISystem {
-            SystemHandle system = World.GetOrCreateSystem<T>();
-            World.Unmanaged.ResolveSystemStateRef(system).Enabled = enabled;
-        }
-
-        private void SetManagedSystemEnabled<T>(bool enabled)
-            where T : SystemBase => World.GetExistingSystemManaged<T>().Enabled = enabled;
-
 #region EventBus bindings
 
         private void OnSceneReady(SceneReady e) {
@@ -182,38 +157,11 @@ namespace Foxglove.Gameplay {
                     return;
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Locked;
-
-                    SetCharactersEnabled(true);
-                    SetPlayerControlsEnabled(true);
-                    SetCameraEnabled(true);
-
-                    SetManagedSystemEnabled<CheckpointUpdateGroup>(true);
-
-                    return;
-                case GameState.Paused:
-                    SetCharactersEnabled(false);
-                    SetCameraEnabled(false);
-
-                    SetManagedSystemEnabled<CombatDirectorSystem>(false);
-
                     return;
                 case GameState.GameOver:
                     EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
-
-                    World.Unmanaged.GetExistingSystemState<PlayerFixedStepSystemGroup>().Enabled = false;
-                    World.Unmanaged.GetExistingSystemState<PlayerVariableStepSystemGroup>().Enabled = false;
-
-                    World.Unmanaged.GetExistingSystemState<BlackboardUpdateGroup>().Enabled = false;
-                    World.Unmanaged.GetExistingSystemState<AgentSimulationGroup>().Enabled = false;
-                    World.Unmanaged.GetExistingSystemState<CharacterSystemGroup>().Enabled = false;
-
-                    World.Unmanaged.GetExistingSystemState<CheckpointUpdateGroup>().Enabled = false;
-                    World.Unmanaged.GetExistingSystemState<CameraSystemGroup>().Enabled = false;
-
                     StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
                     return;
-                case GameState.BuildNextLevel:
-                case GameState.LevelComplete:
                 default:
                     return;
             }
@@ -223,24 +171,10 @@ namespace Foxglove.Gameplay {
             switch (gameState.Current) {
                 case GameState.CreateGame:
                     SpawnPlayer();
-                    SetCharactersEnabled(true);
-                    SetCameraEnabled(true);
-                    SetPlayerControlsEnabled(true);
                     EventBus<GameReady>.Raise(new GameReady());
                     return;
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Confined;
-
-                    return;
-                case GameState.Paused:
-
-                    World.Unmanaged.GetExistingSystemState<BlackboardUpdateGroup>().Enabled = true;
-                    World.Unmanaged.GetExistingSystemState<AgentSimulationGroup>().Enabled = true;
-                    World.Unmanaged.GetExistingSystemState<CharacterSystemGroup>().Enabled = true;
-
-                    World.Unmanaged.GetExistingSystemState<CheckpointUpdateGroup>().Enabled = true;
-                    World.Unmanaged.GetExistingSystemState<CameraSystemGroup>().Enabled = true;
-
                     return;
                 default:
                     return;
