@@ -117,7 +117,6 @@ namespace Foxglove.Gameplay {
 
                     return;
                 case GameState.GameOver:
-                    EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
                     StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
                     return;
                 default:
@@ -194,8 +193,10 @@ namespace Foxglove.Gameplay {
         }
 
         private void OnQuitToMenu(QuitToMenu _) {
-            if (CurrentState is GameState.Playing or GameState.Paused)
+            if (CurrentState is GameState.Playing or GameState.Paused) {
+                EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
                 StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
+            }
         }
 
         private void OnPlayerDied(PlayerDied _) {
