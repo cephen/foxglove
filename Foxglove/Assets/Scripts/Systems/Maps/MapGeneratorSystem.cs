@@ -94,7 +94,7 @@ namespace Foxglove.Maps {
             State<GeneratorState> state = StateMachine.GetState<GeneratorState>(ecsState);
 
             switch (state.Current) {
-                case GeneratorState.Idle:
+                case GeneratorState.Idle: // Idle Update, wait for map generation to be requested
                     if (!SystemAPI.IsComponentEnabled<ShouldBuild>(_mapRoot)) return;
 
                     Log.Debug("[MapGenerator] Scheduling map generation");
@@ -298,12 +298,44 @@ namespace Foxglove.Maps {
                 case GeneratorState.Finished:
                     Log.Debug("[MapGenerator] Finished Spawning map, disposing intermediate buffers");
 
+                    DynamicBuffer<Room> generatedRooms = SystemAPI.GetBuffer<Room>(_mapRoot);
+                    int numRooms = generatedRooms.Length;
+
+                    var availableRooms = new NativeHashSet<int>(numRooms, Allocator.Temp);
+                    for (int i = 0; i < numRooms; i++) availableRooms.Add(i);
+
+                    int playerRoomIndex = _random.NextInt(0, numRooms);
+                    availableRooms.Remove(playerRoomIndex);
+                    Room playerRoom = generatedRooms[playerRoomIndex];
+
+
+                    int teleporterRoomIndex;
+
+                    while (true) {
+                        // Pick a random room that hasn't been considered yet
+                        int i = _random.NextInt(0, availableRooms.Count);
+                        if (!availableRooms.Contains(i)) continue;
+                        availableRooms.Remove(i);
+
+                        // If the room is at least 25 units away from the player room, use it
+                        Room teleporterRoom = generatedRooms[i];
+                        if (math.distance(playerRoom.Center, teleporterRoom.Center) > 25f) {
+                            teleporterRoomIndex = i;
+                            break;
+                        }
+                    }
+
+                    EventBus<MapReadyEvent>.Raise(
+                        new MapReadyEvent {
+                            PlayerSpawnRoom = playerRoom,
+                            TeleporterSpawnRoom = generatedRooms[teleporterRoomIndex],
+                        }
+                    );
+
                     _generateRooms.Rooms.Dispose();
                     _triangulateMap.Edges.Dispose();
                     _filterEdges.Results.Dispose();
                     _setMapCells.Results.Dispose();
-
-                    EventBus<MapReadyEvent>.Raise(new MapReadyEvent());
 
                     SystemAPI.SetComponentEnabled<ShouldBuild>(_mapRoot, false);
 
