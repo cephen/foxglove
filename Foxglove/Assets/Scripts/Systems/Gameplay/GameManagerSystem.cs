@@ -28,8 +28,11 @@ namespace Foxglove.Gameplay {
 
         private Random _rng;
 
+        private State<GameState> GenState => StateMachine.GetState<GameState>(CheckedStateRef);
+
+
         protected override void OnCreate() {
-            StateMachine.Init(CheckedStateRef, GameState.Waiting);
+            StateMachine.Init(CheckedStateRef, GameState.MainMenu);
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
 
             // Initialize event bindings
@@ -69,20 +72,20 @@ namespace Foxglove.Gameplay {
 
             State<GameState> state = StateMachine.GetState<GameState>(CheckedStateRef);
             // If in a state where pressing pause matters
-            if (state.Current is GameState.Playing or GameState.Paused
+            if (state.Current is not (GameState.Playing or GameState.Paused)
                 // and the pause button was pressed this frame
-                && inputState.Pause.IsSet(tick)
-            )
-                switch (state.Current) {
-                    case GameState.Playing:
-                        EventBus<PauseGame>.Raise(new PauseGame());
-                        break;
-                    case GameState.Paused:
-                        EventBus<ResumeGame>.Raise(new ResumeGame());
-                        break;
-                    default:
-                        return;
-                }
+                || !inputState.Pause.IsSet(tick)) return;
+
+            switch (state.Current) {
+                case GameState.Playing:
+                    EventBus<PauseGame>.Raise(new PauseGame());
+                    break;
+                case GameState.Paused:
+                    EventBus<ResumeGame>.Raise(new ResumeGame());
+                    break;
+                default:
+                    return;
+            }
         }
 
         private void SpawnPlayer() {
@@ -100,33 +103,63 @@ namespace Foxglove.Gameplay {
             EventBus<SpawnCharacterEvent>.Raise(spawnRequest);
         }
 
-#region EventBus bindings
-
-        private void OnMapReady() {
-            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is not GameState.WaitForMap) return;
-
-            StateMachine.SetNextState(CheckedStateRef, GameState.MapReady);
+        private void SetCameraEnabled(bool enabled) {
+            SetManagedSystemEnabled<CameraSystemGroup>(enabled);
         }
 
-        private void OnSceneReady(SceneReady e) {
-            if (e.Scene is not GameplayScene) return;
+        private void SetPlayerControlsEnabled(bool enabled) {
+            SetManagedSystemEnabled<PlayerFixedStepSystemGroup>(enabled);
+            SetManagedSystemEnabled<PlayerVariableStepSystemGroup>(enabled);
+        }
 
-            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Waiting)
-                StateMachine.SetNextState(CheckedStateRef, GameState.Startup);
+        private void SetCharactersEnabled(bool enabled) {
+            SetManagedSystemEnabled<BlackboardUpdateGroup>(enabled);
+            SetManagedSystemEnabled<AgentSimulationGroup>(enabled);
+            SetManagedSystemEnabled<CharacterSystemGroup>(enabled);
+            SetManagedSystemEnabled<CheckpointUpdateGroup>(enabled);
+        }
+
+        private void SetSystemEnabled<T>(bool enabled)
+            where T : unmanaged, ISystem {
+            SystemHandle system = World.GetOrCreateSystem<T>();
+            World.Unmanaged.ResolveSystemStateRef(system).Enabled = enabled;
+        }
+
+        private void SetManagedSystemEnabled<T>(bool enabled)
+            where T : SystemBase => World.GetExistingSystemManaged<T>().Enabled = enabled;
+
+#region EventBus bindings
+
+        private void OnSceneReady(SceneReady e) {
+            switch (e.Scene) {
+                case MainMenuScene:
+                    StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
+                    return;
+                case GameplayScene:
+                    StateMachine.SetNextState(CheckedStateRef, GameState.CreateGame);
+                    return;
+                default: return;
+            }
+        }
+
+        private void OnMapReady(MapReadyEvent _) {
+            if (GenState.Current is GameState.CreateGame or GameState.BuildNextLevel)
+                StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
         }
 
         private void OnPause(PauseGame _) {
-            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Playing)
+            if (GenState.Current is GameState.Playing)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Paused);
         }
 
         private void OnResume(ResumeGame _) {
-            if (StateMachine.GetState<GameState>(CheckedStateRef).Current is GameState.Paused)
+            if (GenState.Current is GameState.Paused)
                 StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
         }
 
         private void OnExitGame(ExitGame _) {
-            StateMachine.SetNextState(CheckedStateRef, GameState.ExitToMenu);
+            if (GenState.Current is GameState.Playing or GameState.Paused)
+                StateMachine.SetNextState(CheckedStateRef, GameState.GameOver);
         }
 
         private void OnShutdown(Shutdown _) {
@@ -143,40 +176,78 @@ namespace Foxglove.Gameplay {
 
         public void OnEnter(ref SystemState ecsState, State<GameState> gameState) {
             switch (gameState.Current) {
-                case GameState.Startup:
-                    EventBus<BuildMapEvent>.Raise(new BuildMapEvent());
-                    StateMachine.SetNextState(CheckedStateRef, GameState.WaitForMap);
+                case GameState.MainMenu:
+                    Cursor.lockState = CursorLockMode.None;
+
+                    if (gameState.Previous is not GameState.GameOver) return;
+
                     return;
-                case GameState.MapReady:
-                    StateMachine.SetNextState(CheckedStateRef, GameState.Playing);
+                case GameState.CreateGame:
+                    Entity mapSystem = SystemAPI.GetSingletonEntity<ShouldBuild>();
+                    SystemAPI.SetComponentEnabled<ShouldBuild>(mapSystem, true);
+
                     return;
                 case GameState.Playing:
-                    if (gameState.Previous is GameState.MapReady)
-                        EventBus<StartGame>.Raise(new StartGame());
-                    // Activate simulation for player & enemies
-                    return;
-                case GameState.ExitToMenu:
+                    Cursor.lockState = CursorLockMode.Locked;
 
-                    EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
-                    StateMachine.SetNextState(CheckedStateRef, GameState.Waiting);
+                    SetCharactersEnabled(true);
+                    SetPlayerControlsEnabled(true);
+                    SetCameraEnabled(true);
+
+                    SetManagedSystemEnabled<CheckpointUpdateGroup>(true);
+
                     return;
+                case GameState.Paused:
+                    SetCharactersEnabled(false);
+                    SetCameraEnabled(false);
+
+                    SetManagedSystemEnabled<CombatDirectorSystem>(false);
+
+                    return;
+                case GameState.GameOver:
+                    EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
+
+                    World.Unmanaged.GetExistingSystemState<PlayerFixedStepSystemGroup>().Enabled = false;
+                    World.Unmanaged.GetExistingSystemState<PlayerVariableStepSystemGroup>().Enabled = false;
+
+                    World.Unmanaged.GetExistingSystemState<BlackboardUpdateGroup>().Enabled = false;
+                    World.Unmanaged.GetExistingSystemState<AgentSimulationGroup>().Enabled = false;
+                    World.Unmanaged.GetExistingSystemState<CharacterSystemGroup>().Enabled = false;
+
+                    World.Unmanaged.GetExistingSystemState<CheckpointUpdateGroup>().Enabled = false;
+                    World.Unmanaged.GetExistingSystemState<CameraSystemGroup>().Enabled = false;
+
+                    StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
+                    return;
+                case GameState.BuildNextLevel:
+                case GameState.LevelComplete:
                 default:
                     return;
             }
         }
 
         public void OnExit(ref SystemState ecsState, State<GameState> gameState) {
-            GameState next = SystemAPI.GetComponent<NextState<GameState>>(ecsState.SystemHandle).Value;
-
-            switch ((gameState.Current, next)) {
-                case (GameState.Playing, GameState.Paused):
-                    Cursor.lockState = CursorLockMode.Confined;
-                    return;
-                case (GameState.Paused, GameState.Playing):
-                    Cursor.lockState = CursorLockMode.Locked;
-                    return;
-                case (GameState.MapReady, GameState.Playing):
+            switch (gameState.Current) {
+                case GameState.CreateGame:
                     SpawnPlayer();
+                    SetCharactersEnabled(true);
+                    SetCameraEnabled(true);
+                    SetPlayerControlsEnabled(true);
+                    EventBus<GameReady>.Raise(new GameReady());
+                    return;
+                case GameState.Playing:
+                    Cursor.lockState = CursorLockMode.Confined;
+
+                    return;
+                case GameState.Paused:
+
+                    World.Unmanaged.GetExistingSystemState<BlackboardUpdateGroup>().Enabled = true;
+                    World.Unmanaged.GetExistingSystemState<AgentSimulationGroup>().Enabled = true;
+                    World.Unmanaged.GetExistingSystemState<CharacterSystemGroup>().Enabled = true;
+
+                    World.Unmanaged.GetExistingSystemState<CheckpointUpdateGroup>().Enabled = true;
+                    World.Unmanaged.GetExistingSystemState<CameraSystemGroup>().Enabled = true;
+
                     return;
                 default:
                     return;

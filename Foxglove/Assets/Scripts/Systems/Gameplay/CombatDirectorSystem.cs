@@ -13,7 +13,7 @@ using Random = Unity.Mathematics.Random;
 namespace Foxglove.Gameplay {
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public sealed partial class CombatDirectorSystem : SystemBase {
-        private EventBinding<StartGame> _startGameBinding;
+        private EventBinding<GameReady> _startGameBinding;
         private EventBinding<PauseGame> _pauseBinding;
         private EventBinding<ResumeGame> _resumeBinding;
         private uint _credits;
@@ -26,18 +26,18 @@ namespace Foxglove.Gameplay {
             Enabled = false;
 
             // Initialize event bindings
-            _startGameBinding = new EventBinding<StartGame>(OnStartGame);
+            _startGameBinding = new EventBinding<GameReady>(OnStartGame);
             _pauseBinding = new EventBinding<PauseGame>(OnPause);
             _resumeBinding = new EventBinding<ResumeGame>(OnResume);
 
             // Register bindings
-            EventBus<StartGame>.Register(_startGameBinding);
+            EventBus<GameReady>.Register(_startGameBinding);
             EventBus<PauseGame>.Register(_pauseBinding);
             EventBus<ResumeGame>.Register(_resumeBinding);
         }
 
         protected override void OnDestroy() {
-            EventBus<StartGame>.Deregister(_startGameBinding);
+            EventBus<GameReady>.Deregister(_startGameBinding);
             EventBus<PauseGame>.Deregister(_pauseBinding);
             EventBus<ResumeGame>.Deregister(_resumeBinding);
         }
@@ -82,7 +82,7 @@ namespace Foxglove.Gameplay {
             }
         }
 
-        private void OnStartGame(StartGame e) {
+        private void OnStartGame(GameReady e) {
             Log.Debug("[CombatDirector] Initializing");
             _credits = 0;
             Enabled = true;
