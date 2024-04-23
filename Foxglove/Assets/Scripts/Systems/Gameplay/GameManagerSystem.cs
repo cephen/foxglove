@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Foxglove.Character;
 using Foxglove.Core;
 using Foxglove.Core.State;
@@ -17,7 +17,7 @@ using UnityEditor;
 #endif
 
 namespace Foxglove.Gameplay {
-    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
     internal sealed partial class GameManagerSystem : SystemBase, IStateMachineSystem<GameState> {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
