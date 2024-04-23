@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7542772330835976783}
   - component: {fileID: 4538391177153972452}
   - component: {fileID: 5238877559471051569}
+  - component: {fileID: -1833759544759585321}
   m_Layer: 0
   m_Name: PlayerCharacter
   m_TagString: Untagged
@@ -73,6 +74,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c854a728d43c7cf47bec103607a449f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RotationSharpness: 35
+  GroundMaxSpeed: 12
+  GroundedMovementSharpness: 30
+  AirAcceleration: 100
+  AirMaxSpeed: 15
+  AirDrag: 0.1
+  JumpSpeed: 12
+  PreventAirAccelerationAgainstUngroundedHits: 1
+  Gravity:
+    x: -0
+    y: -30
+    z: -0
   CharacterProperties:
     CustomPhysicsBodyTags:
       Tag00: 0
@@ -100,18 +113,6 @@ MonoBehaviour:
     DetectObstructionsForParentBodyMovement: 0
     SimulateDynamicBody: 1
     Mass: 1
-  RotationSharpness: 35
-  GroundMaxSpeed: 12
-  GroundedMovementSharpness: 30
-  AirAcceleration: 100
-  AirMaxSpeed: 15
-  AirDrag: 0.1
-  JumpSpeed: 12
-  Gravity:
-    x: -0
-    y: -30
-    z: -0
-  PreventAirAccelerationAgainstUngroundedHits: 1
   StepAndSlopeHandling:
     StepHandling: 1
     MaxStepHeight: 0.5
@@ -159,6 +160,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxHealth: 100
+--- !u!114 &-1833759544759585321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692896102597148395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6f5935e14f8472da1933d984af14c41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RegenRate: 2.5
 --- !u!1 &1692896103431116738
 GameObject:
   m_ObjectHideFlags: 0
