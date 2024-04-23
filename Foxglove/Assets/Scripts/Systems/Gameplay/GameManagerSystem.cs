@@ -132,7 +132,7 @@ namespace Foxglove.Gameplay {
 
         private void OnExitGame(ExitGame _) {
             if (GenState.Current is GameState.Playing or GameState.Paused)
-                StateMachine.SetNextState(CheckedStateRef, GameState.GameOver);
+                StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
         }
 
         private void OnPlayerDied(PlayerDied _) {
