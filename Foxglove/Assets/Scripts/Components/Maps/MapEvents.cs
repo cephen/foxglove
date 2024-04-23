@@ -1,12 +1,11 @@
 ﻿using SideFX.Events;
+using Unity.Mathematics;
 
 namespace Foxglove.Maps {
     public readonly struct MapReadyEvent : IEvent {
-        public readonly Room PlayerSpawnRoom { get; init; }
-        public readonly Room TeleporterSpawnRoom { get; init; }
+        public float3 PlayerLocation { get; init; }
+        public float3 TeleporterLocation { get; init; }
     }
-
-    public readonly struct BuildMapEvent : IEvent { }
 
     public readonly struct DespawnMapCommand : IEvent { }
 }

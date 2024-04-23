@@ -309,26 +309,47 @@ namespace Foxglove.Maps {
                     Room playerRoom = generatedRooms[playerRoomIndex];
 
 
-                    int teleporterRoomIndex;
+                    Room? teleporterRoom = null;
 
-                    while (true) {
+                    while (availableRooms.Count > 0) {
                         // Pick a random room that hasn't been considered yet
                         int i = _random.NextInt(0, availableRooms.Count);
                         if (!availableRooms.Contains(i)) continue;
                         availableRooms.Remove(i);
 
                         // If the room is at least 25 units away from the player room, use it
-                        Room teleporterRoom = generatedRooms[i];
-                        if (math.distance(playerRoom.Center, teleporterRoom.Center) > 25f) {
-                            teleporterRoomIndex = i;
+                        Room prospect = generatedRooms[i];
+                        if (math.distance(playerRoom.Center, prospect.Center) > 25f) {
+                            teleporterRoom = prospect;
                             break;
                         }
                     }
 
+                    if (teleporterRoom is null) {
+                        Log.Error("[MapGenerator] Failed to place teleporter");
+                        StateMachine.SetNextState(ecsState, GeneratorState.Idle);
+                        return;
+                    }
+
+                    Log.Debug("[MapGenerator] Player room: " + playerRoom);
+                    Log.Debug("[MapGenerator] Teleporter room: " + teleporterRoom);
+
+                    var playerSpawnPosition = new float3(playerRoom.Center.x, 1f, playerRoom.Center.y);
+
+                    var teleporterSpawnPosition = new float3(
+                        ((Room)teleporterRoom).Center.x,
+                        0f,
+                        ((Room)teleporterRoom).Center.y
+                    );
+
+                    Log.Debug("[MapGenerator] Player spawn position: " + playerSpawnPosition);
+                    Log.Debug("[MapGenerator] Teleporter spawn position: " + teleporterSpawnPosition);
+
+
                     EventBus<MapReadyEvent>.Raise(
                         new MapReadyEvent {
-                            PlayerSpawnRoom = playerRoom,
-                            TeleporterSpawnRoom = generatedRooms[teleporterRoomIndex],
+                            PlayerLocation = playerSpawnPosition,
+                            TeleporterLocation = teleporterSpawnPosition,
                         }
                     );
 
