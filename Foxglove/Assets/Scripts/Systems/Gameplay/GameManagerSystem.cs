@@ -25,6 +25,7 @@ namespace Foxglove.Gameplay {
         private EventBinding<PauseGame> _pauseBinding;
         private EventBinding<ExitGame> _exitGameBinding;
         private EventBinding<Shutdown> _shutdownBinding;
+        private EventBinding<PlayerDied> _playerDiedBinding;
 
         private Random _rng;
 
@@ -42,6 +43,7 @@ namespace Foxglove.Gameplay {
             _pauseBinding = new EventBinding<PauseGame>(OnPause);
             _shutdownBinding = new EventBinding<Shutdown>(OnShutdown);
             _exitGameBinding = new EventBinding<ExitGame>(OnExitGame);
+            _playerDiedBinding = new EventBinding<PlayerDied>(OnPlayerDied);
 
             // Register event bindings
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
@@ -50,6 +52,7 @@ namespace Foxglove.Gameplay {
             EventBus<PauseGame>.Register(_pauseBinding);
             EventBus<Shutdown>.Register(_shutdownBinding);
             EventBus<ExitGame>.Register(_exitGameBinding);
+            EventBus<PlayerDied>.Register(_playerDiedBinding);
         }
 
         protected override void OnDestroy() {
@@ -59,6 +62,7 @@ namespace Foxglove.Gameplay {
             EventBus<PauseGame>.Deregister(_pauseBinding);
             EventBus<Shutdown>.Deregister(_shutdownBinding);
             EventBus<ExitGame>.Deregister(_exitGameBinding);
+            EventBus<PlayerDied>.Deregister(_playerDiedBinding);
         }
 
         protected override void OnUpdate() {
@@ -128,6 +132,11 @@ namespace Foxglove.Gameplay {
         private void OnExitGame(ExitGame _) {
             if (GenState.Current is GameState.Playing or GameState.Paused)
                 StateMachine.SetNextState(CheckedStateRef, GameState.GameOver);
+        }
+
+        private void OnPlayerDied(PlayerDied _) {
+            if (GenState.Current is not GameState.Playing) return;
+            StateMachine.SetNextState(CheckedStateRef, GameState.GameOver);
         }
 
         private void OnShutdown(Shutdown _) {
