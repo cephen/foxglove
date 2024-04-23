@@ -71,9 +71,9 @@ namespace Foxglove.Gameplay {
                 // make sure creature is spawned inside the dungeon
                 if (cellType is CellType.None) continue;
 
-                EventBus<SpawnCharacterEvent>.Raise(
-                    new SpawnCharacterEvent {
-                        Character = SpawnableCharacter.Wisp,
+                EventBus<SpawnRequest>.Raise(
+                    new SpawnRequest {
+                        Spawnable = Spawnable.Wisp,
                         Position = spawnPosition,
                     }
                 );
