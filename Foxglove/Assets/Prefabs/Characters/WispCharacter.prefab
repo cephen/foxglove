@@ -95,6 +95,7 @@ GameObject:
   - component: {fileID: 437086514657259696}
   - component: {fileID: -861821676361314323}
   - component: {fileID: 7387275289881795637}
+  - component: {fileID: -5307375879806451649}
   m_Layer: 0
   m_Name: WispCharacter
   m_TagString: Untagged
@@ -151,6 +152,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c854a728d43c7cf47bec103607a449f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RotationSharpness: 25
+  GroundMaxSpeed: 10
+  GroundedMovementSharpness: 15
+  AirAcceleration: 10
+  AirMaxSpeed: 3
+  AirDrag: 0
+  JumpSpeed: 0
+  PreventAirAccelerationAgainstUngroundedHits: 0
+  Gravity:
+    x: -0
+    y: 0
+    z: -0
   CharacterProperties:
     CustomPhysicsBodyTags:
       Tag00: 0
@@ -178,18 +191,6 @@ MonoBehaviour:
     DetectObstructionsForParentBodyMovement: 0
     SimulateDynamicBody: 1
     Mass: 1
-  RotationSharpness: 25
-  GroundMaxSpeed: 10
-  GroundedMovementSharpness: 15
-  AirAcceleration: 10
-  AirMaxSpeed: 3
-  AirDrag: 0
-  JumpSpeed: 0
-  Gravity:
-    x: -0
-    y: 0
-    z: -0
-  PreventAirAccelerationAgainstUngroundedHits: 0
   StepAndSlopeHandling:
     StepHandling: 0
     MaxStepHeight: 0.5
@@ -211,3 +212,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4187538804b840418207a99f5539bcf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MinAttackCooldown: 200
+  MaxAttackCooldown: 500
+--- !u!114 &-5307375879806451649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8872793339225300403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f8507d5cfc247f9856c65d48c3a1993, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MaxHealth: 100
