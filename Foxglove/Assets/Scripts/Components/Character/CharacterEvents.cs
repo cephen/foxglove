@@ -1,4 +1,5 @@
-﻿using SideFX.Events;
+﻿using Foxglove.Combat;
+using SideFX.Events;
 using Unity.Entities;
 
 namespace Foxglove.Character {
@@ -9,8 +10,8 @@ namespace Foxglove.Character {
     }
 
     public readonly struct PlayerDamaged : IEvent {
-        public float Damage { get; init; }
+        public Health Health { get; init; }
 
-        public PlayerDamaged(float damage) => Damage = damage;
+        public PlayerDamaged(Health health) => Health = health;
     }
 }
