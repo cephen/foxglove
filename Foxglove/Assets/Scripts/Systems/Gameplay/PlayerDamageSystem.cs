@@ -1,12 +1,14 @@
 using Foxglove.Agent;
+using Foxglove.Character;
 using Foxglove.Combat;
 using Foxglove.Core;
 using Foxglove.Core.State;
 using Foxglove.Player;
+using SideFX.Events;
 using Unity.Burst;
-using Unity.Collections;
+using Unity.CharacterController;
 using Unity.Entities;
-using Unity.Jobs;
+using Unity.Logging;
 using Unity.Physics;
 using Unity.Physics.Systems;
 
@@ -19,9 +21,11 @@ namespace Foxglove.Gameplay {
         private const uint ImmunityAfterDamageTicks = 25; // 1/2 of a second
 
         private EntityQuery _playerQuery;
+        private ComponentLookup<Wisp> _wispLookup;
 
         public void OnCreate(ref SystemState state) {
             _playerQuery = SystemAPI.QueryBuilder().WithAll<PlayerCharacterTag>().WithAllRW<Health>().Build();
+            _wispLookup = state.GetComponentLookup<Wisp>();
 
             state.RequireForUpdate<Tick>();
             state.RequireForUpdate<State<GameState>>();
@@ -36,53 +40,35 @@ namespace Foxglove.Gameplay {
             // Only run in playing state
             if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
 
-            var tick = SystemAPI.GetSingleton<Tick>();
+            _wispLookup.Update(ref state);
 
             Entity playerEntity = SystemAPI.GetSingletonEntity<PlayerCharacterTag>();
             RefRW<Health> health = SystemAPI.GetComponentRW<Health>(playerEntity);
 
             // Don't query for collisions if the player is immune to damage
-            if (health.ValueRO.LastDamagedAt + ImmunityAfterDamageTicks > tick) return;
+            var tick = SystemAPI.GetSingleton<Tick>();
+            if (tick - health.ValueRO.LastDamagedAt < ImmunityAfterDamageTicks) return;
 
-            var collisions = new NativeReference<int>(0, Allocator.TempJob);
+            DynamicBuffer<KinematicCharacterHit> hits = SystemAPI.GetBuffer<KinematicCharacterHit>(playerEntity);
+            int wispHits = 0;
 
-            // Configure and run the query immediately
-            JobHandle query = new PlayerWispCollisionQuery {
-                    Player = playerEntity,
-                    WispLookup = SystemAPI.GetComponentLookup<Wisp>(true),
-                    Collisions = collisions,
-                }
-                .Schedule(
-                    SystemAPI.GetSingleton<SimulationSingleton>(), // Physics state
-                    state.Dependency // This system's data dependencies
-                );
-
-            query.Complete();
-
-            if (collisions.Value > 0) {
-                float totalDamage = collisions.Value * WispContactDamage;
-                health.ValueRW.ApplyDamage(tick, totalDamage);
+            foreach (KinematicCharacterHit hit in hits) {
+                if (_wispLookup.HasComponent(hit.Entity))
+                    wispHits++;
             }
 
-            collisions.Dispose();
-        }
+            if (wispHits is 0) return;
 
-        [BurstCompile]
-        private struct PlayerWispCollisionQuery : ICollisionEventsJob {
-            internal Entity Player;
-            internal ComponentLookup<Wisp> WispLookup;
-            internal NativeReference<int> Collisions;
+            float totalDamage = wispHits * WispContactDamage;
 
-            public void Execute(CollisionEvent collisionEvent) {
-                bool aIsPlayer = collisionEvent.EntityA == Player;
-                bool bIsPlayer = collisionEvent.EntityB == Player;
+            Log.Debug(
+                "[PlayerDamageSystem] Player collided with {collisions} wisps - applying {totalDamage} damage",
+                wispHits,
+                totalDamage
+            );
+            health.ValueRW.ApplyDamage(tick, totalDamage);
 
-                bool aIsWisp = WispLookup.HasComponent(collisionEvent.EntityA);
-                bool bIsWisp = WispLookup.HasComponent(collisionEvent.EntityB);
-
-                if (aIsPlayer && bIsWisp) Collisions.Value++;
-                if (bIsPlayer && aIsWisp) Collisions.Value++;
-            }
+            EventBus<PlayerDamaged>.Raise(new PlayerDamaged(health.ValueRO));
         }
     }
 }
