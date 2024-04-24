@@ -1,5 +1,7 @@
 using Foxglove.Agent;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;
@@ -23,6 +25,7 @@ namespace Foxglove.Navigation {
                 SystemAPI.QueryBuilder().WithAll<LocalToWorld>().WithAny<PlayerCharacterTag, Wisp>().Build()
             );
             state.RequireForUpdate<Blackboard>();
+            state.RequireForUpdate<State<GameState>>();
 
             if (SystemAPI.HasSingleton<WispFlowField>()) return;
 
@@ -39,6 +42,9 @@ namespace Foxglove.Navigation {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             // Calculate field bounds in WorldSpace grid coordinates
             var southWestCorner = new int2(int.MaxValue);
             var northEastCorner = new int2(int.MinValue);
@@ -112,7 +118,7 @@ namespace Foxglove.Navigation {
                 while (!uncheckedCells.IsEmpty()) {
                     int2 current = uncheckedCells.Dequeue();
 
-                    var lowestNeighbourCost = int.MaxValue;
+                    int lowestNeighbourCost = int.MaxValue;
                     int2 neighbourToFlowTo = int2.zero;
 
                     // For each potential neighbour of the current cell

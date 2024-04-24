@@ -1,4 +1,6 @@
 ﻿using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Collections;
@@ -15,11 +17,15 @@ namespace Foxglove.Camera {
     internal partial struct OrbitCameraSimulationSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             new OrbitCameraSimulationJob {
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),

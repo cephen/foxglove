@@ -23,8 +23,8 @@ namespace Foxglove.Gameplay {
         public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state) {
-            GameState gameState = SystemAPI.GetSingleton<State<GameState>>().Current;
-            if (gameState is not GameState.Playing) return;
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
 
             Entity teleporter = SystemAPI.GetSingletonEntity<Teleporter>();
             Entity player = SystemAPI.GetSingletonEntity<PlayerCharacterTag>();

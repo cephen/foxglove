@@ -42,6 +42,7 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
             if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
 
             // GetSingletonEntity requires exactly one entity matches the query

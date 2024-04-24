@@ -20,6 +20,7 @@ namespace Foxglove.Player {
     internal partial struct PlayerFixedStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<Tick>();
             state.RequireForUpdate<InputState>();
             state.RequireForUpdate<PlayerController>();
@@ -27,8 +28,8 @@ namespace Foxglove.Player {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            if (!SystemAPI.TryGetSingleton(out State<GameState> gameState)) return;
-            if (gameState.Current is not GameState.Playing) return;
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
 
             uint tick = SystemAPI.GetSingleton<Tick>().Value;
             var input = SystemAPI.GetSingleton<InputState>();

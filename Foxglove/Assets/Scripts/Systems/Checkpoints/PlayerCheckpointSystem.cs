@@ -1,4 +1,6 @@
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.CharacterController;
@@ -13,6 +15,7 @@ namespace Foxglove.Checkpoints {
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     internal partial struct PlayerCheckpointSystem : ISystem {
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<PlayerController>();
             state.RequireForUpdate<KinematicCharacterBody>();
             state.EntityManager.AddComponent<PlayerCheckpoints>(state.SystemHandle);
@@ -21,6 +24,9 @@ namespace Foxglove.Checkpoints {
         public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             RefRW<PlayerCheckpoints> checkpoint = SystemAPI.GetComponentRW<PlayerCheckpoints>(state.SystemHandle);
 
             RefRW<PlayerController> controller = SystemAPI.GetSingletonRW<PlayerController>();

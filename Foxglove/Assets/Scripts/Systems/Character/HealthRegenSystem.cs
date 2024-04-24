@@ -1,5 +1,7 @@
 ﻿using Foxglove.Combat;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -18,10 +20,14 @@ namespace Foxglove.Character {
             _query = SystemAPI.QueryBuilder().WithAllRW<Health, HealthRegen>().Build();
             state.RequireForUpdate(_query);
             state.RequireForUpdate<Tick>();
+            state.RequireForUpdate<State<GameState>>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             var tick = SystemAPI.GetSingleton<Tick>();
 
             foreach ( // Query for all health components, and the entities that own them

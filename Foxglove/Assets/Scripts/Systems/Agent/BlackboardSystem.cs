@@ -1,4 +1,6 @@
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Entities;
@@ -11,13 +13,18 @@ namespace Foxglove.Agent {
     [BurstCompile]
     [UpdateInGroup(typeof(BlackboardUpdateGroup))]
     internal partial struct BlackboardSystem : ISystem {
-        public void OnCreate(ref SystemState state) =>
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.EntityManager.AddComponent(state.SystemHandle, ComponentType.ReadWrite<Blackboard>());
+        }
 
         public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             ref Blackboard blackboard = ref SystemAPI.GetComponentRW<Blackboard>(state.SystemHandle).ValueRW;
 
             // If there is exactly one player in the world

@@ -48,6 +48,7 @@ namespace Foxglove.Gameplay {
         }
 
         protected override void OnUpdate() {
+            // Only run in playing state
             if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
 
             _credits += 25; // Gain 25 credits per second

@@ -1,4 +1,6 @@
-﻿using Unity.Burst;
+﻿using Foxglove.Core.State;
+using Foxglove.Gameplay;
+using Unity.Burst;
 using Unity.CharacterController;
 using Unity.Collections;
 using Unity.Entities;
@@ -16,6 +18,7 @@ namespace Foxglove.Camera {
     internal partial struct OrbitCameraLateUpdateSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<PhysicsWorldSingleton>();
             state.RequireForUpdate(
                 SystemAPI.QueryBuilder().WithAll<OrbitCamera, OrbitCameraControl>().Build()
@@ -24,6 +27,9 @@ namespace Foxglove.Camera {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             new OrbitCameraLateUpdateJob {
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 PhysicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld,

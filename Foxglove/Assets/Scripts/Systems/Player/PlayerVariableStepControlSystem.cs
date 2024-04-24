@@ -1,5 +1,7 @@
 using Foxglove.Camera;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.Entities;
@@ -13,6 +15,7 @@ namespace Foxglove.Player {
     internal partial struct PlayerVariableStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<InputState>();
             state.RequireForUpdate<LookSensitivity>();
             state.RequireForUpdate<PlayerController>();
@@ -20,6 +23,9 @@ namespace Foxglove.Player {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             var input = SystemAPI.GetSingleton<InputState>();
             var sensitivity = SystemAPI.GetSingleton<LookSensitivity>();
             var playerController = SystemAPI.GetSingleton<PlayerController>();

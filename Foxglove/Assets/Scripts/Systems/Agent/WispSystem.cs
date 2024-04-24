@@ -27,6 +27,7 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
             if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
 
             // Command buffers are used to schedule structural changes on entities
