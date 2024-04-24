@@ -1,6 +1,7 @@
 using System;
 using Foxglove.Character;
 using Foxglove.Core;
+using Foxglove.Core.State;
 using Foxglove.Maps;
 using Foxglove.Player;
 using SideFX.Events;
@@ -25,6 +26,10 @@ namespace Foxglove.Gameplay {
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
             Enabled = false;
 
+            RequireForUpdate<State<GameState>>();
+            RequireForUpdate<PlayerCharacterTag>();
+            RequireForUpdate<Map>();
+
             // Initialize event bindings
             _startGameBinding = new EventBinding<GameReady>(OnStartGame);
             _pauseBinding = new EventBinding<PauseGame>(OnPause);
@@ -43,6 +48,8 @@ namespace Foxglove.Gameplay {
         }
 
         protected override void OnUpdate() {
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             _credits += 25; // Gain 25 credits per second
 
             if (_credits < 250) return;
