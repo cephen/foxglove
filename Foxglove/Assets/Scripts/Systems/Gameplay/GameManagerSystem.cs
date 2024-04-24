@@ -132,8 +132,7 @@ namespace Foxglove.Gameplay {
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Confined;
                     NextState<GameState> next = StateMachine.GetNextState<GameState>(CheckedStateRef);
-                    if (next.Value is GameState.LevelComplete or GameState.MainMenu)
-                        EventBus<DespawnMapCommand>.Raise(new DespawnMapCommand());
+
                     return;
                 default:
                     return;

@@ -6,6 +6,4 @@ namespace Foxglove.Maps {
         public float3 PlayerLocation { get; init; }
         public float3 TeleporterLocation { get; init; }
     }
-
-    public readonly struct DespawnMapCommand : IEvent { }
 }
