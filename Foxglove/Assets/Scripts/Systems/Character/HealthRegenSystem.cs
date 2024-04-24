@@ -2,7 +2,6 @@
 using Foxglove.Core;
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Mathematics;
 
 namespace Foxglove.Character {
     /// <summary>
@@ -25,14 +24,18 @@ namespace Foxglove.Character {
         public void OnUpdate(ref SystemState state) {
             var tick = SystemAPI.GetSingleton<Tick>();
 
-            // Enable/disable health regen based on last damage tick
-            foreach ((RefRO<Health> health, Entity entity) in SystemAPI
+            foreach ( // Query for all health components, and the entities that own them
+                (RefRO<Health> health, Entity entity) in SystemAPI
+                    // Only need read permissions for Health component
                     .Query<RefRO<Health>>()
+                    // Entity must have a HealthRegen component
                     .WithPresent<HealthRegen>()
+                    // Ignore whether HealthRegen is currently enabled
+                    .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)
+                    // Adds the matching entity to the query output
                     .WithEntityAccess()
-                    .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
-                // Enable health regen if entity took damage more than 1 second ago
-            {
+            ) {
+                // Enable health regen if at least <see cref="RegenDelayTicks" /> ticks have passed since taking damage
                 SystemAPI.SetComponentEnabled<HealthRegen>(
                     entity,
                     health.ValueRO.LastDamagedAt + RegenDelayTicks < tick
@@ -40,11 +43,12 @@ namespace Foxglove.Character {
             }
 
             // Tick health regen
-            foreach ((RefRW<Health> health, RefRO<HealthRegen> regen) in SystemAPI
-                .Query<RefRW<Health>, RefRO<HealthRegen>>()) {
-                (float current, float max) = (health.ValueRO.Current, health.ValueRO.Max);
+            foreach (
+                (RefRW<Health> health, RefRO<HealthRegen> regen)
+                in SystemAPI.Query<RefRW<Health>, RefRO<HealthRegen>>()
+            ) {
                 float regenAmount = SystemAPI.Time.fixedDeltaTime * regen.ValueRO.Rate;
-                health.ValueRW.Current = math.min(current + regenAmount, max);
+                health.ValueRW.ApplyRegen(regenAmount);
             }
         }
     }
