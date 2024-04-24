@@ -333,9 +333,6 @@ namespace Foxglove.Maps {
                         return;
                     }
 
-                    Log.Debug("[MapGenerator] Player room: " + playerRoom);
-                    Log.Debug("[MapGenerator] Teleporter room: " + teleporterRoom);
-
                     var playerSpawnPosition = new float3(playerRoom.Center.x, 1f, playerRoom.Center.y);
 
                     var teleporterSpawnPosition = new float3(
