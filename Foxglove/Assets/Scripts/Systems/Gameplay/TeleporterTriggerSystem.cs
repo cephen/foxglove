@@ -30,7 +30,7 @@ namespace Foxglove.Gameplay {
             var query = new TeleporterTriggerQuery {
                 Player = SystemAPI.GetSingletonEntity<PlayerCharacterTag>(),
                 Teleporter = SystemAPI.GetSingletonEntity<Teleporter>(),
-                Triggered = new NativeReference<bool>(false, Allocator.Persistent),
+                Triggered = new NativeReference<bool>(false, Allocator.Temp),
             };
 
             JobHandle jobHandle = query.Schedule(
