@@ -12,7 +12,7 @@ using Unity.Physics.Systems;
 namespace Foxglove.Gameplay {
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSimulationGroup))]
+    [UpdateAfter(typeof(PhysicsSystemGroup))]
     public partial struct TeleporterTriggerSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<State<GameState>>();

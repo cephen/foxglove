@@ -13,7 +13,7 @@ using Unity.Physics.Systems;
 namespace Foxglove.Gameplay {
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSimulationGroup))]
+    [UpdateAfter(typeof(PhysicsSystemGroup))]
     public partial struct PlayerDamageSystem : ISystem {
         private const float WispContactDamage = 10f;
         private const uint ImmunityAfterDamageTicks = 25; // 1/2 of a second
