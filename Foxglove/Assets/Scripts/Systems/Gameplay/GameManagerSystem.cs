@@ -111,15 +111,24 @@ namespace Foxglove.Gameplay {
                     Cursor.lockState = CursorLockMode.None;
 
                     return;
-                case GameState.CreateGame:
+                case GameState.CreateGame: {
                     Entity mapEntity = SystemAPI.GetSingletonEntity<Map>();
                     SystemAPI.SetComponentEnabled<ShouldBuild>(mapEntity, true);
 
                     return;
+                }
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Locked;
 
                     return;
+                case GameState.LevelComplete: {
+                    Cursor.lockState = CursorLockMode.None;
+
+                    StateMachine.SetNextState(ecsState, GameState.CreateGame);
+
+
+                    return;
+                }
                 case GameState.GameOver:
                     StateMachine.SetNextState(CheckedStateRef, GameState.MainMenu);
                     return;
@@ -132,6 +141,7 @@ namespace Foxglove.Gameplay {
             switch (gameState.Current) {
                 case GameState.CreateGame:
                     EventBus<GameReady>.Raise(new GameReady());
+
                     return;
                 case GameState.Playing:
                     Cursor.lockState = CursorLockMode.Confined;
