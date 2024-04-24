@@ -29,6 +29,7 @@ namespace Foxglove.Gameplay {
         private EventBinding<SceneReady> _sceneReadyBinding;
         private EventBinding<MapReadyEvent> _mapReadyBinding;
         private EventBinding<PlayerDied> _playerDiedBinding;
+        private EventBinding<TeleporterTriggered> _teleporterTriggeredBinding;
         private EventBinding<ResumeGame> _resumeBinding;
         private EventBinding<PauseGame> _pauseBinding;
         private EventBinding<QuitToMenu> _quitToMenuBinding;
@@ -47,6 +48,7 @@ namespace Foxglove.Gameplay {
             _mapReadyBinding = new EventBinding<MapReadyEvent>(OnMapReady);
             _sceneReadyBinding = new EventBinding<SceneReady>(OnSceneReady);
             _playerDiedBinding = new EventBinding<PlayerDied>(OnPlayerDied);
+            _teleporterTriggeredBinding = new EventBinding<TeleporterTriggered>(OnTeleporterTriggered);
             _resumeBinding = new EventBinding<ResumeGame>(OnResume);
             _pauseBinding = new EventBinding<PauseGame>(OnPause);
             _shutdownBinding = new EventBinding<Shutdown>(OnShutdown);
@@ -56,6 +58,7 @@ namespace Foxglove.Gameplay {
             EventBus<MapReadyEvent>.Register(_mapReadyBinding);
             EventBus<SceneReady>.Register(_sceneReadyBinding);
             EventBus<PlayerDied>.Register(_playerDiedBinding);
+            EventBus<TeleporterTriggered>.Register(_teleporterTriggeredBinding);
             EventBus<ResumeGame>.Register(_resumeBinding);
             EventBus<PauseGame>.Register(_pauseBinding);
             EventBus<Shutdown>.Register(_shutdownBinding);
@@ -69,6 +72,7 @@ namespace Foxglove.Gameplay {
             EventBus<MapReadyEvent>.Deregister(_mapReadyBinding);
             EventBus<SceneReady>.Deregister(_sceneReadyBinding);
             EventBus<PlayerDied>.Deregister(_playerDiedBinding);
+            EventBus<TeleporterTriggered>.Deregister(_teleporterTriggeredBinding);
             EventBus<ResumeGame>.Deregister(_resumeBinding);
             EventBus<PauseGame>.Deregister(_pauseBinding);
             EventBus<Shutdown>.Deregister(_shutdownBinding);
@@ -202,6 +206,10 @@ namespace Foxglove.Gameplay {
         private void OnPlayerDied(PlayerDied _) {
             if (CurrentState is not GameState.Playing) return;
             StateMachine.SetNextState(CheckedStateRef, GameState.GameOver);
+        }
+
+        private void OnTeleporterTriggered(TeleporterTriggered _) {
+            StateMachine.SetNextState(CheckedStateRef, GameState.LevelComplete);
         }
 
         private void OnShutdown(Shutdown _) {
