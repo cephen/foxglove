@@ -3,7 +3,7 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Authoring.Maps {
-    public sealed class MapThemeAuthoring : MonoBehaviour {
+    internal sealed class MapThemeAuthoring : MonoBehaviour {
         public MapThemeConfig Config;
 
         private sealed class Baker : Baker<MapThemeAuthoring> {

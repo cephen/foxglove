@@ -3,6 +3,9 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Authoring.Gameplay {
+    /// <summary>
+    /// Bakes spawnable prefabs and caches them in a singleton component
+    /// </summary>
     internal sealed class SpawnablePrefabAuthoring : MonoBehaviour {
         public GameObject OrbitCamera;
         public GameObject PlayerPrefab;
@@ -15,10 +18,12 @@ namespace Foxglove.Authoring.Gameplay {
                 AddComponent(
                     e,
                     new SpawnablePrefabs {
+                        // TransformUsageFlags.Dynamic for objects that can move
                         OrbitCamera = GetEntity(authoring.OrbitCamera, TransformUsageFlags.Dynamic),
-                        PlayerPrefab = GetEntity(authoring.PlayerPrefab, TransformUsageFlags.Dynamic),
-                        WispPrefab = GetEntity(authoring.WispPrefab, TransformUsageFlags.Dynamic),
-                        TeleporterPrefab = GetEntity(authoring.TeleporterPrefab, TransformUsageFlags.Renderable),
+                        Player = GetEntity(authoring.PlayerPrefab, TransformUsageFlags.Dynamic),
+                        Wisp = GetEntity(authoring.WispPrefab, TransformUsageFlags.Dynamic),
+                        // TransformUsageFlags.Renderable for objects that can be rendered but do not move
+                        Teleporter = GetEntity(authoring.TeleporterPrefab, TransformUsageFlags.Renderable),
                     }
                 );
             }

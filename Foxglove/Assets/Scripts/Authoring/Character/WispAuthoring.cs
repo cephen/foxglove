@@ -2,7 +2,7 @@ using Foxglove.Agent;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Foxglove.Authoring.Agent {
+namespace Foxglove.Authoring.Character {
     /// <summary>
     /// Added to the wisp prefab, when instantiated this component is converted to a <see cref="Wisp" />
     /// </summary>

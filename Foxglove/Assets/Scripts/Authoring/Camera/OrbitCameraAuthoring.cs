@@ -10,7 +10,7 @@ namespace Foxglove.Authoring.Camera {
     /// Used to configure the player's orbit camera in the inspector
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class OrbitCameraAuthoring : MonoBehaviour {
+    internal sealed class OrbitCameraAuthoring : MonoBehaviour {
         [Header("Rotation")]
         public float RotationSpeed = 2f;
 
@@ -36,7 +36,7 @@ namespace Foxglove.Authoring.Camera {
         [Header("Misc")]
         public List<GameObject> IgnoredEntities = new();
 
-        public sealed class Baker : Baker<OrbitCameraAuthoring> {
+        private sealed class Baker : Baker<OrbitCameraAuthoring> {
             public override void Bake(OrbitCameraAuthoring authoring) {
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic | TransformUsageFlags.WorldSpace);
 
@@ -71,7 +71,7 @@ namespace Foxglove.Authoring.Camera {
                 DynamicBuffer<OrbitCameraIgnoredEntity> ignoredEntitiesBuffer =
                     AddBuffer<OrbitCameraIgnoredEntity>(entity);
 
-                for (var i = 0; i < authoring.IgnoredEntities.Count; i++) {
+                for (int i = 0; i < authoring.IgnoredEntities.Count; i++) {
                     ignoredEntitiesBuffer.Add(
                         new OrbitCameraIgnoredEntity {
                             Entity = GetEntity(authoring.IgnoredEntities[i], TransformUsageFlags.None),

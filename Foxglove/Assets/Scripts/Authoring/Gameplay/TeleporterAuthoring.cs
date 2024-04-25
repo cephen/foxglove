@@ -3,7 +3,7 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Foxglove.Authoring.Gameplay {
-    public sealed class TeleporterAuthoring : MonoBehaviour {
+    internal sealed class TeleporterAuthoring : MonoBehaviour {
         private sealed class Baker : Baker<TeleporterAuthoring> {
             public override void Bake(TeleporterAuthoring authoring) {
                 Entity e = GetEntity(TransformUsageFlags.Renderable);

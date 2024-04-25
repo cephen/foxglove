@@ -6,13 +6,14 @@ namespace Foxglove.Authoring.Player {
     /// <summary>
     /// Used to configure the player controller,
     /// which is a simple component containing references to the camera and character the player controls
+    /// a gameobject with this component lives in the main gameplay scene, and has the initial reference to the player.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class PlayerControllerAuthoring : MonoBehaviour {
+    internal sealed class PlayerControllerAuthoring : MonoBehaviour {
         public GameObject ControlledCharacter;
         public GameObject ControlledCamera;
 
-        public sealed class Baker : Baker<PlayerControllerAuthoring> {
+        private sealed class Baker : Baker<PlayerControllerAuthoring> {
             public override void Bake(PlayerControllerAuthoring authoring) {
                 Entity controller = GetEntity(TransformUsageFlags.None);
                 AddComponent(
