@@ -6,7 +6,7 @@ namespace Foxglove.Character {
     /// <summary>
     /// Character Systems use this component to drive character movement.
     /// For the player, fields in this component are set using player input,
-    /// and for Agents, this component is set in agent control systems.
+    /// and for Agents, fields are set in agent control systems.
     /// </summary>
     [Serializable]
     public struct CharacterController : IComponentData, IEnableableComponent {
