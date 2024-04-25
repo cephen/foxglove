@@ -12,8 +12,8 @@ namespace Foxglove.Interface {
     internal sealed class HealthBarManager : MonoBehaviour {
         private UIDocument _uiDocument;
 
-        private EventBinding<GameReady> _gameReadyBinding;
-        private EventBinding<PlayerDamaged> _playerDamagedBinding;
+        private EventBinding<GameReady> _gameReady;
+        private EventBinding<PlayerHealthChanged> _playerHealthChanged;
 
         private void Start() {
             _uiDocument = GetComponent<UIDocument>();
@@ -21,16 +21,16 @@ namespace Foxglove.Interface {
         }
 
         private void OnEnable() {
-            _gameReadyBinding = new EventBinding<GameReady>(OnGameReady);
-            _playerDamagedBinding = new EventBinding<PlayerDamaged>(OnPlayerDamaged);
+            _gameReady = new EventBinding<GameReady>(OnGameReady);
+            _playerHealthChanged = new EventBinding<PlayerHealthChanged>(OnPlayerHealthChanged);
 
-            EventBus<GameReady>.Register(_gameReadyBinding);
-            EventBus<PlayerDamaged>.Register(_playerDamagedBinding);
+            EventBus<GameReady>.Register(_gameReady);
+            EventBus<PlayerHealthChanged>.Register(_playerHealthChanged);
         }
 
         private void OnDisable() {
-            EventBus<GameReady>.Deregister(_gameReadyBinding);
-            EventBus<PlayerDamaged>.Deregister(_playerDamagedBinding);
+            EventBus<GameReady>.Deregister(_gameReady);
+            EventBus<PlayerHealthChanged>.Deregister(_playerHealthChanged);
         }
 
         private void OnGameReady(GameReady evt) {
@@ -40,7 +40,7 @@ namespace Foxglove.Interface {
             bar.style.width = new Length(100, LengthUnit.Percent);
         }
 
-        private void OnPlayerDamaged(PlayerDamaged evt) {
+        private void OnPlayerHealthChanged(PlayerHealthChanged evt) {
             var bar = _uiDocument.rootVisualElement.Q<VisualElement>("bar");
 
             float percent = evt.Health.Current / evt.Health.Max * 100;
