@@ -12,7 +12,8 @@ namespace Foxglove.Agent {
     /// This job implements wisp behaviour using a state machine.
     /// </summary>
     [BurstCompile]
-    // Some components on WispAspect can be disabled, without this attribute those wisps will be ignored by this job
+    // Some components on WispAspect can be disabled.
+    // This attribute allows queries to to capture entities with disabled components
     [WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
     internal partial struct WispStateMachineJob : IJobEntity {
         public uint Tick;
@@ -35,28 +36,28 @@ namespace Foxglove.Agent {
 
             // If the wisp has less than 0 health
             if (aspect.Health.ValueRO.Current <= 0
-                // and is not yet marked as dying
+                // but hasn't been sentenced to death yet
                 && aspect.State.ValueRO.Current is not WispState.State.Dying)
-                // mark it as dying
+                // drop the hammer and issue a death certificate
                 aspect.State.ValueRW.TransitionTo(WispState.State.Dying);
 
             switch (aspect.State.ValueRO.Current) {
-                case WispState.State.Inactive:
-                    // Freshly spawned wisps have state {current = Spawn, previous = Inactive}
-                    // Inactive is not used anywhere else, so this branch should never be entered
-                    Log.Error("Wisp {entity} should not be inactive but is", wispDebugName);
-                    break;
                 case WispState.State.Spawn:
                     Log.Debug("Spawning Wisp {entity}", wispDebugName);
+
                     aspect.Health.ValueRW.Reset();
+
                     Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, true);
-                    // Transition to Patrol state
+
                     aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
-                    break;
+
+                    return;
                 case WispState.State.Patrol:
                     // If in range of player transition to attack
                     float distanceToPlayer = math.distance(aspect.LocalToWorld.ValueRO.Position, PlayerPosition);
                     bool isInRange = distanceToPlayer < 10;
+
+                    // and attack is cooled down
                     bool attackCooledDown = aspect.Wisp.ValueRO.CanAttackAt <= Tick;
 
                     if (isInRange && attackCooledDown) { // TODO: Add line of sight check
@@ -64,39 +65,40 @@ namespace Foxglove.Agent {
                         aspect.State.ValueRW.TransitionTo(WispState.State.Attack);
                     }
 
-                    break;
+                    return;
                 case WispState.State.Attack:
                     Log.Debug("Wisp {wisp} attacking player", wispDebugName);
+                    // TODO: spawn projectile
+
                     uint cooldownDuration = Rng.NextUInt(
                         aspect.Wisp.ValueRO.MinAttackCooldown,
                         aspect.Wisp.ValueRO.MaxAttackCooldown
                     );
+
                     aspect.Wisp.ValueRW.CanAttackAt = Tick + cooldownDuration;
 
-                    // TODO: spawn projectile
                     aspect.State.ValueRW.TransitionTo(WispState.State.Patrol);
-                    break;
+
+                    return;
                 case WispState.State.Dying:
                     if (aspect.IsCharacterControllerEnabled.ValueRO) {
                         Log.Debug(
                             "Wisp {entity} died, disabling character controller and adding despawn timer",
                             wispDebugName
                         );
-                        // Disable character controller
+
                         Commands.SetComponentEnabled<CharacterController>(chunkIndex, aspect.Entity, false);
-                        // Despawn in one second (50 ticks per second)
+
+                        // Schedule despawn for 50 ticks / 1 second from now
                         Commands.AddComponent(chunkIndex, aspect.Entity, new DespawnTimer(Tick + 50));
                     }
                     else if (aspect.DespawnTimer.ValueRO.TickToDestroy <= Tick) {
-                        // Transition to Despawn after 1 second
                         Log.Debug("Despawning Wisp {entity}", wispDebugName);
-                        aspect.State.ValueRW.TransitionTo(WispState.State.Despawn);
+
+                        Commands.DestroyEntity(chunkIndex, aspect.Entity);
                     }
 
-                    break;
-                case WispState.State.Despawn:
-                    Commands.DestroyEntity(chunkIndex, aspect.Entity); // Clean up entity
-                    break;
+                    return;
                 default:
                     Log.Error(
                         "Wisp {wisp} is in invalid state {state}",
