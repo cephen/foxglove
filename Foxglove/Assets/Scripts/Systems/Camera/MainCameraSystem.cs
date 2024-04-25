@@ -1,3 +1,5 @@
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -7,13 +9,21 @@ namespace Foxglove.Camera {
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public sealed partial class MainCameraSystem : SystemBase {
-        protected override void OnUpdate() {
-            if (MainGameObjectCamera.Instance == null
-                || !SystemAPI.HasSingleton<MainCameraTag>())
-                return;
+        private EntityQuery _mainCamQuery;
 
-            Entity mainCameraEntity = SystemAPI.GetSingletonEntity<MainCameraTag>();
-            var camTransform = SystemAPI.GetComponent<LocalToWorld>(mainCameraEntity);
+        protected override void OnCreate() {
+            _mainCamQuery = SystemAPI.QueryBuilder().WithAll<MainCameraTag, LocalToWorld>().Build();
+            RequireForUpdate(_mainCamQuery);
+            RequireForUpdate<State<GameState>>();
+        }
+
+        protected override void OnUpdate() {
+            // Only run in Playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
+            if (MainGameObjectCamera.Instance == null) return; // No main camera
+
+            var camTransform = SystemAPI.GetComponent<LocalToWorld>(_mainCamQuery.GetSingletonEntity());
 
             MainGameObjectCamera
                 .Instance

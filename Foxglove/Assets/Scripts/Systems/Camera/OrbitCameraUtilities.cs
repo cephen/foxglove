@@ -12,38 +12,35 @@ namespace Foxglove.Camera {
         /// and outputs the world transform if found.
         /// </summary>
         public static bool TryGetCameraTargetSimulationWorldTransform(
-            Entity targetCharacterEntity,
-            ref ComponentLookup<LocalTransform> localTransformLookup,
+            Entity targetCharacter,
+            ref ComponentLookup<LocalTransform> transformLookup,
             ref ComponentLookup<Parent> parentLookup,
             ref ComponentLookup<PostTransformMatrix> postTransformMatrixLookup,
             ref ComponentLookup<CameraTarget> cameraTargetLookup,
             out float4x4 worldTransform
         ) {
-            var foundValidCameraTarget = false;
             worldTransform = float4x4.identity;
+            bool foundValidCameraTarget = false;
 
-            // If the target character has a CameraTarget component, use that
-            if (
-                cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
-                && localTransformLookup.HasComponent(cameraTarget.TargetEntity)
+            if ( // If the target character has a CameraTarget
+                cameraTargetLookup.TryGetComponent(targetCharacter, out CameraTarget cameraTarget)
+                // and the specified target has a transform
+                && transformLookup.HasComponent(cameraTarget.TargetEntity)
             ) {
                 // calculate the world transform of the target
-                // thank fuck this is free
+                // If you thought my code was dense go look at this functions implementation
                 TransformHelpers.ComputeWorldTransformMatrix(
                     cameraTarget.TargetEntity,
                     out worldTransform,
-                    ref localTransformLookup,
+                    ref transformLookup,
                     ref parentLookup,
                     ref postTransformMatrixLookup
                 );
                 foundValidCameraTarget = true;
             }
-            // otherwise, if the target character has a LocalTransform component, use that
+            // otherwise, if the target character has a transform, use that
             else if (
-                localTransformLookup.TryGetComponent(
-                    targetCharacterEntity,
-                    out LocalTransform characterLocalTransform
-                )
+                transformLookup.TryGetComponent(targetCharacter, out LocalTransform characterLocalTransform)
             ) {
                 // Build a transform matrix from a Translation, Rotation, and Scale
                 worldTransform = float4x4.TRS(characterLocalTransform.Position, characterLocalTransform.Rotation, 1f);
@@ -56,35 +53,45 @@ namespace Foxglove.Camera {
 
         /// <summary>
         /// Gets the interpolated world transform of a camera target.
-        /// Character movement is processed on a fixed time step, but their position is interpolated every frame,
-        /// this function returns the interpolated world transform of the target for smoother camera movement.
+        /// ---
+        /// Character position/rotation is updated using physics on a fixed time-step,
+        /// But all characters also have interpolation turned on, which smooths the positions/rotations of transforms
+        /// for the frames between fixed updates (thanks, Unity)
         /// </summary>
         /// <returns>true if a valid camera target was found</returns>
         public static bool TryGetCameraTargetInterpolatedWorldTransform(
-            Entity targetCharacterEntity,
-            ref ComponentLookup<LocalToWorld> localToWorldLookup,
+            Entity targetEntity,
+            ref ComponentLookup<LocalToWorld> transformLookup,
             ref ComponentLookup<CameraTarget> cameraTargetLookup,
             out LocalToWorld worldTransform
         ) {
-            var foundValidCameraTarget = false;
+            bool foundValidCameraTarget = false;
             worldTransform = default;
 
-            // If the target character has a CameraTarget component, use that
-            if (cameraTargetLookup.TryGetComponent(targetCharacterEntity, out CameraTarget cameraTarget)
-                && localToWorldLookup.TryGetComponent(cameraTarget.TargetEntity, out worldTransform))
-                foundValidCameraTarget = true;
-            // otherwise, if the target character has a LocalToWorld component, use that
-            else if (localToWorldLookup.TryGetComponent(targetCharacterEntity, out worldTransform))
+            if ( // If the target character has a CameraTarget
+                cameraTargetLookup.TryGetComponent(targetEntity, out CameraTarget cameraTarget)
+                // and the specified target has a Transform, use that
+                && transformLookup.TryGetComponent(cameraTarget.TargetEntity, out worldTransform)
+            )
                 foundValidCameraTarget = true;
 
+            else if ( // otherwise, if the target character has a Transform, use that
+                transformLookup.TryGetComponent(targetEntity, out worldTransform)
+            )
+                foundValidCameraTarget = true;
+
+            // otherwise return false because no valid camera target was found
             return foundValidCameraTarget;
         }
 
         public static quaternion CalculateCameraRotation(float3 targetUp, float3 planarForward, float pitchAngle) {
-            quaternion pitchRotation = quaternion.Euler(math.right() * math.radians(pitchAngle));
-            quaternion cameraRotation = MathUtilities.CreateRotationWithUpPriority(targetUp, planarForward);
-            cameraRotation = math.mul(cameraRotation, pitchRotation);
-            return cameraRotation;
+            quaternion pitchRotation =
+                quaternion.Euler(math.right() * math.radians(pitchAngle));
+
+            quaternion cameraRotation =
+                MathUtilities.CreateRotationWithUpPriority(targetUp, planarForward);
+
+            return math.mul(cameraRotation, pitchRotation);
         }
 
         public static float3 CalculateCameraPosition(
