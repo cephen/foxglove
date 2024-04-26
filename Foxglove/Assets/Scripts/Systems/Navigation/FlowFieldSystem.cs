@@ -16,7 +16,7 @@ namespace Foxglove.Navigation {
     /// This system manages a flow field that Wisps use to navigate towards the player
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(BlackboardUpdateGroup))]
+    [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     internal partial struct FlowFieldSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
@@ -36,9 +36,6 @@ namespace Foxglove.Navigation {
             state.EntityManager.AddComponent<RecalculateField>(fieldEntity);
             state.EntityManager.AddBuffer<FlowFieldSample>(fieldEntity);
         }
-
-        // Unused function but required by ISystem interface
-        public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
@@ -100,7 +97,7 @@ namespace Foxglove.Navigation {
             /// can be assumed to travel to the neighbour it was discovered from
             /// </summary>
             [BurstCompile]
-            public readonly void Execute(FlowFieldAspect aspect) {
+            private readonly void Execute(FlowFieldAspect aspect) {
                 DynamicBuffer<FlowFieldSample> flowBuffer = aspect.Samples;
                 FlowField field = aspect.FlowField.ValueRO;
                 int cellCount = field.FieldSize.x * field.FieldSize.y;

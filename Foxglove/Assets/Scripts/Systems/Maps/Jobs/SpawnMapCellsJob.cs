@@ -12,7 +12,7 @@ namespace Foxglove.Maps.Jobs {
         [ReadOnly] internal Entity MapRoot;
         [ReadOnly] internal MapTheme Theme;
         [ReadOnly] internal MapConfig Config;
-        internal NativeArray<MapCell>.ReadOnly Cells;
+        internal NativeArray<MapTile>.ReadOnly Cells;
 
         internal EntityCommandBuffer.ParallelWriter Commands;
 
@@ -21,16 +21,16 @@ namespace Foxglove.Maps.Jobs {
         public void Execute(int index) {
             int2 coords = Config.CoordsFromIndex(index);
             switch (Cells[index].Type) {
-                case CellType.None when CountFilledNeighbours(coords) is 4:
+                case TileType.None when CountFilledNeighbours(coords) is 4:
                     SpawnTile(index, Theme.HallTile);
                     return;
-                case CellType.None:
+                case TileType.None:
                     TrySpawnWall(index);
                     return;
-                case CellType.Room:
+                case TileType.Room:
                     SpawnTile(index, Theme.RoomTile);
                     return;
-                case CellType.Hallway:
+                case TileType.Hallway:
                     SpawnTile(index, Theme.HallTile);
                     return;
             }
@@ -49,8 +49,8 @@ namespace Foxglove.Maps.Jobs {
                 bool yInBounds = neighbour.y >= -Config.Radius && neighbour.y < Config.Radius;
                 if (!(xInBounds && yInBounds)) continue;
 
-                CellType neighbourType = Cells[Config.IndexFromCoords(neighbour)].Type;
-                if (neighbourType is not CellType.None) filled++;
+                TileType neighbourType = Cells[Config.IndexFromCoords(neighbour)].Type;
+                if (neighbourType is not TileType.None) filled++;
             }
 
             neighbours.Dispose();

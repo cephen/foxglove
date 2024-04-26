@@ -68,7 +68,7 @@ namespace Foxglove.Gameplay {
             );
             health.ValueRW.ApplyDamage(tick, totalDamage);
 
-            EventBus<PlayerDamaged>.Raise(new PlayerDamaged(health.ValueRO));
+            EventBus<PlayerHealthChanged>.Raise(new PlayerHealthChanged(health.ValueRO));
         }
     }
 }

@@ -147,7 +147,7 @@ namespace Foxglove.Maps {
 
                     Log.Debug("[MapGenerator] SetMapCellsJob finished, extracting cells");
                     CreateCommandBuffer(ref ecsState)
-                        .SetBuffer<MapCell>(_mapRoot)
+                        .SetBuffer<MapTile>(_mapRoot)
                         .CopyFrom(_setMapCells.Results);
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Spawning);
@@ -173,7 +173,7 @@ namespace Foxglove.Maps {
 
             state.EntityManager.AddBuffer<Room>(_mapRoot);
             state.EntityManager.AddBuffer<Edge>(_mapRoot);
-            state.EntityManager.AddBuffer<MapCell>(_mapRoot);
+            state.EntityManager.AddBuffer<MapTile>(_mapRoot);
 
             state.EntityManager.AddComponent<ShouldBuild>(_mapRoot);
             state.EntityManager.SetComponentEnabled<ShouldBuild>(_mapRoot, false);
@@ -271,7 +271,7 @@ namespace Foxglove.Maps {
                         Config = config,
                         Rooms = SystemAPI.GetBuffer<Room>(_mapRoot).AsNativeArray().AsReadOnly(),
                         Hallways = SystemAPI.GetBuffer<Edge>(_mapRoot).AsNativeArray().AsReadOnly(),
-                        Results = new NativeArray<MapCell>(cellCount, Allocator.Persistent),
+                        Results = new NativeArray<MapTile>(cellCount, Allocator.Persistent),
                     };
 
                     Log.Debug("[MapGenerator] Scheduling SetMapCellsJob");
@@ -281,8 +281,8 @@ namespace Foxglove.Maps {
                 case GeneratorState.Spawning:
                     Log.Debug("[MapGenerator] Configuring SpawnMapCellsJob");
 
-                    NativeArray<MapCell>.ReadOnly mapCells =
-                        SystemAPI.GetBuffer<MapCell>(_mapRoot).AsNativeArray().AsReadOnly();
+                    NativeArray<MapTile>.ReadOnly mapCells =
+                        SystemAPI.GetBuffer<MapTile>(_mapRoot).AsNativeArray().AsReadOnly();
                     _spawnMapCells = new SpawnMapCellsJob {
                         MapRoot = _mapRoot,
                         Theme = SystemAPI.GetSingleton<MapTheme>(),
@@ -380,7 +380,7 @@ namespace Foxglove.Maps {
                     Log.Debug("[MapGenerator] Clearing map buffers");
                     commands.SetBuffer<Room>(_mapRoot);
                     commands.SetBuffer<Edge>(_mapRoot);
-                    commands.SetBuffer<MapCell>(_mapRoot);
+                    commands.SetBuffer<MapTile>(_mapRoot);
 
                     StateMachine.SetNextState(ecsState, GeneratorState.Idle);
 

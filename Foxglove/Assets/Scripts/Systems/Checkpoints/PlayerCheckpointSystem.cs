@@ -18,6 +18,7 @@ namespace Foxglove.Checkpoints {
             state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<PlayerController>();
             state.RequireForUpdate<KinematicCharacterBody>();
+
             state.EntityManager.AddComponent<PlayerCheckpoints>(state.SystemHandle);
         }
 
@@ -29,16 +30,18 @@ namespace Foxglove.Checkpoints {
 
             RefRW<PlayerCheckpoints> checkpoint = SystemAPI.GetComponentRW<PlayerCheckpoints>(state.SystemHandle);
 
-            RefRW<PlayerController> controller = SystemAPI.GetSingletonRW<PlayerController>();
-            if (!SystemAPI.Exists(controller.ValueRO.ControlledCharacter)) return;
-            Entity characterEntity = controller.ValueRO.ControlledCharacter;
+            var controller = SystemAPI.GetSingleton<PlayerController>();
 
+            // Early exit if player character doesn't exist
+            if (!SystemAPI.Exists(controller.ControlledCharacter)) return;
+
+            Entity characterEntity = controller.ControlledCharacter;
             RefRW<LocalTransform> transform = SystemAPI.GetComponentRW<LocalTransform>(characterEntity);
             var character = SystemAPI.GetComponent<KinematicCharacterBody>(characterEntity);
 
-            if (character.IsGrounded)
+            if (character.IsGrounded) // Track the players position when grounded
                 checkpoint.ValueRW.LastGroundPosition = transform.ValueRO.Position;
-            else if (transform.ValueRO.Position.y < -3f)
+            else if (transform.ValueRO.Position.y < -3f) // Or teleport them if they're ungrounded and out of bounds
                 transform.ValueRW.Position = checkpoint.ValueRO.LastGroundPosition;
         }
     }

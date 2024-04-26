@@ -12,15 +12,23 @@ using Unity.Transforms;
 using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Gameplay {
+    /// <summary>
+    /// This system manages the spawning of enemies.
+    /// It accumulates credits over time, which it can periodically spend to spawn enemies in the world.
+    /// This approach is inspired by Risk of Rain 2's Director system
+    /// </summary>
     [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     public sealed partial class CombatDirectorSystem : SystemBase {
+        private const float MinSpawnDistance = 10f;
+        private const float MaxSpawnDistance = 25f;
+        private const float CreditMultiplier = 0.75f;
+
         private EventBinding<GameReady> _startGameBinding;
         private EventBinding<PauseGame> _pauseBinding;
         private EventBinding<ResumeGame> _resumeBinding;
-        private uint _credits;
+
         private Random _rng;
-        private const float MinSpawnDistance = 10f;
-        private const float MaxSpawnDistance = 25f;
+        private float _credits;
 
         protected override void OnCreate() {
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
@@ -48,10 +56,17 @@ namespace Foxglove.Gameplay {
         }
 
         protected override void OnUpdate() {
-            // Only run in playing state
-            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+            GameState gameState = SystemAPI.GetSingleton<State<GameState>>().Current;
+            if (gameState is not GameState.Playing or GameState.Paused) {}
+                // Only run in playing state
+                if (gameState is not GameState.Playing)
+                    return;
 
-            _credits += 25; // Gain 25 credits per second
+            int difficulty = 4; // TODO: replace with current level number
+
+            float creditsPerSecond = CreditMultiplier * (1 + 0.4f * difficulty);
+
+            _credits += creditsPerSecond;
 
             if (_credits < 250) return;
 
@@ -62,7 +77,7 @@ namespace Foxglove.Gameplay {
 
             Entity mapEntity = SystemAPI.GetSingletonEntity<Map>();
             MapConfig mapConfig = SystemAPI.GetComponentRO<MapConfig>(mapEntity).ValueRO;
-            DynamicBuffer<MapCell> mapCells = SystemAPI.GetBuffer<MapCell>(mapEntity);
+            DynamicBuffer<MapTile> mapCells = SystemAPI.GetBuffer<MapTile>(mapEntity);
 
             uint spawnedCreatures = 0;
             while (spawnedCreatures < creaturesToSpawn) {
@@ -74,10 +89,10 @@ namespace Foxglove.Gameplay {
                 spawnPosition.y = 1;
 
                 int2 spawnCoords = mapConfig.CoordsFromPosition(spawnPosition);
-                CellType cellType = mapCells[mapConfig.IndexFromCoords(spawnCoords)].Type;
+                TileType tileType = mapCells[mapConfig.IndexFromCoords(spawnCoords)].Type;
 
                 // make sure creature is spawned inside the dungeon
-                if (cellType is CellType.None) continue;
+                if (tileType is TileType.None) continue;
 
                 EventBus<SpawnRequest>.Raise(
                     new SpawnRequest {

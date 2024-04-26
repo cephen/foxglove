@@ -52,12 +52,12 @@ namespace Foxglove.Gameplay {
                         SpawnPlayer(commands, e.Position);
                         continue;
                     case Spawnable.Wisp:
-                        Entity wisp = commands.Instantiate(prefabs.WispPrefab);
+                        Entity wisp = commands.Instantiate(prefabs.Wisp);
                         commands.SetComponent(wisp, LocalTransform.FromPosition(e.Position));
                         continue;
                     case Spawnable.Teleporter:
                         Entity mapRoot = SystemAPI.GetSingletonEntity<Map>();
-                        Entity teleporter = commands.Instantiate(prefabs.TeleporterPrefab);
+                        Entity teleporter = commands.Instantiate(prefabs.Teleporter);
                         commands.AddComponent(teleporter, new Parent { Value = mapRoot });
                         commands.SetComponent(teleporter, LocalTransform.FromPosition(e.Position));
                         continue;
@@ -70,7 +70,7 @@ namespace Foxglove.Gameplay {
         private void SpawnPlayer(EntityCommandBuffer commands, float3 position) {
             var prefabStore = SystemAPI.GetSingleton<SpawnablePrefabs>();
 
-            Entity player = commands.Instantiate(prefabStore.PlayerPrefab);
+            Entity player = commands.Instantiate(prefabStore.Player);
             commands.SetComponent(player, LocalTransform.FromPosition(position));
 
             Entity camera = SystemAPI.HasSingleton<MainCameraTag>()
