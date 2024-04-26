@@ -57,10 +57,11 @@ namespace Foxglove.Gameplay {
 
         protected override void OnUpdate() {
             GameState gameState = SystemAPI.GetSingleton<State<GameState>>().Current;
-            if (gameState is not GameState.Playing or GameState.Paused) {}
-                // Only run in playing state
-                if (gameState is not GameState.Playing)
-                    return;
+            if (gameState is not GameState.Playing or GameState.Paused) { }
+
+            // Only run in playing state
+            if (gameState is not GameState.Playing)
+                return;
 
             int difficulty = 4; // TODO: replace with current level number
 
@@ -70,7 +71,7 @@ namespace Foxglove.Gameplay {
 
             if (_credits < 250) return;
 
-            uint creaturesToSpawn = _rng.NextUInt(1, _credits / 50);
+            uint creaturesToSpawn = _rng.NextUInt(1, (uint)_credits / 50);
 
             Entity playerEntity = SystemAPI.GetSingletonEntity<PlayerCharacterTag>();
             float3 playerPosition = SystemAPI.GetComponentRO<LocalToWorld>(playerEntity).ValueRO.Position;
