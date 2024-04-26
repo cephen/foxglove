@@ -9,7 +9,7 @@ namespace Foxglove.Camera {
     /// </summary>
     [Serializable]
     public struct OrbitCameraControl : IComponentData {
-        public float2 LookDegreesDelta;
+        public float2 LookDegreesDelta; // pitch/yaw change this frame from player input
         public Entity FollowedCharacterEntity;
     }
 }

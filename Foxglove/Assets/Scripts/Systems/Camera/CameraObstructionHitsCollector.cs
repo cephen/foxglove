@@ -6,18 +6,28 @@ using Unity.Physics;
 namespace Foxglove.Camera {
     /// <summary>
     /// This struct accumulates physics collisions during the camera update loop.
-    /// The collisions are used to prevent clipping through static geometry
+    /// The collisions are used to prevent clipping through geometry
     /// </summary>
     public struct CameraObstructionHitsCollector : ICollector<ColliderCastHit> {
+#region ICollector properties
+
         public bool EarlyOutOnFirstHit => false;
         public float MaxFraction => 1f;
+
         public int NumHits { get; private set; }
 
+#endregion
+
+
+        /// <summary>
+        /// The collider that is furthest away from the player in the direction of the camera
+        /// </summary>
         public ColliderCastHit ClosestHit;
-        private float _closestHitFraction;
-        private readonly float3 _cameraDirection;
+
         private readonly Entity _followedCharacter;
+        private readonly float3 _cameraDirection;
         private DynamicBuffer<OrbitCameraIgnoredEntity> _ignoredEntitiesBuffer;
+        private float _closestHitFraction;
 
         public CameraObstructionHitsCollector(
             Entity followedCharacter,
@@ -33,16 +43,22 @@ namespace Foxglove.Camera {
             _ignoredEntitiesBuffer = ignoredEntitiesBuffer;
         }
 
+        /// <summary>
+        /// This method is defined in the ICollector interface,
+        /// and provides an opportunity to filtering results from Collider Cast physics queries.
+        /// </summary>
         public bool AddHit(ColliderCastHit hit) {
             // Ignore collisions with the followed character
             if (_followedCharacter == hit.Entity) return false;
 
-            if (math.dot(hit.SurfaceNormal, _cameraDirection) < 0f // If the camera is looking towards the object
-                || !PhysicsUtilities.IsCollidable(hit.Material)) // Or the object isn't collidable
-                return false; // ignore the collision
+            // If the camera is looking towards the object
+            bool lookingAtHit = math.dot(_cameraDirection, hit.SurfaceNormal) < 0f;
+            bool isNotCollidable = !PhysicsUtilities.IsCollidable(hit.Material);
+
+            if (lookingAtHit || isNotCollidable) return false; // ignore the collision
 
             // discard collisions with ignored entities
-            for (var i = 0; i < _ignoredEntitiesBuffer.Length; i++) {
+            for (int i = 0; i < _ignoredEntitiesBuffer.Length; i++) {
                 if (_ignoredEntitiesBuffer[i].Entity == hit.Entity)
                     return false;
             }

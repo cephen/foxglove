@@ -1,6 +1,8 @@
 using Foxglove.Camera;
 using Foxglove.Character;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Input;
 using Unity.Burst;
 using Unity.CharacterController;
@@ -18,6 +20,7 @@ namespace Foxglove.Player {
     internal partial struct PlayerFixedStepControlSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<Tick>();
             state.RequireForUpdate<InputState>();
             state.RequireForUpdate<PlayerController>();
@@ -25,39 +28,42 @@ namespace Foxglove.Player {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             uint tick = SystemAPI.GetSingleton<Tick>().Value;
             var input = SystemAPI.GetSingleton<InputState>();
             var playerController = SystemAPI.GetSingleton<PlayerController>();
 
+
             if (playerController.ControlledCharacter == Entity.Null) {
-                Log.Error("[PlayerFixedStepControlSystem] - playerController.ControlledCharacter is null");
+                Log.Error("[PlayerFixedStepControlSystem] - character controlled by player  is null");
                 return;
             }
 
-            Entity controlledCharacter = playerController.ControlledCharacter;
+            Entity characterEntity = playerController.ControlledCharacter;
 
             if (playerController.ControlledCamera == Entity.Null) {
                 Log.Error("[PlayerFixedStepControlSystem] - playerController.ControlledCamera is null");
                 return;
             }
 
-            Entity controlledCamera = playerController.ControlledCamera;
+            Entity cameraEntity = playerController.ControlledCamera;
 
-            if (!SystemAPI.HasComponent<CharacterController>(controlledCharacter)) {
+            if (!SystemAPI.HasComponent<CharacterController>(characterEntity)) {
                 Log.Error("[PlayerFixedStepControlSystem] - controlledCharacter has no CharacterController component");
                 return;
             }
 
-            var control = SystemAPI.GetComponent<CharacterController>(controlledCharacter);
-
-            var transform = SystemAPI.GetComponent<LocalTransform>(controlledCharacter);
+            var control = SystemAPI.GetComponent<CharacterController>(characterEntity);
+            var transform = SystemAPI.GetComponent<LocalTransform>(characterEntity);
             float3 characterUp = MathUtilities.GetUpFromRotation(transform.Rotation);
 
             // player movement should be relative to camera rotation.
             quaternion cameraRotation = quaternion.identity;
 
-            if (SystemAPI.HasComponent<OrbitCamera>(controlledCamera)) {
-                var camera = SystemAPI.GetComponent<OrbitCamera>(controlledCamera);
+            if (SystemAPI.HasComponent<OrbitCamera>(cameraEntity)) {
+                var camera = SystemAPI.GetComponent<OrbitCamera>(cameraEntity);
                 cameraRotation = OrbitCameraUtilities.CalculateCameraRotation(
                     characterUp,
                     camera.PlanarForward,
@@ -81,7 +87,7 @@ namespace Foxglove.Player {
             // Jump
             control.Jump = input.Jump.IsSet(tick);
 
-            SystemAPI.SetComponent(controlledCharacter, control);
+            SystemAPI.SetComponent(characterEntity, control);
         }
 
         public void OnDestroy(ref SystemState state) { }

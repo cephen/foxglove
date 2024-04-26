@@ -1,12 +1,12 @@
+using Foxglove.Gameplay;
 using SideFX.Events;
 using SideFX.SceneManagement;
 using SideFX.SceneManagement.Events;
 using Unity.Logging;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Foxglove {
+namespace Foxglove.Interface {
     [RequireComponent(typeof(UIDocument))]
     internal sealed class MainMenuController : MonoBehaviour {
         [SerializeField] private GameplayScene _gameplayScene;
@@ -41,16 +41,7 @@ namespace Foxglove {
             _exitButton.clicked -= OnExitClicked;
         }
 
-        private void OnPlayClicked() {
-            EventBus<LoadRequest>.Raise(new LoadRequest(_gameplayScene));
-        }
-
-        private static void OnExitClicked() {
-#if UNITY_EDITOR
-            EditorApplication.ExitPlaymode();
-#else
-            Application.Quit();
-#endif
-        }
+        private void OnPlayClicked() => EventBus<LoadRequest>.Raise(new LoadRequest(_gameplayScene));
+        private static void OnExitClicked() => EventBus<Shutdown>.Raise(new Shutdown());
     }
 }

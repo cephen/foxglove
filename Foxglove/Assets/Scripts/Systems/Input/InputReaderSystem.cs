@@ -53,15 +53,15 @@ namespace Foxglove.Input {
 
             uint tick = SystemAPI.GetSingleton<Tick>().Value;
 
-            if (_actions.Gameplay.Interact.IsPressed()) input.Interact.Set(tick);
-            if (_actions.Gameplay.Sword.IsPressed()) input.Sword.Set(tick);
-            if (_actions.Gameplay.Jump.IsPressed()) input.Jump.Set(tick);
-            if (_actions.Gameplay.Flask.IsPressed()) input.Flask.Set(tick);
-            if (_actions.Gameplay.Spell1.IsPressed()) input.Spell1.Set(tick);
-            if (_actions.Gameplay.Spell2.IsPressed()) input.Spell2.Set(tick);
-            if (_actions.Gameplay.Spell3.IsPressed()) input.Spell3.Set(tick);
-            if (_actions.Gameplay.Spell4.IsPressed()) input.Spell4.Set(tick);
-            if (_actions.Gameplay.Pause.IsPressed()) input.Pause.Set(tick);
+            if (_actions.Gameplay.Interact.WasPressedThisFrame()) input.Interact.Set(tick);
+            if (_actions.Gameplay.Sword.WasPressedThisFrame()) input.Sword.Set(tick);
+            if (_actions.Gameplay.Jump.WasPressedThisFrame()) input.Jump.Set(tick);
+            if (_actions.Gameplay.Flask.WasPressedThisFrame()) input.Flask.Set(tick);
+            if (_actions.Gameplay.Spell1.WasPressedThisFrame()) input.Spell1.Set(tick);
+            if (_actions.Gameplay.Spell2.WasPressedThisFrame()) input.Spell2.Set(tick);
+            if (_actions.Gameplay.Spell3.WasPressedThisFrame()) input.Spell3.Set(tick);
+            if (_actions.Gameplay.Spell4.WasPressedThisFrame()) input.Spell4.Set(tick);
+            if (_actions.Gameplay.Pause.WasPressedThisFrame()) input.Pause.Set(tick);
         }
     }
 }

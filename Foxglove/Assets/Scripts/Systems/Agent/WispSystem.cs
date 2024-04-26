@@ -1,13 +1,14 @@
 using System;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Unity.Burst;
 using Unity.Entities;
 using Random = Unity.Mathematics.Random;
 
 namespace Foxglove.Agent {
     /// <summary>
-    /// This system is responsible for scheduling behaviour updates for wisps.
-    /// The system itself aggregates data and copies it into a <see cref="WispStateMachineJob" /> that runs on a worker thread
+    /// The system configures and schedules a <see cref="WispStateMachineJob" /> that manages each wisp's state
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(AgentSimulationGroup))]
@@ -16,6 +17,7 @@ namespace Foxglove.Agent {
 
         public void OnCreate(ref SystemState state) {
             _rng = new Random((uint)DateTimeOffset.UtcNow.GetHashCode());
+            state.RequireForUpdate<State<GameState>>();
             state.RequireForUpdate<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<Blackboard>();
             state.RequireForUpdate<Tick>();
@@ -25,10 +27,14 @@ namespace Foxglove.Agent {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             // Command buffers are used to schedule structural changes on entities
             // This includes adding/removing/enabling/disabling components
             EntityCommandBuffer commands = SystemAPI
-                // Commands written to this buffer will be played back after all systems in the fixed update group have finished updating
+                // Commands written to this buffer will be played back
+                // after all systems in the fixed update group have finished updating
                 .GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 

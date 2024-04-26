@@ -7,12 +7,14 @@ namespace Foxglove.Agent {
     /// Only one of these exists at runtime, so it can be fetched and modified like a singleton
     /// </summary>
     public struct Blackboard : IComponentData {
+        /// <summary>
+        /// The entity representing the player character
+        /// </summary>
         public Entity PlayerEntity;
-        public float3 PlayerPosition;
 
-        public static Blackboard Default() => new() {
-            PlayerEntity = Entity.Null,
-            PlayerPosition = float3.zero,
-        };
+        /// <summary>
+        /// The worldspace position of the player
+        /// </summary>
+        public float3 PlayerPosition;
     }
 }

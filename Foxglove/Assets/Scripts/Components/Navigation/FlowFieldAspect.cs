@@ -7,6 +7,9 @@ namespace Foxglove.Navigation {
     /// <summary>
     /// Aspects are used to query the ECS world for entities with a given set of components.
     /// They can additionally define methods that need to be shared across systems.
+    /// ---
+    /// An individual entity may have many aspects, and aspects are not mutually exclusive.
+    /// Conceptually, each aspect represents a view into a subset any given entities components.
     /// </summary>
     [BurstCompile]
     public readonly partial struct FlowFieldAspect : IAspect {
@@ -47,7 +50,7 @@ namespace Foxglove.Navigation {
             int2 newDestination = WorldToField(worldPosition);
 
             if (FlowField.ValueRO.Destination.Equals(newDestination)) return;
-            // If the destination has changed, recalculate the field
+            // // If the destination has changed, recalculate the field
             FlowField.ValueRW.Destination = WorldToField(worldPosition);
             RecalculateField.ValueRW = true;
         }

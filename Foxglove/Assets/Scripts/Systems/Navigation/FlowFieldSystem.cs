@@ -1,5 +1,7 @@
 using Foxglove.Agent;
 using Foxglove.Core;
+using Foxglove.Core.State;
+using Foxglove.Gameplay;
 using Foxglove.Player;
 using Unity.Burst;
 using Unity.Collections;
@@ -14,7 +16,7 @@ namespace Foxglove.Navigation {
     /// This system manages a flow field that Wisps use to navigate towards the player
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(BlackboardUpdateGroup))]
+    [UpdateInGroup(typeof(CheckpointUpdateGroup))]
     internal partial struct FlowFieldSystem : ISystem {
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
@@ -23,6 +25,7 @@ namespace Foxglove.Navigation {
                 SystemAPI.QueryBuilder().WithAll<LocalToWorld>().WithAny<PlayerCharacterTag, Wisp>().Build()
             );
             state.RequireForUpdate<Blackboard>();
+            state.RequireForUpdate<State<GameState>>();
 
             if (SystemAPI.HasSingleton<WispFlowField>()) return;
 
@@ -34,11 +37,11 @@ namespace Foxglove.Navigation {
             state.EntityManager.AddBuffer<FlowFieldSample>(fieldEntity);
         }
 
-        // Unused function but required by ISystem interface
-        public void OnDestroy(ref SystemState state) { }
-
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             // Calculate field bounds in WorldSpace grid coordinates
             var southWestCorner = new int2(int.MaxValue);
             var northEastCorner = new int2(int.MinValue);
@@ -94,7 +97,7 @@ namespace Foxglove.Navigation {
             /// can be assumed to travel to the neighbour it was discovered from
             /// </summary>
             [BurstCompile]
-            public readonly void Execute(FlowFieldAspect aspect) {
+            private readonly void Execute(FlowFieldAspect aspect) {
                 DynamicBuffer<FlowFieldSample> flowBuffer = aspect.Samples;
                 FlowField field = aspect.FlowField.ValueRO;
                 int cellCount = field.FieldSize.x * field.FieldSize.y;
@@ -112,7 +115,7 @@ namespace Foxglove.Navigation {
                 while (!uncheckedCells.IsEmpty()) {
                     int2 current = uncheckedCells.Dequeue();
 
-                    var lowestNeighbourCost = int.MaxValue;
+                    int lowestNeighbourCost = int.MaxValue;
                     int2 neighbourToFlowTo = int2.zero;
 
                     // For each potential neighbour of the current cell

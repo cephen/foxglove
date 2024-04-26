@@ -5,7 +5,7 @@ using Unity.Physics;
 
 namespace Foxglove.Character {
     // Aspects are used to query the ECS world for entities with a given set of components.
-    // implementing IKinematicCharacterProcessor on this aspect allows the aspect to process physics updates for any entity with the required components
+    // implementing IKinematicCharacterProcessor on this aspect allows the aspect to process physics updates for characters
     public readonly partial struct CharacterAspect : IAspect,
         IKinematicCharacterProcessor<FoxgloveCharacterUpdateContext> {
         // having another aspect as a field means components from that aspect are required to satisfy this aspect.
@@ -29,7 +29,7 @@ namespace Foxglove.Character {
             ref KinematicCharacterBody characterBody = ref KinematicCharacter.CharacterBody.ValueRW;
             ref float3 characterPosition = ref KinematicCharacter.LocalTransform.ValueRW.Position;
 
-#region First phase of default character update
+#region First phase of physics update
 
             KinematicCharacter.Update_Initialize(
                 in this,
@@ -56,7 +56,8 @@ namespace Foxglove.Character {
 
 #endregion
 
-            // Update desired character velocity after grounding was detected, but before doing additional processing that depends on velocity
+            // Update desired character velocity after grounding was detected
+            // but before doing additional processing that depends on velocity
             HandleVelocityControl(ref foxgloveContext, ref physicsContext);
 
 #region Second phase of default character update
@@ -199,14 +200,13 @@ namespace Foxglove.Character {
 
             // Cancel air acceleration from input if character would hit a non-grounded surface
             // (prevents air-climbing slopes/walls)
-            if (
-                characterSettings.PreventAirAccelerationAgainstUngroundedHits
+            if (characterSettings.PreventAirAccelerationAgainstUngroundedHits
                 && KinematicCharacter.MovementWouldHitNonGroundedObstruction( // d(*-* ')b
-                    in this,
+                    in this, // Kinematic Character Processor
                     ref foxgloveContext,
                     ref kinematicContext,
                     characterBody.RelativeVelocity * deltaTime,
-                    out _ // hit isn't used so discard it
+                    out ColliderCastHit _ // hit isn't used so discard it
                 )
             ) characterBody.RelativeVelocity = tmpVelocity;
         }
@@ -228,7 +228,7 @@ namespace Foxglove.Character {
             // Thanks, Unity
             KinematicCharacterUtilities.AddVariableRateRotationFromFixedRateRotation(
                 ref characterRotation, // Rotation to modify
-                characterBody.RotationFromParent, // Modification amount
+                characterBody.RotationFromParent, // Rotation amount
                 kinematicContext.Time.DeltaTime,
                 characterBody.LastPhysicsUpdateDeltaTime // time since last physics update
             );

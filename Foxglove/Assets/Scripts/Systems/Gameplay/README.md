@@ -6,17 +6,34 @@ Systems in this assembly implement the game loop of foxglove
 
 ```mermaid
 stateDiagram-v2
-direction TB
-    [*] --> Startup
-    Startup --> WaitForMap : Send BuildMapEvent
-    WaitForMap --> MapReady : Received MapReadyEvent
-    MapReady --> Playing
-    Playing --> Paused
-    Paused --> Playing
-    Playing --> GameOver : Player Dies
-    Playing --> NextLevel : Player uses teleporter
-    NextLevel --> WaitForMap
-    state MapReady {
-        SpawnPlayer --> EnableMobSpawners
+    direction TB
+    [*] --> MainMenu : Initialize
+    MainMenu --> CreateGame: Start Game Button Pressed
+
+    state CreateGame {
+        [*] --> GenerateMap : [Send] Build Map Request
+        GenerateMap --> SpawnPlayer : [Receive] Map Ready event
+        SpawnPlayer --> EnableCombatDirector
+        EnableCombatDirector --> [*]
     }
+
+    CreateGame --> MainGameLoop : [Send] Game Ready Event
+
+    state MainGameLoop {
+        direction LR
+        [*] --> Playing
+        Playing --> Paused
+        Paused --> Playing
+        Playing --> LevelComplete : Teleporter Used
+        BuildNextLevel --> Playing : [Receive] Map Ready event
+        LevelComplete --> BuildNextLevel : Player Clicks continue\n[Send] Build Map Request
+        Playing --> [*] : [Receive] Player Died event
+        Paused --> [*] : Quit game
+        LevelComplete --> [*] : Quit Game
+
+    }
+
+    MainGameLoop --> MainMenu
+    MainMenu --> [*] : Shut down
+
 ```

@@ -14,20 +14,20 @@ namespace Foxglove.Maps.Jobs {
         internal NativeArray<Edge>.ReadOnly Hallways;
         internal NativeArray<Room>.ReadOnly Rooms;
 
-        internal NativeArray<MapCell> Results;
+        internal NativeArray<MapTile> Results;
 
         public void Execute(int i) {
             int2 cellCoord = Config.CoordsFromIndex(i);
-            var cellType = CellType.None;
+            var cellType = TileType.None;
 
             foreach (Edge edge in Hallways) {
                 if (!EdgeIntersectsCell(edge, cellCoord)) continue;
-                cellType = CellType.Hallway;
+                cellType = TileType.Hallway;
             }
 
             foreach (Room room in Rooms) {
                 if (!CellIsInRoom(room, cellCoord)) continue;
-                cellType = CellType.Room;
+                cellType = TileType.Room;
             }
 
             Results[i] = cellType;
@@ -37,7 +37,7 @@ namespace Foxglove.Maps.Jobs {
             var hallway = new LineSegment(edge.A, edge.B);
 
             NativeArray<LineSegment> borders = GetBorders(cellCoordinate);
-            var intersects = false;
+            bool intersects = false;
 
             foreach (LineSegment border in borders) {
                 if (hallway.Intersects(border)) {

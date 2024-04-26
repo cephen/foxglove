@@ -1,23 +1,19 @@
 namespace Foxglove.Input {
     /// <summary>
-    /// Systems running on worker threads may span multiple frames,
-    /// this struct is used to work around frame rate dependency issues
+    /// Button-like inputs are tracked on a fixed tick basis,
+    /// but systems that query input state sometimes run every frame.
+    /// This systems allow a button press to last for multiple frames
+    /// (or, in the event that rendering is slow, ensure that at least one frame receives button inputs)
     /// </summary>
     public struct FixedInputEvent {
-        private byte _wasEverSet;
+        private bool _wasEverSet;
         private uint _lastSetTick;
 
         public void Set(uint tick) {
             _lastSetTick = tick;
-            _wasEverSet = 1;
+            _wasEverSet = true;
         }
 
-        public readonly bool IsSet(uint tick) {
-            if (_wasEverSet == 1) return tick == _lastSetTick;
-
-            return false;
-        }
-
-        public readonly uint TicksSinceLastSet(in uint tick) => tick - _lastSetTick;
+        public readonly bool IsSet(uint tick) => _wasEverSet && tick == _lastSetTick;
     }
 }

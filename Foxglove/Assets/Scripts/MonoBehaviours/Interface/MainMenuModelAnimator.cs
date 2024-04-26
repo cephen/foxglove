@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Foxglove {
+namespace Foxglove.Interface {
     internal sealed class MainMenuModelAnimator : MonoBehaviour {
         public float BounceFrequency = 0.5f;
         public float BounceAmplitude = 0.5f;

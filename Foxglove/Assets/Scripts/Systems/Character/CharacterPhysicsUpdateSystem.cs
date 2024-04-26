@@ -1,4 +1,6 @@
-﻿using Unity.Burst;
+﻿using Foxglove.Core.State;
+using Foxglove.Gameplay;
+using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.CharacterController;
 using Unity.Entities;
@@ -30,10 +32,14 @@ namespace Foxglove.Character {
 
             state.RequireForUpdate(_characterQuery);
             state.RequireForUpdate<PhysicsWorldSingleton>();
+            state.RequireForUpdate<State<GameState>>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            // Only run in playing state
+            if (SystemAPI.GetSingleton<State<GameState>>().Current is not GameState.Playing) return;
+
             _foxgloveContext.OnSystemUpdate(ref state);
             _physicsContext.OnSystemUpdate(ref state, SystemAPI.Time, SystemAPI.GetSingleton<PhysicsWorldSingleton>());
 

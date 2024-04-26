@@ -200,6 +200,7 @@ MonoBehaviour:
   OrbitCamera: {fileID: 7568817337597995144, guid: 492a184cc1501fe4da86d69b5eddc366, type: 3}
   PlayerPrefab: {fileID: 1692896102597148395, guid: 5fbcc801dea8fd640a004697d22ed448, type: 3}
   WispPrefab: {fileID: 8872793339225300403, guid: 449d9c9e8b2f8b2469615f7ba27249ee, type: 3}
+  TeleporterPrefab: {fileID: 5063998736231937163, guid: 1e1d22884679ba9419888026cb08f0da, type: 3}
 --- !u!4 &795965454
 Transform:
   m_ObjectHideFlags: 0

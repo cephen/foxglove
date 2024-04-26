@@ -8,10 +8,10 @@ namespace Foxglove.Authoring.Camera {
     /// when instantiated this component is converted to a <see cref="CameraTarget" />
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class CameraTargetAuthoring : MonoBehaviour {
+    internal sealed class CameraTargetAuthoring : MonoBehaviour {
         public GameObject Target;
 
-        public sealed class Baker : Baker<CameraTargetAuthoring> {
+        private sealed class Baker : Baker<CameraTargetAuthoring> {
             public override void Bake(CameraTargetAuthoring authoring) {
                 // The camera target can move at runtime so a dynamic transform is needed.
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic);

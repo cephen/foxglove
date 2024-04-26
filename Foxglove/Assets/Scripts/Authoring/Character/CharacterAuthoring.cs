@@ -10,7 +10,7 @@ namespace Foxglove.Authoring.Character {
     /// Authoring component for configuring a character via the inspector.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class CharacterAuthoring : MonoBehaviour {
+    internal sealed class CharacterAuthoring : MonoBehaviour {
         public float RotationSharpness = 25f;
         public float GroundMaxSpeed = 10f;
         public float GroundedMovementSharpness = 15f;
@@ -30,7 +30,7 @@ namespace Foxglove.Authoring.Character {
         public BasicStepAndSlopeHandlingParameters StepAndSlopeHandling =
             BasicStepAndSlopeHandlingParameters.GetDefault();
 
-        public sealed class Baker : Baker<CharacterAuthoring> {
+        private sealed class Baker : Baker<CharacterAuthoring> {
             public override void Bake(CharacterAuthoring authoring) {
                 KinematicCharacterUtilities.BakeCharacter(this, authoring, authoring.CharacterProperties);
 

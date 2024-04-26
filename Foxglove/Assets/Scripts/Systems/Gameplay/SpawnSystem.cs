@@ -1,6 +1,7 @@
 ﻿using System;
 using Foxglove.Camera;
 using Foxglove.Character;
+using Foxglove.Maps;
 using Foxglove.Player;
 using SideFX.Events;
 using Unity.Collections;
@@ -9,46 +10,56 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Foxglove.Gameplay {
-    internal sealed partial class CharacterSpawnSystem : SystemBase {
-        private NativeQueue<SpawnCharacterEvent> _spawnQueue;
-        private EventBinding<SpawnCharacterEvent> _spawnBinding;
+    /// <summary>
+    /// Spawns entities from prefabs.
+    /// </summary>
+    internal sealed partial class SpawnSystem : SystemBase {
+        private NativeQueue<SpawnRequest> _spawnQueue;
+        private EventBinding<SpawnRequest> _spawnBinding;
 
         protected override void OnCreate() {
             // Dependencies
             RequireForUpdate<SpawnablePrefabs>();
-            RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
+            RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
 
-            _spawnBinding = new EventBinding<SpawnCharacterEvent>(OnSpawnCharacter);
-            EventBus<SpawnCharacterEvent>.Register(_spawnBinding);
-            _spawnQueue = new NativeQueue<SpawnCharacterEvent>(Allocator.Persistent);
+            _spawnQueue = new NativeQueue<SpawnRequest>(Allocator.Persistent);
+
+            _spawnBinding = new EventBinding<SpawnRequest>(OnSpawnCharacter);
+            EventBus<SpawnRequest>.Register(_spawnBinding);
         }
 
         protected override void OnDestroy() {
-            EventBus<SpawnCharacterEvent>.Deregister(_spawnBinding);
+            EventBus<SpawnRequest>.Deregister(_spawnBinding);
             _spawnQueue.Dispose();
         }
 
-        private void OnSpawnCharacter(SpawnCharacterEvent e) => _spawnQueue.Enqueue(e);
+        private void OnSpawnCharacter(SpawnRequest e) => _spawnQueue.Enqueue(e);
 
         protected override void OnUpdate() {
             if (_spawnQueue.Count == 0) return;
 
             EntityCommandBuffer commands = SystemAPI
-                .GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+                .GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(World.Unmanaged);
 
             var prefabs = SystemAPI.GetSingleton<SpawnablePrefabs>();
 
             while (_spawnQueue.Count > 0) {
-                SpawnCharacterEvent e = _spawnQueue.Dequeue();
+                SpawnRequest e = _spawnQueue.Dequeue();
 
-                switch (e.Character) {
-                    case SpawnableCharacter.Player:
+                switch (e.Spawnable) {
+                    case Spawnable.Player:
                         SpawnPlayer(commands, e.Position);
                         continue;
-                    case SpawnableCharacter.Wisp:
-                        Entity wisp = commands.Instantiate(prefabs.WispPrefab);
+                    case Spawnable.Wisp:
+                        Entity wisp = commands.Instantiate(prefabs.Wisp);
                         commands.SetComponent(wisp, LocalTransform.FromPosition(e.Position));
+                        continue;
+                    case Spawnable.Teleporter:
+                        Entity mapRoot = SystemAPI.GetSingletonEntity<Map>();
+                        Entity teleporter = commands.Instantiate(prefabs.Teleporter);
+                        commands.AddComponent(teleporter, new Parent { Value = mapRoot });
+                        commands.SetComponent(teleporter, LocalTransform.FromPosition(e.Position));
                         continue;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -59,7 +70,7 @@ namespace Foxglove.Gameplay {
         private void SpawnPlayer(EntityCommandBuffer commands, float3 position) {
             var prefabStore = SystemAPI.GetSingleton<SpawnablePrefabs>();
 
-            Entity player = commands.Instantiate(prefabStore.PlayerPrefab);
+            Entity player = commands.Instantiate(prefabStore.Player);
             commands.SetComponent(player, LocalTransform.FromPosition(position));
 
             Entity camera = SystemAPI.HasSingleton<MainCameraTag>()
